@@ -28,7 +28,7 @@ const Navbar = () => {
           </a>
           <Link to="/dashboard">
             <Button variant="default" size="sm">
-              Entrar
+              Login
             </Button>
           </Link>
         </div>
@@ -62,7 +62,7 @@ const Navbar = () => {
           </a>
           <Link to="/dashboard" onClick={() => setMobileOpen(false)}>
             <Button variant="default" size="sm" className="w-full">
-              Entrar
+              Login
             </Button>
           </Link>
         </div>
