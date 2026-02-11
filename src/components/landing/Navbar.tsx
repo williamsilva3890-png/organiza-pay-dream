@@ -26,7 +26,7 @@ const Navbar = () => {
           <a href="#planos" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
             Planos
           </a>
-          <Link to="/dashboard">
+          <Link to="/login">
             <Button variant="default" size="sm">
               Login
             </Button>
@@ -60,7 +60,7 @@ const Navbar = () => {
           >
             Planos
           </a>
-          <Link to="/dashboard" onClick={() => setMobileOpen(false)}>
+          <Link to="/login" onClick={() => setMobileOpen(false)}>
             <Button variant="default" size="sm" className="w-full">
               Login
             </Button>
