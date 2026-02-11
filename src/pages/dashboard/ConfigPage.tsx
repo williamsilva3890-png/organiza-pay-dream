@@ -2,8 +2,11 @@ import { Settings, User, Bell, Palette, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { motion } from "framer-motion";
+import { useTheme } from "@/components/ThemeProvider";
 
 const ConfigPage = () => {
+  const { theme, toggleTheme } = useTheme();
+
   return (
     <div className="space-y-6 max-w-2xl">
       <div>
@@ -41,6 +44,7 @@ const ConfigPage = () => {
           <div>
             <label className="text-sm font-medium mb-1 block">Tipo de perfil</label>
             <select className="w-full h-10 px-3 rounded-lg border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/30">
+              <option>Solteiro</option>
               <option>Pequeno Empreendedor</option>
               <option>Casal</option>
             </select>
@@ -89,7 +93,7 @@ const ConfigPage = () => {
         </div>
         <div className="flex items-center justify-between">
           <span className="text-sm">Modo escuro</span>
-          <Switch />
+          <Switch checked={theme === "dark"} onCheckedChange={toggleTheme} />
         </div>
       </motion.div>
 
