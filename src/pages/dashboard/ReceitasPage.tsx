@@ -1,46 +1,35 @@
 import { useState } from "react";
-import { ArrowUpCircle, Plus, X } from "lucide-react";
+import { ArrowUpCircle, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-
-interface Receita {
-  id: number;
-  description: string;
-  amount: number;
-  date: string;
-  category: string;
-}
-
-const initialReceitas: Receita[] = [
-  { id: 1, description: "Salário", amount: 5500, date: "01/02/2026", category: "Salário" },
-  { id: 2, description: "Freelance Design", amount: 2700, date: "10/02/2026", category: "Freelance" },
-  { id: 3, description: "Venda produto", amount: 1200, date: "15/02/2026", category: "Vendas" },
-  { id: 4, description: "Consultoria", amount: 800, date: "18/02/2026", category: "Serviços" },
-];
+import type { useFinanceData } from "@/hooks/useFinanceData";
 
 const categories = ["Salário", "Freelance", "Vendas", "Serviços", "Investimentos", "Outros"];
 
-const ReceitasPage = () => {
-  const [receitas, setReceitas] = useState<Receita[]>(initialReceitas);
+interface Props {
+  finance: ReturnType<typeof useFinanceData>;
+}
+
+const ReceitasPage = ({ finance }: Props) => {
+  const { receitas, totalReceitas, addReceita } = finance;
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState({ description: "", amount: "", date: "", category: "Salário" });
 
-  const total = receitas.reduce((sum, r) => sum + r.amount, 0);
-
-  const handleAdd = () => {
+  const handleAdd = async () => {
     if (!form.description || !form.amount || !form.date) return;
-    const newReceita: Receita = {
-      id: Date.now(),
+    await addReceita({
       description: form.description,
       amount: parseFloat(form.amount),
       date: form.date,
       category: form.category,
-    };
-    setReceitas([newReceita, ...receitas]);
+    });
     setForm({ description: "", amount: "", date: "", category: "Salário" });
     setOpen(false);
   };
+
+  const inputClass = "w-full h-10 px-3 rounded-lg border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/30";
+  const fmt = (v: number) => `R$ ${v.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`;
 
   return (
     <div className="space-y-6">
@@ -51,31 +40,26 @@ const ReceitasPage = () => {
         </div>
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
-            <Button variant="default" className="gap-2">
-              <Plus className="w-4 h-4" />
-              Nova receita
-            </Button>
+            <Button variant="default" className="gap-2"><Plus className="w-4 h-4" />Nova receita</Button>
           </DialogTrigger>
           <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Nova receita</DialogTitle>
-            </DialogHeader>
+            <DialogHeader><DialogTitle>Nova receita</DialogTitle></DialogHeader>
             <div className="space-y-4 pt-2">
               <div>
                 <label className="text-sm font-medium mb-1 block">Descrição</label>
-                <input value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className="w-full h-10 px-3 rounded-lg border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" placeholder="Ex: Salário mensal" />
+                <input value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className={inputClass} placeholder="Ex: Salário mensal" />
               </div>
               <div>
                 <label className="text-sm font-medium mb-1 block">Valor (R$)</label>
-                <input type="number" value={form.amount} onChange={(e) => setForm({ ...form, amount: e.target.value })} className="w-full h-10 px-3 rounded-lg border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" placeholder="0,00" />
+                <input type="number" value={form.amount} onChange={(e) => setForm({ ...form, amount: e.target.value })} className={inputClass} placeholder="0,00" />
               </div>
               <div>
                 <label className="text-sm font-medium mb-1 block">Data</label>
-                <input type="date" value={form.date} onChange={(e) => setForm({ ...form, date: e.target.value })} className="w-full h-10 px-3 rounded-lg border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" />
+                <input type="date" value={form.date} onChange={(e) => setForm({ ...form, date: e.target.value })} className={inputClass} />
               </div>
               <div>
                 <label className="text-sm font-medium mb-1 block">Categoria</label>
-                <select value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} className="w-full h-10 px-3 rounded-lg border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/30">
+                <select value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} className={inputClass}>
                   {categories.map((c) => <option key={c}>{c}</option>)}
                 </select>
               </div>
@@ -86,32 +70,31 @@ const ReceitasPage = () => {
       </div>
 
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="bg-card rounded-xl p-5 border border-border shadow-card">
-        <div className="flex items-center gap-3 mb-1">
+        <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-lg bg-success/10 flex items-center justify-center">
             <ArrowUpCircle className="w-5 h-5 text-success" />
           </div>
           <div>
-            <p className="text-sm text-muted-foreground">Total de receitas em Fev</p>
-            <p className="font-display font-bold text-2xl text-success">
-              R$ {total.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
-            </p>
+            <p className="text-sm text-muted-foreground">Total de receitas</p>
+            <p className="font-display font-bold text-2xl text-success">{fmt(totalReceitas)}</p>
           </div>
         </div>
       </motion.div>
 
       <div className="bg-card rounded-xl border border-border shadow-card overflow-hidden">
         <div className="grid grid-cols-[1fr_auto_auto_auto] gap-4 px-5 py-3 bg-muted/50 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-          <span>Descrição</span>
-          <span>Categoria</span>
-          <span>Data</span>
-          <span className="text-right">Valor</span>
+          <span>Descrição</span><span>Categoria</span><span>Data</span><span className="text-right">Valor</span>
         </div>
+        {receitas.length === 0 && (
+          <div className="px-5 py-8 text-center text-sm text-muted-foreground">Nenhuma receita cadastrada. Adicione sua primeira!</div>
+        )}
         {receitas.map((r, i) => (
-          <motion.div key={r.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.05 }} className="grid grid-cols-[1fr_auto_auto_auto] gap-4 px-5 py-3.5 border-t border-border items-center hover:bg-muted/30 transition-colors">
+          <motion.div key={r.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.05 }}
+            className="grid grid-cols-[1fr_auto_auto_auto] gap-4 px-5 py-3.5 border-t border-border items-center hover:bg-muted/30 transition-colors">
             <span className="text-sm font-medium">{r.description}</span>
             <span className="text-xs bg-success/10 text-success rounded-full px-2.5 py-1 font-medium">{r.category}</span>
-            <span className="text-sm text-muted-foreground">{r.date}</span>
-            <span className="text-sm font-semibold text-success text-right">+R$ {r.amount.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</span>
+            <span className="text-sm text-muted-foreground">{new Date(r.date).toLocaleDateString("pt-BR")}</span>
+            <span className="text-sm font-semibold text-success text-right">+{fmt(Number(r.amount))}</span>
           </motion.div>
         ))}
       </div>

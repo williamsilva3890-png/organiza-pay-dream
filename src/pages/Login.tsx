@@ -6,19 +6,44 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Eye, EyeOff } from "lucide-react";
 import { motion } from "framer-motion";
+import { useAuth } from "@/hooks/useAuth";
+import { toast } from "sonner";
 
 const Login = () => {
   const navigate = useNavigate();
+  const { signIn, signUp } = useAuth();
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isSignUp, setIsSignUp] = useState(false);
   const [nome, setNome] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Por enquanto, redireciona direto ao dashboard
-    navigate("/dashboard");
+    setLoading(true);
+
+    if (isSignUp) {
+      if (!nome.trim()) {
+        toast.error("Preencha seu nome");
+        setLoading(false);
+        return;
+      }
+      const { error } = await signUp(email, senha, nome);
+      if (error) {
+        toast.error(error.message === "User already registered" ? "Este email já está cadastrado" : error.message);
+      } else {
+        toast.success("Conta criada! Verifique seu email para confirmar o cadastro.");
+      }
+    } else {
+      const { error } = await signIn(email, senha);
+      if (error) {
+        toast.error(error.message === "Invalid login credentials" ? "Email ou senha incorretos" : error.message);
+      } else {
+        navigate("/dashboard");
+      }
+    }
+    setLoading(false);
   };
 
   return (
@@ -89,6 +114,7 @@ const Login = () => {
                     value={senha}
                     onChange={(e) => setSenha(e.target.value)}
                     required
+                    minLength={6}
                   />
                   <button
                     type="button"
@@ -100,19 +126,8 @@ const Login = () => {
                 </div>
               </div>
 
-              {!isSignUp && (
-                <div className="flex justify-end">
-                  <button
-                    type="button"
-                    className="text-xs text-primary hover:underline"
-                  >
-                    Esqueceu a senha?
-                  </button>
-                </div>
-              )}
-
-              <Button type="submit" className="w-full" size="lg">
-                {isSignUp ? "Criar conta" : "Entrar"}
+              <Button type="submit" className="w-full" size="lg" disabled={loading}>
+                {loading ? "Carregando..." : isSignUp ? "Criar conta" : "Login"}
               </Button>
             </form>
 
