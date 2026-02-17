@@ -1,11 +1,29 @@
-import { Settings, User, Bell, Palette, Shield } from "lucide-react";
+import { useState } from "react";
+import { User, Bell, Palette, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { motion } from "framer-motion";
 import { useTheme } from "@/components/ThemeProvider";
+import { useAuth } from "@/hooks/useAuth";
+import { toast } from "sonner";
+import type { useFinanceData } from "@/hooks/useFinanceData";
 
-const ConfigPage = () => {
+interface Props {
+  finance: ReturnType<typeof useFinanceData>;
+}
+
+const ConfigPage = ({ finance }: Props) => {
   const { theme, toggleTheme } = useTheme();
+  const { user } = useAuth();
+  const { profile, updateProfile } = finance;
+
+  const [name, setName] = useState(profile?.display_name || "");
+  const [profileType, setProfileType] = useState(profile?.profile_type || "solteiro");
+
+  const handleSave = async () => {
+    await updateProfile({ display_name: name, profile_type: profileType });
+    toast.success("Perfil atualizado!");
+  };
 
   return (
     <div className="space-y-6 max-w-2xl">
@@ -14,12 +32,7 @@ const ConfigPage = () => {
         <p className="text-sm text-muted-foreground">Personalize sua experiência no OrganizaPay</p>
       </div>
 
-      {/* Perfil */}
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="bg-card rounded-xl p-5 border border-border shadow-card"
-      >
+      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="bg-card rounded-xl p-5 border border-border shadow-card">
         <div className="flex items-center gap-2 mb-4">
           <User className="w-5 h-5 text-primary" />
           <h3 className="font-display font-bold text-base">Perfil</h3>
@@ -27,41 +40,28 @@ const ConfigPage = () => {
         <div className="space-y-4">
           <div>
             <label className="text-sm font-medium mb-1 block">Nome</label>
-            <input
-              type="text"
-              defaultValue="João Pedro"
-              className="w-full h-10 px-3 rounded-lg border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-            />
+            <input type="text" value={name} onChange={(e) => setName(e.target.value)}
+              className="w-full h-10 px-3 rounded-lg border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" />
           </div>
           <div>
             <label className="text-sm font-medium mb-1 block">Email</label>
-            <input
-              type="email"
-              defaultValue="joao@email.com"
-              className="w-full h-10 px-3 rounded-lg border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-            />
+            <input type="email" value={user?.email || ""} disabled
+              className="w-full h-10 px-3 rounded-lg border border-border bg-muted text-sm text-muted-foreground" />
           </div>
           <div>
             <label className="text-sm font-medium mb-1 block">Tipo de perfil</label>
-            <select className="w-full h-10 px-3 rounded-lg border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/30">
-              <option>Solteiro</option>
-              <option>Pequeno Empreendedor</option>
-              <option>Casal</option>
+            <select value={profileType} onChange={(e) => setProfileType(e.target.value)}
+              className="w-full h-10 px-3 rounded-lg border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/30">
+              <option value="solteiro">Solteiro</option>
+              <option value="empreendedor">Pequeno Empreendedor</option>
+              <option value="casal">Casal</option>
             </select>
           </div>
-          <Button variant="default" size="sm">
-            Salvar alterações
-          </Button>
+          <Button variant="default" size="sm" onClick={handleSave}>Salvar alterações</Button>
         </div>
       </motion.div>
 
-      {/* Notificações */}
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1 }}
-        className="bg-card rounded-xl p-5 border border-border shadow-card"
-      >
+      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="bg-card rounded-xl p-5 border border-border shadow-card">
         <div className="flex items-center gap-2 mb-4">
           <Bell className="w-5 h-5 text-primary" />
           <h3 className="font-display font-bold text-base">Notificações</h3>
@@ -80,13 +80,7 @@ const ConfigPage = () => {
         </div>
       </motion.div>
 
-      {/* Aparência */}
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.2 }}
-        className="bg-card rounded-xl p-5 border border-border shadow-card"
-      >
+      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="bg-card rounded-xl p-5 border border-border shadow-card">
         <div className="flex items-center gap-2 mb-4">
           <Palette className="w-5 h-5 text-primary" />
           <h3 className="font-display font-bold text-base">Aparência</h3>
@@ -97,24 +91,13 @@ const ConfigPage = () => {
         </div>
       </motion.div>
 
-      {/* Segurança */}
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.3 }}
-        className="bg-card rounded-xl p-5 border border-border shadow-card"
-      >
+      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="bg-card rounded-xl p-5 border border-border shadow-card">
         <div className="flex items-center gap-2 mb-4">
           <Shield className="w-5 h-5 text-primary" />
           <h3 className="font-display font-bold text-base">Segurança</h3>
         </div>
         <div className="space-y-3">
-          <Button variant="outline" size="sm">
-            Alterar senha
-          </Button>
-          <p className="text-xs text-muted-foreground">
-            Última alteração: há 30 dias
-          </p>
+          <Button variant="outline" size="sm">Alterar senha</Button>
         </div>
       </motion.div>
     </div>
