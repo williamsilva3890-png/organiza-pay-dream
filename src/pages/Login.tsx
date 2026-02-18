@@ -33,7 +33,8 @@ const Login = () => {
       if (error) {
         toast.error(error.message === "User already registered" ? "Este email já está cadastrado" : error.message);
       } else {
-        toast.success("Conta criada! Verifique seu email para confirmar o cadastro.");
+        toast.success("Conta criada com sucesso!");
+        navigate("/dashboard");
       }
     } else {
       const { error } = await signIn(email, senha);
