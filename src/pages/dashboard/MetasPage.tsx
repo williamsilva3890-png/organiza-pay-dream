@@ -1,21 +1,26 @@
 import { useState } from "react";
-import { Target, Plus } from "lucide-react";
+import { Target, Plus, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { motion } from "framer-motion";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import type { useFinanceData } from "@/hooks/useFinanceData";
+import { toast } from "sonner";
+import { useFinanceData, FREE_LIMITS } from "@/hooks/useFinanceData";
 
 interface Props {
   finance: ReturnType<typeof useFinanceData>;
 }
 
 const MetasPage = ({ finance }: Props) => {
-  const { metas, addMeta } = finance;
+  const { metas, addMeta, canAddMeta, isPremium } = finance;
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState({ title: "", target: "", deadline: "", description: "" });
 
   const handleAdd = async () => {
+    if (!canAddMeta) {
+      toast.error(`Limite do plano gratuito atingido (${FREE_LIMITS.metas} metas). Faça upgrade para Premium!`);
+      return;
+    }
     if (!form.title || !form.target || !form.deadline) return;
     await addMeta({
       title: form.title,
@@ -54,6 +59,13 @@ const MetasPage = ({ finance }: Props) => {
           </DialogContent>
         </Dialog>
       </div>
+
+      {!isPremium && (
+        <div className="flex items-center gap-2 text-xs text-muted-foreground bg-muted/50 rounded-lg px-4 py-2.5">
+          <Lock className="w-3.5 h-3.5" />
+          <span>Plano gratuito: {metas.length}/{FREE_LIMITS.metas} metas usadas</span>
+        </div>
+      )}
 
       {metas.length === 0 && (
         <div className="bg-card rounded-xl p-8 border border-border shadow-card text-center">

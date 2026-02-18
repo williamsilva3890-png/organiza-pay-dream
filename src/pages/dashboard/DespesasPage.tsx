@@ -1,9 +1,10 @@
 import { useState } from "react";
-import { ArrowDownCircle, Plus, CreditCard, ShoppingCart } from "lucide-react";
+import { ArrowDownCircle, Plus, CreditCard, ShoppingCart, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import type { useFinanceData } from "@/hooks/useFinanceData";
+import { toast } from "sonner";
+import { useFinanceData, FREE_LIMITS } from "@/hooks/useFinanceData";
 
 const categoryColors: Record<string, string> = {
   Moradia: "bg-[hsl(280_60%_55%)]/10 text-[hsl(280_60%_55%)]",
@@ -21,13 +22,17 @@ interface Props {
 }
 
 const DespesasPage = ({ finance }: Props) => {
-  const { gastos, dividas, totalGastos, totalDividas, totalDespesas, addDespesa } = finance;
+  const { gastos, dividas, totalGastos, totalDividas, totalDespesas, addDespesa, canAddDespesa, isPremium } = finance;
   const [openGasto, setOpenGasto] = useState(false);
   const [openDivida, setOpenDivida] = useState(false);
   const [formGasto, setFormGasto] = useState({ description: "", amount: "", date: "", category: "Moradia" });
   const [formDivida, setFormDivida] = useState({ description: "", amount: "", date: "", details: "" });
 
   const handleAddGasto = async () => {
+    if (!canAddDespesa) {
+      toast.error(`Limite do plano gratuito atingido (${FREE_LIMITS.despesas} despesas). Faça upgrade para Premium!`);
+      return;
+    }
     if (!formGasto.description || !formGasto.amount || !formGasto.date) return;
     await addDespesa({ description: formGasto.description, amount: parseFloat(formGasto.amount), date: formGasto.date, category: formGasto.category, type: "gasto" });
     setFormGasto({ description: "", amount: "", date: "", category: "Moradia" });
@@ -35,6 +40,10 @@ const DespesasPage = ({ finance }: Props) => {
   };
 
   const handleAddDivida = async () => {
+    if (!canAddDespesa) {
+      toast.error(`Limite do plano gratuito atingido (${FREE_LIMITS.despesas} despesas). Faça upgrade para Premium!`);
+      return;
+    }
     if (!formDivida.description || !formDivida.amount || !formDivida.date) return;
     await addDespesa({ description: formDivida.description, amount: parseFloat(formDivida.amount), date: formDivida.date, category: "Dívida", type: "divida", details: formDivida.details });
     setFormDivida({ description: "", amount: "", date: "", details: "" });
@@ -80,6 +89,13 @@ const DespesasPage = ({ finance }: Props) => {
           </Dialog>
         </div>
       </div>
+
+      {!isPremium && (
+        <div className="flex items-center gap-2 text-xs text-muted-foreground bg-muted/50 rounded-lg px-4 py-2.5">
+          <Lock className="w-3.5 h-3.5" />
+          <span>Plano gratuito: {gastos.length + dividas.length}/{FREE_LIMITS.despesas} despesas usadas</span>
+        </div>
+      )}
 
       <div className="grid sm:grid-cols-3 gap-4">
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="bg-card rounded-xl p-5 border border-border shadow-card">

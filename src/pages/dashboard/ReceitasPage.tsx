@@ -1,9 +1,10 @@
 import { useState } from "react";
-import { ArrowUpCircle, Plus } from "lucide-react";
+import { ArrowUpCircle, Plus, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import type { useFinanceData } from "@/hooks/useFinanceData";
+import { toast } from "sonner";
+import { useFinanceData, FREE_LIMITS } from "@/hooks/useFinanceData";
 
 const categories = ["Salário", "Freelance", "Vendas", "Serviços", "Investimentos", "Outros"];
 
@@ -12,11 +13,15 @@ interface Props {
 }
 
 const ReceitasPage = ({ finance }: Props) => {
-  const { receitas, totalReceitas, addReceita } = finance;
+  const { receitas, totalReceitas, addReceita, canAddReceita, isPremium } = finance;
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState({ description: "", amount: "", date: "", category: "Salário" });
 
   const handleAdd = async () => {
+    if (!canAddReceita) {
+      toast.error(`Limite do plano gratuito atingido (${FREE_LIMITS.receitas} receitas). Faça upgrade para Premium!`);
+      return;
+    }
     if (!form.description || !form.amount || !form.date) return;
     await addReceita({
       description: form.description,
@@ -68,6 +73,13 @@ const ReceitasPage = ({ finance }: Props) => {
           </DialogContent>
         </Dialog>
       </div>
+
+      {!isPremium && (
+        <div className="flex items-center gap-2 text-xs text-muted-foreground bg-muted/50 rounded-lg px-4 py-2.5">
+          <Lock className="w-3.5 h-3.5" />
+          <span>Plano gratuito: {receitas.length}/{FREE_LIMITS.receitas} receitas usadas</span>
+        </div>
+      )}
 
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="bg-card rounded-xl p-5 border border-border shadow-card">
         <div className="flex items-center gap-3">
