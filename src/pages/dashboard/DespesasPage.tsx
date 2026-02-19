@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ArrowDownCircle, Plus, CreditCard, ShoppingCart, Lock } from "lucide-react";
+import { ArrowDownCircle, Plus, CreditCard, ShoppingCart, Lock, Pencil, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -22,17 +22,17 @@ interface Props {
 }
 
 const DespesasPage = ({ finance }: Props) => {
-  const { gastos, dividas, totalGastos, totalDividas, totalDespesas, addDespesa, canAddDespesa, isPremium } = finance;
+  const { gastos, dividas, totalGastos, totalDividas, totalDespesas, addDespesa, updateDespesa, deleteDespesa, canAddDespesa, isPremium } = finance;
   const [openGasto, setOpenGasto] = useState(false);
   const [openDivida, setOpenDivida] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
+  const [editId, setEditId] = useState<string | null>(null);
+  const [editType, setEditType] = useState<"gasto" | "divida">("gasto");
   const [formGasto, setFormGasto] = useState({ description: "", amount: "", date: "", category: "Moradia" });
   const [formDivida, setFormDivida] = useState({ description: "", amount: "", date: "", details: "" });
 
   const handleAddGasto = async () => {
-    if (!canAddDespesa) {
-      toast.error(`Limite do plano gratuito atingido (${FREE_LIMITS.despesas} despesas). Faça upgrade para Premium!`);
-      return;
-    }
+    if (!canAddDespesa) { toast.error(`Limite do plano gratuito atingido (${FREE_LIMITS.despesas} despesas). Faça upgrade para Premium!`); return; }
     if (!formGasto.description || !formGasto.amount || !formGasto.date) return;
     await addDespesa({ description: formGasto.description, amount: parseFloat(formGasto.amount), date: formGasto.date, category: formGasto.category, type: "gasto" });
     setFormGasto({ description: "", amount: "", date: "", category: "Moradia" });
@@ -40,14 +40,44 @@ const DespesasPage = ({ finance }: Props) => {
   };
 
   const handleAddDivida = async () => {
-    if (!canAddDespesa) {
-      toast.error(`Limite do plano gratuito atingido (${FREE_LIMITS.despesas} despesas). Faça upgrade para Premium!`);
-      return;
-    }
+    if (!canAddDespesa) { toast.error(`Limite do plano gratuito atingido (${FREE_LIMITS.despesas} despesas). Faça upgrade para Premium!`); return; }
     if (!formDivida.description || !formDivida.amount || !formDivida.date) return;
     await addDespesa({ description: formDivida.description, amount: parseFloat(formDivida.amount), date: formDivida.date, category: "Dívida", type: "divida", details: formDivida.details });
     setFormDivida({ description: "", amount: "", date: "", details: "" });
     setOpenDivida(false);
+  };
+
+  const startEditGasto = (d: any) => {
+    setEditId(d.id);
+    setEditType("gasto");
+    setFormGasto({ description: d.description, amount: String(d.amount), date: d.date, category: d.category });
+    setEditOpen(true);
+  };
+
+  const startEditDivida = (d: any) => {
+    setEditId(d.id);
+    setEditType("divida");
+    setFormDivida({ description: d.description, amount: String(d.amount), date: d.date, details: d.details || "" });
+    setEditOpen(true);
+  };
+
+  const handleEdit = async () => {
+    if (!editId) return;
+    if (editType === "gasto") {
+      if (!formGasto.description || !formGasto.amount || !formGasto.date) return;
+      await updateDespesa(editId, { description: formGasto.description, amount: parseFloat(formGasto.amount), date: formGasto.date, category: formGasto.category });
+    } else {
+      if (!formDivida.description || !formDivida.amount || !formDivida.date) return;
+      await updateDespesa(editId, { description: formDivida.description, amount: parseFloat(formDivida.amount), date: formDivida.date, details: formDivida.details });
+    }
+    setEditOpen(false);
+    setEditId(null);
+    toast.success("Despesa atualizada!");
+  };
+
+  const handleDelete = async (id: string) => {
+    await deleteDespesa(id);
+    toast.success("Despesa removida!");
   };
 
   const inputClass = "w-full h-10 px-3 rounded-lg border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/30";
@@ -118,43 +148,77 @@ const DespesasPage = ({ finance }: Props) => {
         </motion.div>
       </div>
 
+      {/* Gastos list */}
       <div>
         <h2 className="font-display font-bold text-lg mb-3 flex items-center gap-2"><ShoppingCart className="w-5 h-5 text-warning" /> Gastos</h2>
         <div className="bg-card rounded-xl border border-border shadow-card overflow-hidden">
-          <div className="grid grid-cols-[1fr_auto_auto_auto] gap-4 px-5 py-3 bg-muted/50 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-            <span>Descrição</span><span>Categoria</span><span>Data</span><span className="text-right">Valor</span>
+          <div className="grid grid-cols-[1fr_auto_auto_auto_auto] gap-4 px-5 py-3 bg-muted/50 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+            <span>Descrição</span><span>Categoria</span><span>Data</span><span className="text-right">Valor</span><span></span>
           </div>
           {gastos.length === 0 && <div className="px-5 py-8 text-center text-sm text-muted-foreground">Nenhum gasto cadastrado</div>}
           {gastos.map((d, i) => (
             <motion.div key={d.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.05 }}
-              className="grid grid-cols-[1fr_auto_auto_auto] gap-4 px-5 py-3.5 border-t border-border items-center hover:bg-muted/30 transition-colors">
+              className="grid grid-cols-[1fr_auto_auto_auto_auto] gap-4 px-5 py-3.5 border-t border-border items-center hover:bg-muted/30 transition-colors">
               <span className="text-sm font-medium">{d.description}</span>
               <span className={`text-xs rounded-full px-2.5 py-1 font-medium ${categoryColors[d.category] || "bg-muted text-muted-foreground"}`}>{d.category}</span>
               <span className="text-sm text-muted-foreground">{new Date(d.date).toLocaleDateString("pt-BR")}</span>
               <span className="text-sm font-semibold text-destructive text-right">-{fmt(Number(d.amount))}</span>
+              <div className="flex gap-1">
+                <button onClick={() => startEditGasto(d)} className="p-1.5 rounded-md hover:bg-muted transition-colors"><Pencil className="w-3.5 h-3.5 text-muted-foreground" /></button>
+                <button onClick={() => handleDelete(d.id)} className="p-1.5 rounded-md hover:bg-destructive/10 transition-colors"><Trash2 className="w-3.5 h-3.5 text-destructive" /></button>
+              </div>
             </motion.div>
           ))}
         </div>
       </div>
 
+      {/* Dívidas list */}
       <div>
         <h2 className="font-display font-bold text-lg mb-3 flex items-center gap-2"><CreditCard className="w-5 h-5 text-destructive" /> Dívidas</h2>
         <div className="bg-card rounded-xl border border-border shadow-card overflow-hidden">
-          <div className="grid grid-cols-[1fr_auto_auto_auto] gap-4 px-5 py-3 bg-muted/50 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-            <span>Descrição</span><span>Detalhes</span><span>Vencimento</span><span className="text-right">Valor</span>
+          <div className="grid grid-cols-[1fr_auto_auto_auto_auto] gap-4 px-5 py-3 bg-muted/50 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+            <span>Descrição</span><span>Detalhes</span><span>Vencimento</span><span className="text-right">Valor</span><span></span>
           </div>
           {dividas.length === 0 && <div className="px-5 py-8 text-center text-sm text-muted-foreground">Nenhuma dívida cadastrada</div>}
           {dividas.map((d, i) => (
             <motion.div key={d.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.05 }}
-              className="grid grid-cols-[1fr_auto_auto_auto] gap-4 px-5 py-3.5 border-t border-border items-center hover:bg-muted/30 transition-colors">
+              className="grid grid-cols-[1fr_auto_auto_auto_auto] gap-4 px-5 py-3.5 border-t border-border items-center hover:bg-muted/30 transition-colors">
               <span className="text-sm font-medium">{d.description}</span>
               <span className="text-xs bg-destructive/10 text-destructive rounded-full px-2.5 py-1 font-medium">{d.details || "—"}</span>
               <span className="text-sm text-muted-foreground">{new Date(d.date).toLocaleDateString("pt-BR")}</span>
               <span className="text-sm font-semibold text-destructive text-right">-{fmt(Number(d.amount))}</span>
+              <div className="flex gap-1">
+                <button onClick={() => startEditDivida(d)} className="p-1.5 rounded-md hover:bg-muted transition-colors"><Pencil className="w-3.5 h-3.5 text-muted-foreground" /></button>
+                <button onClick={() => handleDelete(d.id)} className="p-1.5 rounded-md hover:bg-destructive/10 transition-colors"><Trash2 className="w-3.5 h-3.5 text-destructive" /></button>
+              </div>
             </motion.div>
           ))}
         </div>
       </div>
+
+      {/* Edit dialog */}
+      <Dialog open={editOpen} onOpenChange={setEditOpen}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Editar {editType === "gasto" ? "gasto" : "dívida"}</DialogTitle></DialogHeader>
+          {editType === "gasto" ? (
+            <div className="space-y-4 pt-2">
+              <div><label className="text-sm font-medium mb-1 block">Descrição</label><input value={formGasto.description} onChange={(e) => setFormGasto({ ...formGasto, description: e.target.value })} className={inputClass} /></div>
+              <div><label className="text-sm font-medium mb-1 block">Valor (R$)</label><input type="number" value={formGasto.amount} onChange={(e) => setFormGasto({ ...formGasto, amount: e.target.value })} className={inputClass} /></div>
+              <div><label className="text-sm font-medium mb-1 block">Data</label><input type="date" value={formGasto.date} onChange={(e) => setFormGasto({ ...formGasto, date: e.target.value })} className={inputClass} /></div>
+              <div><label className="text-sm font-medium mb-1 block">Categoria</label><select value={formGasto.category} onChange={(e) => setFormGasto({ ...formGasto, category: e.target.value })} className={inputClass}>{expenseCategories.map((c) => <option key={c}>{c}</option>)}</select></div>
+              <Button onClick={handleEdit} className="w-full">Salvar alterações</Button>
+            </div>
+          ) : (
+            <div className="space-y-4 pt-2">
+              <div><label className="text-sm font-medium mb-1 block">Descrição</label><input value={formDivida.description} onChange={(e) => setFormDivida({ ...formDivida, description: e.target.value })} className={inputClass} /></div>
+              <div><label className="text-sm font-medium mb-1 block">Valor (R$)</label><input type="number" value={formDivida.amount} onChange={(e) => setFormDivida({ ...formDivida, amount: e.target.value })} className={inputClass} /></div>
+              <div><label className="text-sm font-medium mb-1 block">Data</label><input type="date" value={formDivida.date} onChange={(e) => setFormDivida({ ...formDivida, date: e.target.value })} className={inputClass} /></div>
+              <div><label className="text-sm font-medium mb-1 block">Detalhes</label><input value={formDivida.details} onChange={(e) => setFormDivida({ ...formDivida, details: e.target.value })} className={inputClass} /></div>
+              <Button onClick={handleEdit} className="w-full">Salvar alterações</Button>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

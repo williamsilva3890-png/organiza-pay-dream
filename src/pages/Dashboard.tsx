@@ -8,6 +8,7 @@ import DespesasPage from "@/pages/dashboard/DespesasPage";
 import MetasPage from "@/pages/dashboard/MetasPage";
 import RelatoriosPage from "@/pages/dashboard/RelatoriosPage";
 import ConfigPage from "@/pages/dashboard/ConfigPage";
+import NotificationPopup from "@/components/dashboard/NotificationPopup";
 
 const Dashboard = () => {
   const { user, loading: authLoading } = useAuth();
@@ -24,7 +25,7 @@ const Dashboard = () => {
   if (!user) return <Navigate to="/login" replace />;
 
   return (
-    <DashboardLayout profile={finance.profile}>
+    <DashboardLayout profile={finance.profile} isPremium={finance.isPremium}>
       <Routes>
         <Route index element={<DashboardHome finance={finance} />} />
         <Route path="receitas" element={<ReceitasPage finance={finance} />} />
@@ -33,6 +34,12 @@ const Dashboard = () => {
         <Route path="relatorios" element={<RelatoriosPage />} />
         <Route path="config" element={<ConfigPage finance={finance} />} />
       </Routes>
+      <NotificationPopup
+        totalReceitas={finance.totalReceitas}
+        totalDespesas={finance.totalDespesas}
+        saldo={finance.saldo}
+        metasCount={finance.metas.length}
+      />
     </DashboardLayout>
   );
 };

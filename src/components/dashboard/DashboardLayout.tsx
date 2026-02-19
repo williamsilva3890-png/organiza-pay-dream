@@ -2,7 +2,7 @@ import { ReactNode, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard, ArrowUpCircle, ArrowDownCircle, Target,
-  FileBarChart, Settings, Menu, LogOut,
+  FileBarChart, Settings, Menu, LogOut, Crown,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
@@ -20,9 +20,10 @@ const navItems = [
 interface DashboardLayoutProps {
   children: ReactNode;
   profile: Profile | null;
+  isPremium: boolean;
 }
 
-const DashboardLayout = ({ children, profile }: DashboardLayoutProps) => {
+const DashboardLayout = ({ children, profile, isPremium }: DashboardLayoutProps) => {
   const location = useLocation();
   const navigate = useNavigate();
   const { signOut } = useAuth();
@@ -53,6 +54,26 @@ const DashboardLayout = ({ children, profile }: DashboardLayoutProps) => {
           <span className="font-display font-bold text-lg text-sidebar-foreground">
             Organiza<span className="text-sidebar-primary">Pay</span>
           </span>
+        </div>
+
+        {/* User info with Premium badge */}
+        <div className="px-4 py-4 border-b border-sidebar-border">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-full bg-sidebar-primary/20 flex items-center justify-center">
+              <span className="text-sm font-semibold text-sidebar-primary">{initials}</span>
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-sidebar-foreground truncate">{displayName}</p>
+              {isPremium ? (
+                <span className="inline-flex items-center gap-1 text-[10px] font-bold bg-gradient-to-r from-amber-400 to-amber-500 text-amber-950 rounded-full px-2 py-0.5 mt-0.5">
+                  <Crown className="w-2.5 h-2.5" />
+                  PREMIUM
+                </span>
+              ) : (
+                <span className="text-[10px] text-sidebar-foreground/50 mt-0.5">Plano Gratuito</span>
+              )}
+            </div>
+          </div>
         </div>
 
         <nav className="flex-1 px-3 py-4 space-y-1">
@@ -91,8 +112,16 @@ const DashboardLayout = ({ children, profile }: DashboardLayoutProps) => {
               {new Date().toLocaleDateString("pt-BR", { month: "long", year: "numeric" })}
             </p>
           </div>
-          <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center">
-            <span className="text-sm font-semibold text-primary">{initials}</span>
+          <div className="flex items-center gap-2">
+            {isPremium && (
+              <span className="hidden sm:inline-flex items-center gap-1 text-xs font-bold bg-gradient-to-r from-amber-400 to-amber-500 text-amber-950 rounded-full px-2.5 py-1">
+                <Crown className="w-3 h-3" />
+                Premium
+              </span>
+            )}
+            <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center">
+              <span className="text-sm font-semibold text-primary">{initials}</span>
+            </div>
           </div>
         </header>
         <main className="flex-1 p-4 lg:p-8">{children}</main>
