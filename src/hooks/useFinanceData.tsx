@@ -102,6 +102,30 @@ export const useFinanceData = () => {
     fetchAll();
   };
 
+  const updateReceita = async (id: string, data: Partial<Omit<Receita, "id">>) => {
+    if (!user) return;
+    await supabase.from("receitas").update(data as any).eq("id", id).eq("user_id", user.id);
+    fetchAll();
+  };
+
+  const deleteReceita = async (id: string) => {
+    if (!user) return;
+    await supabase.from("receitas").delete().eq("id", id).eq("user_id", user.id);
+    fetchAll();
+  };
+
+  const updateDespesa = async (id: string, data: Partial<Omit<Despesa, "id">>) => {
+    if (!user) return;
+    await supabase.from("despesas").update(data as any).eq("id", id).eq("user_id", user.id);
+    fetchAll();
+  };
+
+  const deleteDespesa = async (id: string) => {
+    if (!user) return;
+    await supabase.from("despesas").delete().eq("id", id).eq("user_id", user.id);
+    fetchAll();
+  };
+
   const updateProfile = async (data: Partial<Profile>) => {
     if (!user) return;
     await supabase.from("profiles").update(data as any).eq("user_id", user.id);
@@ -119,6 +143,7 @@ export const useFinanceData = () => {
   return {
     receitas, despesas, metas, profile, subscription, loading, isPremium,
     addReceita, addDespesa, addMeta, updateProfile, fetchAll,
+    updateReceita, deleteReceita, updateDespesa, deleteDespesa,
     totalReceitas, totalDespesas, saldo,
     gastos, dividas, totalGastos, totalDividas,
     canAddReceita, canAddDespesa, canAddMeta, canUseSharedAccount,
