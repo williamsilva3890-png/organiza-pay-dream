@@ -30,7 +30,7 @@
     --destructive: 0 72% 55%;
     --destructive-foreground: 0 0% 100%;
 
-    --success: 152 60% 42%;
+    --success: 270 55% 50%;
     --success-foreground: 0 0% 100%;
 
     --warning: 38 92% 55%;
@@ -47,7 +47,7 @@
     --chart-transport: 210 70% 55%;
     --chart-housing: 280 60% 55%;
     --chart-leisure: 330 70% 55%;
-    --chart-health: 160 45% 50%;
+    --chart-health: 270 45% 60%;
     --chart-other: 200 10% 65%;
 
     --sidebar-background: 260 30% 12%;
