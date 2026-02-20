@@ -1,12 +1,12 @@
+import logoImg from "@/assets/logo.png";
+
 const Footer = () => {
   return (
     <footer className="border-t border-border py-12 bg-card">
       <div className="container">
         <div className="flex flex-col md:flex-row justify-between items-center gap-6">
           <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg bg-gradient-hero flex items-center justify-center">
-              <span className="text-primary-foreground font-bold text-xs">O</span>
-            </div>
+            <img src={logoImg} alt="OrganizaPay" className="w-7 h-7 rounded-lg object-cover" />
             <span className="font-display font-bold text-lg">
               Organiza<span className="text-primary">Pay</span>
             </span>

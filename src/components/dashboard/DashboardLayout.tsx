@@ -7,10 +7,10 @@ import {
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
 import type { Profile } from "@/hooks/useFinanceData";
-
+import logoImg from "@/assets/logo.png";
 const navItems = [
   { icon: LayoutDashboard, label: "Painel", path: "/dashboard" },
-  { icon: ArrowUpCircle, label: "Receitas", path: "/dashboard/receitas" },
+  { icon: ArrowUpCircle, label: "Renda", path: "/dashboard/receitas" },
   { icon: ArrowDownCircle, label: "Despesas", path: "/dashboard/despesas" },
   { icon: Target, label: "Metas", path: "/dashboard/metas" },
   { icon: FileBarChart, label: "Relatórios", path: "/dashboard/relatorios" },
@@ -48,14 +48,11 @@ const DashboardLayout = ({ children, profile, isPremium }: DashboardLayoutProps)
         sidebarOpen ? "translate-x-0" : "-translate-x-full"
       )}>
         <div className="flex items-center gap-2 px-6 h-16 border-b border-sidebar-border">
-          <div className="w-8 h-8 rounded-lg bg-sidebar-primary flex items-center justify-center">
-            <span className="text-sidebar-primary-foreground font-bold text-sm">O</span>
-          </div>
+          <img src={logoImg} alt="OrganizaPay" className="w-8 h-8 rounded-lg object-cover" />
           <span className="font-display font-bold text-lg text-sidebar-foreground">
             Organiza<span className="text-sidebar-primary">Pay</span>
           </span>
         </div>
-
         {/* User info with Premium badge */}
         <div className="px-4 py-4 border-b border-sidebar-border">
           <div className="flex items-center gap-3">

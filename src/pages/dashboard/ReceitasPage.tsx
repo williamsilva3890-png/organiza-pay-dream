@@ -82,14 +82,14 @@ const ReceitasPage = ({ finance }: Props) => {
       {!isPremium && (
         <div className="flex items-center gap-2 text-xs text-muted-foreground bg-muted/50 rounded-lg px-4 py-2.5">
           <Lock className="w-3.5 h-3.5" />
-          <span>Plano gratuito: {receitas.length}/{FREE_LIMITS.receitas} receitas usadas</span>
+          <span>Plano gratuito: {receitas.length}/{FREE_LIMITS.receitas} rendas usadas</span>
         </div>
       )}
 
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="bg-card rounded-xl p-5 border border-border shadow-card">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-lg bg-success/10 flex items-center justify-center"><ArrowUpCircle className="w-5 h-5 text-success" /></div>
-          <div><p className="text-sm text-muted-foreground">Total de receitas</p><p className="font-display font-bold text-2xl text-success">{fmt(totalReceitas)}</p></div>
+          <div><p className="text-sm text-muted-foreground">Total de renda</p><p className="font-display font-bold text-2xl text-success">{fmt(totalReceitas)}</p></div>
         </div>
       </motion.div>
 
