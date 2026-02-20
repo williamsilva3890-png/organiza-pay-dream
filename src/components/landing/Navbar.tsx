@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Menu, X } from "lucide-react";
 import { useState } from "react";
-
+import logoImg from "@/assets/logo.png";
 const Navbar = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -10,9 +10,7 @@ const Navbar = () => {
     <nav className="sticky top-0 z-50 bg-background/80 backdrop-blur-lg border-b border-border">
       <div className="container flex items-center justify-between h-16">
         <Link to="/" className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-gradient-hero flex items-center justify-center">
-            <span className="text-primary-foreground font-bold text-sm">O</span>
-          </div>
+          <img src={logoImg} alt="OrganizaPay" className="w-8 h-8 rounded-lg object-cover" />
           <span className="font-display font-bold text-xl">
             Organiza<span className="text-primary">Pay</span>
           </span>

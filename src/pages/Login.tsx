@@ -8,7 +8,7 @@ import { Eye, EyeOff } from "lucide-react";
 import { motion } from "framer-motion";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
-
+import logoImg from "@/assets/logo.png";
 const Login = () => {
   const navigate = useNavigate();
   const { signIn, signUp } = useAuth();
@@ -57,9 +57,7 @@ const Login = () => {
       >
         <div className="flex justify-center mb-8">
           <Link to="/" className="flex items-center gap-2">
-            <div className="w-10 h-10 rounded-lg bg-gradient-hero flex items-center justify-center">
-              <span className="text-primary-foreground font-bold text-lg">O</span>
-            </div>
+            <img src={logoImg} alt="OrganizaPay" className="w-10 h-10 rounded-lg object-cover" />
             <span className="font-display font-bold text-2xl">
               Organiza<span className="text-primary">Pay</span>
             </span>

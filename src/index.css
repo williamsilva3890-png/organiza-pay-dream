@@ -15,16 +15,16 @@
     --popover: 0 0% 100%;
     --popover-foreground: 200 25% 12%;
 
-    --primary: 160 60% 38%;
+    --primary: 270 60% 55%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 40 30% 95%;
+    --secondary: 270 20% 95%;
     --secondary-foreground: 200 25% 12%;
 
-    --muted: 40 15% 93%;
+    --muted: 270 10% 93%;
     --muted-foreground: 200 10% 50%;
 
-    --accent: 35 95% 55%;
+    --accent: 280 70% 60%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 72% 55%;
@@ -36,13 +36,12 @@
     --warning: 38 92% 55%;
     --warning-foreground: 0 0% 100%;
 
-    --border: 200 15% 90%;
-    --input: 200 15% 90%;
-    --ring: 160 60% 38%;
-
+    --border: 270 10% 90%;
+    --input: 270 10% 90%;
+    --ring: 270 60% 55%;
     --radius: 0.75rem;
 
-    --chart-income: 160 60% 38%;
+    --chart-income: 270 60% 55%;
     --chart-expense: 0 72% 55%;
     --chart-food: 35 95% 55%;
     --chart-transport: 210 70% 55%;
@@ -51,16 +50,15 @@
     --chart-health: 160 45% 50%;
     --chart-other: 200 10% 65%;
 
-    --sidebar-background: 200 25% 12%;
-    --sidebar-foreground: 200 15% 85%;
-    --sidebar-primary: 160 60% 48%;
+    --sidebar-background: 260 30% 12%;
+    --sidebar-foreground: 270 15% 85%;
+    --sidebar-primary: 270 60% 60%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 200 20% 18%;
-    --sidebar-accent-foreground: 200 15% 85%;
-    --sidebar-border: 200 20% 20%;
-    --sidebar-ring: 160 60% 48%;
-
-    --gradient-hero: linear-gradient(135deg, hsl(160 60% 38%), hsl(170 55% 32%));
+    --sidebar-accent: 260 25% 18%;
+    --sidebar-accent-foreground: 270 15% 85%;
+    --sidebar-border: 260 20% 20%;
+    --sidebar-ring: 270 60% 60%;
+    --gradient-hero: linear-gradient(135deg, hsl(270 60% 55%), hsl(290 50% 45%));
     --gradient-card: linear-gradient(180deg, hsl(0 0% 100%), hsl(40 20% 97%));
     --shadow-card: 0 1px 3px 0 hsl(200 25% 12% / 0.06), 0 1px 2px -1px hsl(200 25% 12% / 0.06);
     --shadow-card-hover: 0 10px 30px -5px hsl(200 25% 12% / 0.1);
@@ -77,33 +75,33 @@
     --popover: 200 20% 12%;
     --popover-foreground: 40 15% 93%;
 
-    --primary: 160 55% 48%;
+    --primary: 270 55% 60%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 200 20% 16%;
+    --secondary: 260 20% 16%;
     --secondary-foreground: 40 15% 93%;
 
-    --muted: 200 15% 18%;
-    --muted-foreground: 200 10% 55%;
+    --muted: 260 15% 18%;
+    --muted-foreground: 260 10% 55%;
 
-    --accent: 35 95% 55%;
+    --accent: 280 70% 60%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 62% 45%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 200 15% 20%;
-    --input: 200 15% 20%;
-    --ring: 160 55% 48%;
+    --border: 260 15% 20%;
+    --input: 260 15% 20%;
+    --ring: 270 55% 60%;
 
-    --sidebar-background: 200 25% 6%;
-    --sidebar-foreground: 200 15% 80%;
-    --sidebar-primary: 160 55% 48%;
+    --sidebar-background: 260 30% 6%;
+    --sidebar-foreground: 270 15% 80%;
+    --sidebar-primary: 270 55% 60%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 200 20% 14%;
-    --sidebar-accent-foreground: 200 15% 80%;
-    --sidebar-border: 200 15% 15%;
-    --sidebar-ring: 160 55% 48%;
+    --sidebar-accent: 260 25% 14%;
+    --sidebar-accent-foreground: 270 15% 80%;
+    --sidebar-border: 260 15% 15%;
+    --sidebar-ring: 270 55% 60%;
   }
 }
 
@@ -123,20 +121,19 @@
 
 @layer utilities {
   .text-gradient-primary {
-    background: linear-gradient(135deg, hsl(160 60% 38%), hsl(170 55% 32%));
+    background: linear-gradient(135deg, hsl(270 60% 55%), hsl(290 50% 45%));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
 
   .bg-gradient-hero {
-    background: linear-gradient(135deg, hsl(160 60% 38%), hsl(170 55% 28%));
+    background: linear-gradient(135deg, hsl(270 60% 55%), hsl(290 50% 40%));
   }
 
   .bg-gradient-hero-subtle {
-    background: linear-gradient(135deg, hsl(160 60% 38% / 0.08), hsl(170 55% 32% / 0.04));
+    background: linear-gradient(135deg, hsl(270 60% 55% / 0.08), hsl(290 50% 45% / 0.04));
   }
-
   .shadow-card {
     box-shadow: var(--shadow-card);
   }
