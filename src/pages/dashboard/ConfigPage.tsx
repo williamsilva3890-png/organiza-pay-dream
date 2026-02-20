@@ -132,7 +132,7 @@ const ConfigPage = ({ finance }: Props) => {
                 <select value={profileType} onChange={(e) => setProfileType(e.target.value)}
                   className="w-full h-10 px-3 rounded-lg border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/30">
                   <option value="solteiro">Solteiro</option>
-                  <option value="empreendedor">Pequeno Empreendedor</option>
+                  <option value="empreendedor">Micro Empreendedor</option>
                   <option value="casal">Casal {!isPremium ? "🔒 Premium" : ""}</option>
                 </select>
               </div>
