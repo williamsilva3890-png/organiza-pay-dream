@@ -43,21 +43,27 @@ const MetasPage = ({ finance }: Props) => {
           <h1 className="font-display font-bold text-2xl">Metas financeiras</h1>
           <p className="text-sm text-muted-foreground">Acompanhe o progresso das suas metas</p>
         </div>
-        <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger asChild>
-            <Button variant="default" className="gap-2"><Plus className="w-4 h-4" />Nova meta</Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader><DialogTitle>Nova meta financeira</DialogTitle></DialogHeader>
-            <div className="space-y-4 pt-2">
-              <div><label className="text-sm font-medium mb-1 block">Título</label><input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} className={inputClass} placeholder="Ex: Reserva de emergência" /></div>
-              <div><label className="text-sm font-medium mb-1 block">Valor alvo (R$)</label><input type="number" value={form.target} onChange={(e) => setForm({ ...form, target: e.target.value })} className={inputClass} placeholder="0,00" /></div>
-              <div><label className="text-sm font-medium mb-1 block">Prazo</label><input value={form.deadline} onChange={(e) => setForm({ ...form, deadline: e.target.value })} className={inputClass} placeholder="Ex: Dez 2026" /></div>
-              <div><label className="text-sm font-medium mb-1 block">Descrição</label><input value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className={inputClass} placeholder="Ex: Guardar para emergências" /></div>
-              <Button onClick={handleAdd} className="w-full">Criar meta</Button>
-            </div>
-          </DialogContent>
-        </Dialog>
+        {isPremium ? (
+          <Dialog open={open} onOpenChange={setOpen}>
+            <DialogTrigger asChild>
+              <Button variant="default" className="gap-2"><Plus className="w-4 h-4" />Nova meta</Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader><DialogTitle>Nova meta financeira</DialogTitle></DialogHeader>
+              <div className="space-y-4 pt-2">
+                <div><label className="text-sm font-medium mb-1 block">Título</label><input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} className={inputClass} placeholder="Ex: Reserva de emergência" /></div>
+                <div><label className="text-sm font-medium mb-1 block">Valor alvo (R$)</label><input type="number" value={form.target} onChange={(e) => setForm({ ...form, target: e.target.value })} className={inputClass} placeholder="0,00" /></div>
+                <div><label className="text-sm font-medium mb-1 block">Prazo</label><input value={form.deadline} onChange={(e) => setForm({ ...form, deadline: e.target.value })} className={inputClass} placeholder="Ex: Dez 2026" /></div>
+                <div><label className="text-sm font-medium mb-1 block">Descrição</label><input value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className={inputClass} placeholder="Ex: Guardar para emergências" /></div>
+                <Button onClick={handleAdd} className="w-full">Criar meta</Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+        ) : (
+          <Button variant="default" className="gap-2" disabled>
+            <Lock className="w-4 h-4" />Nova meta
+          </Button>
+        )}
       </div>
 
       {!isPremium && (

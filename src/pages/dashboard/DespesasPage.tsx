@@ -92,7 +92,7 @@ const DespesasPage = ({ finance }: Props) => {
         </div>
         <div className="flex gap-2">
           <Dialog open={openGasto} onOpenChange={setOpenGasto}>
-            <DialogTrigger asChild><Button variant="default" className="gap-2"><Plus className="w-4 h-4" />Novo gasto</Button></DialogTrigger>
+            <DialogTrigger asChild><Button variant="default" className="gap-2" disabled={!canAddDespesa && !isPremium}><Plus className="w-4 h-4" />Novo gasto</Button></DialogTrigger>
             <DialogContent>
               <DialogHeader><DialogTitle>Novo gasto</DialogTitle></DialogHeader>
               <div className="space-y-4 pt-2">
@@ -105,7 +105,7 @@ const DespesasPage = ({ finance }: Props) => {
             </DialogContent>
           </Dialog>
           <Dialog open={openDivida} onOpenChange={setOpenDivida}>
-            <DialogTrigger asChild><Button variant="outline" className="gap-2"><CreditCard className="w-4 h-4" />Nova dívida</Button></DialogTrigger>
+            <DialogTrigger asChild><Button variant="outline" className="gap-2" disabled={!canAddDespesa && !isPremium}><CreditCard className="w-4 h-4" />Nova dívida</Button></DialogTrigger>
             <DialogContent>
               <DialogHeader><DialogTitle>Nova dívida</DialogTitle></DialogHeader>
               <div className="space-y-4 pt-2">
@@ -163,10 +163,12 @@ const DespesasPage = ({ finance }: Props) => {
               <span className={`text-xs rounded-full px-2.5 py-1 font-medium ${categoryColors[d.category] || "bg-muted text-muted-foreground"}`}>{d.category}</span>
               <span className="text-sm text-muted-foreground">{new Date(d.date).toLocaleDateString("pt-BR")}</span>
               <span className="text-sm font-semibold text-destructive text-right">-{fmt(Number(d.amount))}</span>
-              <div className="flex gap-1">
-                <button onClick={() => startEditGasto(d)} className="p-1.5 rounded-md hover:bg-muted transition-colors"><Pencil className="w-3.5 h-3.5 text-muted-foreground" /></button>
-                <button onClick={() => handleDelete(d.id)} className="p-1.5 rounded-md hover:bg-destructive/10 transition-colors"><Trash2 className="w-3.5 h-3.5 text-destructive" /></button>
-              </div>
+              {isPremium && (
+                <div className="flex gap-1">
+                  <button onClick={() => startEditGasto(d)} className="p-1.5 rounded-md hover:bg-muted transition-colors"><Pencil className="w-3.5 h-3.5 text-muted-foreground" /></button>
+                  <button onClick={() => handleDelete(d.id)} className="p-1.5 rounded-md hover:bg-destructive/10 transition-colors"><Trash2 className="w-3.5 h-3.5 text-destructive" /></button>
+                </div>
+              )}
             </motion.div>
           ))}
         </div>
@@ -187,10 +189,12 @@ const DespesasPage = ({ finance }: Props) => {
               <span className="text-xs bg-destructive/10 text-destructive rounded-full px-2.5 py-1 font-medium">{d.details || "—"}</span>
               <span className="text-sm text-muted-foreground">{new Date(d.date).toLocaleDateString("pt-BR")}</span>
               <span className="text-sm font-semibold text-destructive text-right">-{fmt(Number(d.amount))}</span>
-              <div className="flex gap-1">
-                <button onClick={() => startEditDivida(d)} className="p-1.5 rounded-md hover:bg-muted transition-colors"><Pencil className="w-3.5 h-3.5 text-muted-foreground" /></button>
-                <button onClick={() => handleDelete(d.id)} className="p-1.5 rounded-md hover:bg-destructive/10 transition-colors"><Trash2 className="w-3.5 h-3.5 text-destructive" /></button>
-              </div>
+              {isPremium && (
+                <div className="flex gap-1">
+                  <button onClick={() => startEditDivida(d)} className="p-1.5 rounded-md hover:bg-muted transition-colors"><Pencil className="w-3.5 h-3.5 text-muted-foreground" /></button>
+                  <button onClick={() => handleDelete(d.id)} className="p-1.5 rounded-md hover:bg-destructive/10 transition-colors"><Trash2 className="w-3.5 h-3.5 text-destructive" /></button>
+                </div>
+              )}
             </motion.div>
           ))}
         </div>

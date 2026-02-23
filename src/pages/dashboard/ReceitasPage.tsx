@@ -71,7 +71,7 @@ const ReceitasPage = ({ finance }: Props) => {
           <p className="text-sm text-muted-foreground">Gerencie todas as suas entradas</p>
         </div>
         <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger asChild><Button variant="default" className="gap-2"><Plus className="w-4 h-4" />Nova renda</Button></DialogTrigger>
+          <DialogTrigger asChild><Button variant="default" className="gap-2" disabled={!canAddReceita && !isPremium}><Plus className="w-4 h-4" />Nova renda</Button></DialogTrigger>
           <DialogContent>
             <DialogHeader><DialogTitle>Nova renda</DialogTitle></DialogHeader>
             <FormFields onSubmit={handleAdd} label="Adicionar renda" />
@@ -105,10 +105,12 @@ const ReceitasPage = ({ finance }: Props) => {
             <span className="text-xs bg-success/10 text-success rounded-full px-2.5 py-1 font-medium">{r.category}</span>
             <span className="text-sm text-muted-foreground">{new Date(r.date).toLocaleDateString("pt-BR")}</span>
             <span className="text-sm font-semibold text-success text-right">+{fmt(Number(r.amount))}</span>
-            <div className="flex gap-1">
-              <button onClick={() => startEdit(r)} className="p-1.5 rounded-md hover:bg-muted transition-colors"><Pencil className="w-3.5 h-3.5 text-muted-foreground" /></button>
-              <button onClick={() => handleDelete(r.id)} className="p-1.5 rounded-md hover:bg-destructive/10 transition-colors"><Trash2 className="w-3.5 h-3.5 text-destructive" /></button>
-            </div>
+            {isPremium && (
+              <div className="flex gap-1">
+                <button onClick={() => startEdit(r)} className="p-1.5 rounded-md hover:bg-muted transition-colors"><Pencil className="w-3.5 h-3.5 text-muted-foreground" /></button>
+                <button onClick={() => handleDelete(r.id)} className="p-1.5 rounded-md hover:bg-destructive/10 transition-colors"><Trash2 className="w-3.5 h-3.5 text-destructive" /></button>
+              </div>
+            )}
           </motion.div>
         ))}
       </div>
