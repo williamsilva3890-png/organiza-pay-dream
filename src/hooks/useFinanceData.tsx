@@ -40,9 +40,9 @@ export interface Subscription {
 
 // Free plan limits
 export const FREE_LIMITS = {
-  receitas: 10,
-  despesas: 15,
-  metas: 3,
+  receitas: 1,
+  despesas: 2,
+  metas: 0,
   allowSharedAccount: false,
 };
 

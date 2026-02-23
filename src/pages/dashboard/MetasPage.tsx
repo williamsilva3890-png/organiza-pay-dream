@@ -18,7 +18,7 @@ const MetasPage = ({ finance }: Props) => {
 
   const handleAdd = async () => {
     if (!canAddMeta) {
-      toast.error(`Limite do plano gratuito atingido (${FREE_LIMITS.metas} metas). Faça upgrade para Premium!`);
+      toast.error("Metas financeiras estão disponíveis apenas no plano Premium!");
       return;
     }
     if (!form.title || !form.target || !form.deadline) return;
@@ -63,7 +63,7 @@ const MetasPage = ({ finance }: Props) => {
       {!isPremium && (
         <div className="flex items-center gap-2 text-xs text-muted-foreground bg-muted/50 rounded-lg px-4 py-2.5">
           <Lock className="w-3.5 h-3.5" />
-          <span>Plano gratuito: {metas.length}/{FREE_LIMITS.metas} metas usadas</span>
+          <span>Metas disponíveis apenas no plano Premium 🔒</span>
         </div>
       )}
 
