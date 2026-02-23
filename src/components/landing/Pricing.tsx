@@ -1,8 +1,9 @@
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Check, Sparkles } from "lucide-react";
 import { Link } from "react-router-dom";
-
+import PremiumSignupDialog from "./PremiumSignupDialog";
 const plans = [
   {
     name: "Gratuito",
@@ -40,7 +41,7 @@ const plans = [
 const TRIBOPAY_CHECKOUT_URL = "https://go.tribopay.com.br/i7egqo5x95";
 
 const Pricing = () => {
-
+  const [premiumDialogOpen, setPremiumDialogOpen] = useState(false);
   return (
     <section id="planos" className="py-20 lg:py-28 bg-muted/40">
       <div className="container">
@@ -111,11 +112,14 @@ const Pricing = () => {
               </ul>
 
               {plan.highlighted ? (
-                <a href={TRIBOPAY_CHECKOUT_URL} target="_blank" rel="noopener noreferrer">
-                  <Button variant="hero" size="lg" className="w-full">
-                    {plan.cta}
-                  </Button>
-                </a>
+                <Button
+                  variant="hero"
+                  size="lg"
+                  className="w-full"
+                  onClick={() => setPremiumDialogOpen(true)}
+                >
+                  {plan.cta}
+                </Button>
               ) : (
                 <Link to="/dashboard">
                   <Button variant="outline" size="lg" className="w-full">
@@ -128,7 +132,10 @@ const Pricing = () => {
         </div>
       </div>
 
-      
+      <PremiumSignupDialog
+        open={premiumDialogOpen}
+        onOpenChange={setPremiumDialogOpen}
+      />
     </section>
   );
 };
