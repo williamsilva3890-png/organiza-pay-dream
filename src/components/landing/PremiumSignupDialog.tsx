@@ -129,25 +129,8 @@ const PremiumSignupDialog = ({ open, onOpenChange }: Props) => {
               </p>
               <p>
                 Caso você tenha feito o pagamento, mas não tenha ficado no
-                Premium, envie uma mensagem no WhatsApp abaixo com o seguinte
-                texto:
+                Premium, acesse as <strong>Configurações</strong> dentro do painel e envie seu código de identificação pelo WhatsApp de Suporte.
               </p>
-              <p className="italic font-medium">
-                "Fiz o pagamento, mas não fui para o Premium."
-              </p>
-              <p>
-                Envie também o comprovante do Pix, o Gmail utilizado e o ID que
-                irá aparecer abaixo do nome.
-              </p>
-              <a
-                href={whatsappLink}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 mt-1 text-green-700 dark:text-green-400 font-semibold hover:underline"
-              >
-                <MessageCircle className="w-4 h-4" />
-                WhatsApp de Suporte
-              </a>
             </div>
           </div>
         </div>

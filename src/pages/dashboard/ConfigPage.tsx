@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { User, Bell, Palette, Shield, Crown, Lock, Type, Layout, PieChart, Monitor, Moon, Sun, MessageCircle } from "lucide-react";
+import { User, Bell, Palette, Shield, Crown, Lock, Type, Layout, PieChart, Monitor, Moon, Sun, MessageCircle, Lightbulb, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -160,11 +160,12 @@ const ConfigPage = ({ finance }: Props) => {
       </div>
 
       <Tabs defaultValue="perfil" className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="perfil" className="gap-1.5 text-xs"><User className="w-3.5 h-3.5" />Perfil</TabsTrigger>
           <TabsTrigger value="aparencia" className="gap-1.5 text-xs"><Palette className="w-3.5 h-3.5" />Aparência</TabsTrigger>
           <TabsTrigger value="notificacoes" className="gap-1.5 text-xs"><Bell className="w-3.5 h-3.5" />Alertas</TabsTrigger>
           <TabsTrigger value="seguranca" className="gap-1.5 text-xs"><Shield className="w-3.5 h-3.5" />Segurança</TabsTrigger>
+          <TabsTrigger value="sugestoes" className="gap-1.5 text-xs"><Lightbulb className="w-3.5 h-3.5" />Sugestões</TabsTrigger>
         </TabsList>
 
         {/* Profile tab */}
@@ -422,6 +423,76 @@ const ConfigPage = ({ finance }: Props) => {
             <div className="space-y-3">
               <Button variant="outline" size="sm">Alterar senha</Button>
             </div>
+          </motion.div>
+        </TabsContent>
+        {/* Suggestions tab */}
+        <TabsContent value="sugestoes" className="space-y-5 mt-5">
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="bg-card rounded-xl p-5 border border-border shadow-card">
+            <div className="flex items-center gap-2 mb-4">
+              <Lightbulb className="w-5 h-5 text-primary" />
+              <h3 className="font-display font-bold text-base">Envie sua sugestão</h3>
+            </div>
+            <p className="text-sm text-muted-foreground mb-4">
+              Escolha uma opção abaixo ou escreva sua própria sugestão. Sua opinião é muito importante para melhorarmos o OrganizaPay!
+            </p>
+
+            <div className="space-y-2 mb-4">
+              {[
+                "Adicionar controle de cartão de crédito",
+                "Criar relatório mensal em PDF",
+                "Adicionar categorias personalizadas",
+                "Integração com banco/conta digital",
+                "Adicionar lembrete de contas a pagar",
+                "Modo de orçamento mensal",
+              ].map((suggestion) => (
+                <button
+                  key={suggestion}
+                  onClick={() => {
+                    const msg = encodeURIComponent(`Sugestão para o OrganizaPay:\n\n${suggestion}`);
+                    window.open(`https://wa.me/5592985968379?text=${msg}`, "_blank", "noopener,noreferrer");
+                  }}
+                  className="w-full text-left p-3 rounded-lg border border-border hover:border-primary/50 hover:bg-primary/5 transition-all flex items-center gap-3"
+                >
+                  <Send className="w-4 h-4 text-muted-foreground shrink-0" />
+                  <span className="text-sm">{suggestion}</span>
+                </button>
+              ))}
+            </div>
+
+            <div className="border-t border-border pt-4">
+              <p className="text-sm font-medium mb-2">Outra sugestão?</p>
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-1.5"
+                onClick={() => {
+                  const msg = encodeURIComponent("Tenho uma sugestão para o OrganizaPay:\n\n");
+                  window.open(`https://wa.me/5592985968379?text=${msg}`, "_blank", "noopener,noreferrer");
+                }}
+              >
+                <MessageCircle className="w-4 h-4" />
+                Enviar pelo WhatsApp
+              </Button>
+            </div>
+          </motion.div>
+
+          {/* WhatsApp support */}
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }} className="bg-card rounded-xl p-5 border border-border shadow-card">
+            <div className="flex items-center gap-2 mb-3">
+              <MessageCircle className="w-5 h-5 text-primary" />
+              <h3 className="font-display font-bold text-base">Suporte</h3>
+            </div>
+            <p className="text-sm text-muted-foreground mb-3">Precisa de ajuda? Entre em contato pelo nosso WhatsApp.</p>
+            <a
+              href={`https://wa.me/5592985968379?text=${encodeURIComponent("Olá, preciso de ajuda com o OrganizaPay.")}`}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <Button variant="outline" size="sm" className="gap-1.5">
+                <MessageCircle className="w-4 h-4" />
+                WhatsApp de Suporte
+              </Button>
+            </a>
           </motion.div>
         </TabsContent>
       </Tabs>
