@@ -1,18 +1,43 @@
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Wallet, TrendingUp, TrendingDown, ArrowUpRight, ArrowDownRight, CreditCard, ShoppingCart, ArrowUpCircle, ArrowDownCircle, Target } from "lucide-react";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
 import { Progress } from "@/components/ui/progress";
 import type { useFinanceData } from "@/hooks/useFinanceData";
 
-const categoryColors: Record<string, string> = {
+const DEFAULT_CATEGORY_COLORS: Record<string, string> = {
   Moradia: "hsl(280 60% 55%)",
   Alimentação: "hsl(35 95% 55%)",
   Transporte: "hsl(210 70% 55%)",
-  Saúde: "hsl(160 45% 50%)",
+  Saúde: "hsl(270 45% 60%)",
   Lazer: "hsl(330 70% 55%)",
   Educação: "hsl(200 60% 50%)",
   Outros: "hsl(200 10% 65%)",
   Dívida: "hsl(0 72% 55%)",
+};
+
+const CHART_COLOR_PRESETS: Record<string, Record<string, string>> = {
+  "Roxo Clássico": DEFAULT_CATEGORY_COLORS,
+  "Vibrante": {
+    Moradia: "hsl(340 80% 55%)",
+    Alimentação: "hsl(45 100% 50%)",
+    Transporte: "hsl(190 80% 45%)",
+    Saúde: "hsl(150 60% 45%)",
+    Lazer: "hsl(290 70% 55%)",
+    Educação: "hsl(25 90% 55%)",
+    Outros: "hsl(220 15% 60%)",
+    Dívida: "hsl(0 85% 50%)",
+  },
+  "Pastel": {
+    Moradia: "hsl(280 40% 70%)",
+    Alimentação: "hsl(35 70% 70%)",
+    Transporte: "hsl(210 50% 70%)",
+    Saúde: "hsl(160 40% 70%)",
+    Lazer: "hsl(330 50% 70%)",
+    Educação: "hsl(200 40% 70%)",
+    Outros: "hsl(200 10% 75%)",
+    Dívida: "hsl(0 50% 70%)",
+  },
 };
 
 const fmt = (v: number) => `R$ ${v.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`;
@@ -23,6 +48,9 @@ interface Props {
 
 const DashboardHome = ({ finance }: Props) => {
   const { receitas, despesas, metas, totalReceitas, totalDespesas, saldo, gastos, dividas, totalGastos, totalDividas, loading } = finance;
+
+  const chartPreset = localStorage.getItem("chart-preset") || "Roxo Clássico";
+  const categoryColors = CHART_COLOR_PRESETS[chartPreset] || DEFAULT_CATEGORY_COLORS;
 
   // Pie chart data from real expenses
   const pieMap = new Map<string, number>();

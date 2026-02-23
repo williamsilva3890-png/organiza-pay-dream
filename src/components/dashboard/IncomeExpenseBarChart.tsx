@@ -62,7 +62,7 @@ const IncomeExpenseBarChart = () => {
             <Bar
               dataKey="receitas"
               name="Receitas"
-              fill="hsl(160 60% 38%)"
+              fill="hsl(270 60% 55%)"
               radius={[4, 4, 0, 0]}
               barSize={20}
             />

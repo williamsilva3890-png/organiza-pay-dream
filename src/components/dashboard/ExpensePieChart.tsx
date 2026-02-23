@@ -5,7 +5,7 @@ const data = [
   { name: "Transporte", value: 800, color: "hsl(210 70% 55%)" },
   { name: "Moradia", value: 1500, color: "hsl(280 60% 55%)" },
   { name: "Lazer", value: 450, color: "hsl(330 70% 55%)" },
-  { name: "Saúde", value: 300, color: "hsl(160 45% 50%)" },
+  { name: "Saúde", value: 300, color: "hsl(270 45% 60%)" },
   { name: "Outros", value: 500, color: "hsl(200 10% 65%)" },
 ];
 
