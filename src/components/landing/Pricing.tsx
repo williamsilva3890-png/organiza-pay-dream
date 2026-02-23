@@ -12,7 +12,6 @@ const plans = [
     features: [
       "Dashboard financeiro",
       "Cadastro de receitas e despesas",
-      "3 metas financeiras",
       "Gráficos básicos",
       "1 perfil (pessoal ou negócio)",
     ],
