@@ -1,1 +1,4 @@
 project_id = "cpaqhwutaypayfaqthip"
+
+[functions.tribopay-checkout]
+verify_jwt = false
