@@ -25,7 +25,7 @@ const Dashboard = () => {
   if (!user) return <Navigate to="/login" replace />;
 
   return (
-    <DashboardLayout profile={finance.profile} isPremium={finance.isPremium}>
+    <DashboardLayout profile={finance.profile} isPremium={finance.isPremium} onProfileUpdate={finance.fetchAll}>
       <Routes>
         <Route index element={<DashboardHome finance={finance} />} />
         <Route path="receitas" element={<ReceitasPage finance={finance} />} />

@@ -1,13 +1,16 @@
-import { ReactNode, useState } from "react";
+import { ReactNode, useState, useRef } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard, ArrowUpCircle, ArrowDownCircle, Target,
-  FileBarChart, Settings, Menu, LogOut, Crown,
+  FileBarChart, Settings, Menu, LogOut, Crown, Camera,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 import type { Profile } from "@/hooks/useFinanceData";
 import logoImg from "@/assets/logo.png";
+import { toast } from "sonner";
+
 const navItems = [
   { icon: LayoutDashboard, label: "Painel", path: "/dashboard" },
   { icon: ArrowUpCircle, label: "Renda", path: "/dashboard/receitas" },
@@ -21,20 +24,59 @@ interface DashboardLayoutProps {
   children: ReactNode;
   profile: Profile | null;
   isPremium: boolean;
+  onProfileUpdate?: () => void;
 }
 
-const DashboardLayout = ({ children, profile, isPremium }: DashboardLayoutProps) => {
+const DashboardLayout = ({ children, profile, isPremium, onProfileUpdate }: DashboardLayoutProps) => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { signOut } = useAuth();
+  const { user, signOut } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const displayName = profile?.display_name || "Usuário";
   const initials = displayName.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase();
+  const avatarUrl = profile?.avatar_url;
 
   const handleLogout = async () => {
     await signOut();
     navigate("/");
+  };
+
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user) return;
+    
+    const fileExt = file.name.split('.').pop();
+    const filePath = `${user.id}/avatar.${fileExt}`;
+    
+    const { error: uploadError } = await supabase.storage
+      .from('avatars')
+      .upload(filePath, file, { upsert: true });
+    
+    if (uploadError) {
+      toast.error("Erro ao enviar foto");
+      return;
+    }
+    
+    const { data: { publicUrl } } = supabase.storage
+      .from('avatars')
+      .getPublicUrl(filePath);
+    
+    await supabase.from("profiles").update({ avatar_url: publicUrl } as any).eq("user_id", user.id);
+    onProfileUpdate?.();
+    toast.success("Foto atualizada!");
+  };
+
+  const AvatarDisplay = ({ size = "sm" }: { size?: "sm" | "lg" }) => {
+    const sizeClass = size === "lg" ? "w-9 h-9" : "w-9 h-9";
+    return avatarUrl ? (
+      <img src={avatarUrl} alt={displayName} className={`${sizeClass} rounded-full object-cover`} />
+    ) : (
+      <div className={`${sizeClass} rounded-full bg-sidebar-primary/20 flex items-center justify-center`}>
+        <span className="text-sm font-semibold text-sidebar-primary">{initials}</span>
+      </div>
+    );
   };
 
   return (
@@ -53,11 +95,15 @@ const DashboardLayout = ({ children, profile, isPremium }: DashboardLayoutProps)
             Organiza<span className="text-sidebar-primary">Pay</span>
           </span>
         </div>
-        {/* User info with Premium badge */}
+        {/* User info with avatar edit */}
         <div className="px-4 py-4 border-b border-sidebar-border">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-full bg-sidebar-primary/20 flex items-center justify-center">
-              <span className="text-sm font-semibold text-sidebar-primary">{initials}</span>
+            <div className="relative group cursor-pointer" onClick={() => fileInputRef.current?.click()}>
+              <AvatarDisplay />
+              <div className="absolute inset-0 rounded-full bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                <Camera className="w-3.5 h-3.5 text-white" />
+              </div>
+              <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} />
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-sidebar-foreground truncate">{displayName}</p>
@@ -116,9 +162,13 @@ const DashboardLayout = ({ children, profile, isPremium }: DashboardLayoutProps)
                 Premium
               </span>
             )}
-            <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center">
-              <span className="text-sm font-semibold text-primary">{initials}</span>
-            </div>
+            {avatarUrl ? (
+              <img src={avatarUrl} alt={displayName} className="w-9 h-9 rounded-full object-cover" />
+            ) : (
+              <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center">
+                <span className="text-sm font-semibold text-primary">{initials}</span>
+              </div>
+            )}
           </div>
         </header>
         <main className="flex-1 p-4 lg:p-8">{children}</main>
