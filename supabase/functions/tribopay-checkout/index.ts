@@ -33,6 +33,8 @@ serve(async (req) => {
         'Accept': 'application/json',
       },
       body: JSON.stringify({
+        offer_hash: 'i7egqo5x95',
+        product_hash: 'fe0oac15hf',
         amount: amount,
         payment_method: 'pix',
         customer: {
@@ -41,15 +43,6 @@ serve(async (req) => {
           phone_number: phone.replace(/\D/g, ''),
           document: cpf.replace(/\D/g, ''),
         },
-        cart: [
-          {
-            title: 'OrganizaPay Premium - Assinatura Mensal',
-            price: amount,
-            quantity: 1,
-            operation_type: 1,
-            tangible: false,
-          },
-        ],
       }),
     });
 
