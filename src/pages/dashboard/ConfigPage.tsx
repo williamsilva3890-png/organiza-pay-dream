@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
-import { User, Bell, Palette, Shield, Crown, Lock, Type, Layout, PieChart } from "lucide-react";
+import { User, Bell, Palette, Shield, Crown, Lock, Type, Layout, PieChart, Monitor, Moon, Sun } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Slider } from "@/components/ui/slider";
 import { motion } from "framer-motion";
 import { useTheme } from "@/components/ThemeProvider";
 import { useAuth } from "@/hooks/useAuth";
@@ -17,10 +18,13 @@ interface Props {
 const ACCENT_COLORS = [
   { name: "Violeta", hsl: "270 60% 55%", hslDark: "270 55% 60%" },
   { name: "Azul", hsl: "210 70% 50%", hslDark: "210 65% 55%" },
-  { name: "Roxo", hsl: "270 60% 55%", hslDark: "270 55% 60%" },
+  { name: "Roxo", hsl: "290 65% 50%", hslDark: "290 60% 55%" },
   { name: "Rosa", hsl: "330 70% 50%", hslDark: "330 65% 55%" },
   { name: "Laranja", hsl: "25 90% 50%", hslDark: "25 85% 55%" },
   { name: "Vermelho", hsl: "0 72% 50%", hslDark: "0 67% 50%" },
+  { name: "Verde", hsl: "150 60% 40%", hslDark: "150 55% 50%" },
+  { name: "Ciano", hsl: "190 80% 42%", hslDark: "190 75% 50%" },
+  { name: "Amarelo", hsl: "45 95% 48%", hslDark: "45 90% 55%" },
 ];
 
 const FONT_OPTIONS = [
@@ -33,40 +37,25 @@ const CHART_COLOR_PRESETS = [
   {
     name: "Roxo Clássico",
     colors: {
-      Moradia: "hsl(280 60% 55%)",
-      Alimentação: "hsl(35 95% 55%)",
-      Transporte: "hsl(210 70% 55%)",
-      Saúde: "hsl(270 45% 60%)",
-      Lazer: "hsl(330 70% 55%)",
-      Educação: "hsl(200 60% 50%)",
-      Outros: "hsl(200 10% 65%)",
-      Dívida: "hsl(0 72% 55%)",
+      Moradia: "hsl(280 60% 55%)", Alimentação: "hsl(35 95% 55%)", Transporte: "hsl(210 70% 55%)",
+      Saúde: "hsl(270 45% 60%)", Lazer: "hsl(330 70% 55%)", Educação: "hsl(200 60% 50%)",
+      Outros: "hsl(200 10% 65%)", Dívida: "hsl(0 72% 55%)",
     },
   },
   {
     name: "Vibrante",
     colors: {
-      Moradia: "hsl(340 80% 55%)",
-      Alimentação: "hsl(45 100% 50%)",
-      Transporte: "hsl(190 80% 45%)",
-      Saúde: "hsl(150 60% 45%)",
-      Lazer: "hsl(290 70% 55%)",
-      Educação: "hsl(25 90% 55%)",
-      Outros: "hsl(220 15% 60%)",
-      Dívida: "hsl(0 85% 50%)",
+      Moradia: "hsl(340 80% 55%)", Alimentação: "hsl(45 100% 50%)", Transporte: "hsl(190 80% 45%)",
+      Saúde: "hsl(150 60% 45%)", Lazer: "hsl(290 70% 55%)", Educação: "hsl(25 90% 55%)",
+      Outros: "hsl(220 15% 60%)", Dívida: "hsl(0 85% 50%)",
     },
   },
   {
     name: "Pastel",
     colors: {
-      Moradia: "hsl(280 40% 70%)",
-      Alimentação: "hsl(35 70% 70%)",
-      Transporte: "hsl(210 50% 70%)",
-      Saúde: "hsl(160 40% 70%)",
-      Lazer: "hsl(330 50% 70%)",
-      Educação: "hsl(200 40% 70%)",
-      Outros: "hsl(200 10% 75%)",
-      Dívida: "hsl(0 50% 70%)",
+      Moradia: "hsl(280 40% 70%)", Alimentação: "hsl(35 70% 70%)", Transporte: "hsl(210 50% 70%)",
+      Saúde: "hsl(160 40% 70%)", Lazer: "hsl(330 50% 70%)", Educação: "hsl(200 40% 70%)",
+      Outros: "hsl(200 10% 75%)", Dívida: "hsl(0 50% 70%)",
     },
   },
 ];
@@ -75,6 +64,15 @@ const SIDEBAR_STYLES = [
   { name: "Escuro", bg: "260 30% 12%", fg: "270 15% 85%" },
   { name: "Profundo", bg: "260 40% 8%", fg: "270 20% 90%" },
   { name: "Azulado", bg: "220 30% 12%", fg: "210 15% 85%" },
+  { name: "Esverdeado", bg: "160 25% 12%", fg: "150 15% 85%" },
+  { name: "Vinho", bg: "340 30% 12%", fg: "330 15% 85%" },
+  { name: "Grafite", bg: "220 10% 15%", fg: "220 10% 85%" },
+];
+
+const CARD_STYLES = [
+  { name: "Padrão", value: "default", borderRadius: "0.75rem", shadow: "0 1px 3px rgba(0,0,0,0.1)" },
+  { name: "Arredondado", value: "rounded", borderRadius: "1.25rem", shadow: "0 2px 8px rgba(0,0,0,0.08)" },
+  { name: "Flat", value: "flat", borderRadius: "0.5rem", shadow: "none" },
 ];
 
 const ConfigPage = ({ finance }: Props) => {
@@ -89,15 +87,26 @@ const ConfigPage = ({ finance }: Props) => {
   const [compactLayout, setCompactLayout] = useState(() => localStorage.getItem("compact-layout") === "true");
   const [chartPreset, setChartPreset] = useState(() => localStorage.getItem("chart-preset") || "Roxo Clássico");
   const [sidebarStyle, setSidebarStyle] = useState(() => localStorage.getItem("sidebar-style") || "Escuro");
+  const [cardStyle, setCardStyle] = useState(() => localStorage.getItem("card-style") || "default");
+  const [borderRadius, setBorderRadius] = useState(() => parseInt(localStorage.getItem("border-radius") || "12"));
   const [showPremiumDialog, setShowPremiumDialog] = useState(false);
 
+  // Apply accent color globally
   useEffect(() => {
-    document.documentElement.style.setProperty("--primary", accentColor);
     const darkColor = ACCENT_COLORS.find(c => c.hsl === accentColor)?.hslDark || accentColor;
-    if (theme === "dark") document.documentElement.style.setProperty("--primary", darkColor);
-    document.documentElement.style.setProperty("--ring", accentColor);
-    document.documentElement.style.setProperty("--sidebar-primary", theme === "dark" ? darkColor : accentColor);
-    document.documentElement.style.setProperty("--sidebar-ring", theme === "dark" ? darkColor : accentColor);
+    const color = theme === "dark" ? darkColor : accentColor;
+    document.documentElement.style.setProperty("--primary", color);
+    document.documentElement.style.setProperty("--ring", color);
+    document.documentElement.style.setProperty("--sidebar-primary", color);
+    document.documentElement.style.setProperty("--sidebar-ring", color);
+    // Also update accent and success to match
+    const parts = accentColor.split(" ");
+    if (parts.length === 3) {
+      const hue = parseInt(parts[0]);
+      document.documentElement.style.setProperty("--accent", `${(hue + 10) % 360} 70% 60%`);
+      document.documentElement.style.setProperty("--success", `${hue} 55% 50%`);
+      document.documentElement.style.setProperty("--chart-income", color);
+    }
     localStorage.setItem("accent-color", accentColor);
   }, [accentColor, theme]);
 
@@ -109,13 +118,8 @@ const ConfigPage = ({ finance }: Props) => {
     localStorage.setItem("font-family", fontFamily);
   }, [fontFamily]);
 
-  useEffect(() => {
-    localStorage.setItem("compact-layout", String(compactLayout));
-  }, [compactLayout]);
-
-  useEffect(() => {
-    localStorage.setItem("chart-preset", chartPreset);
-  }, [chartPreset]);
+  useEffect(() => { localStorage.setItem("compact-layout", String(compactLayout)); }, [compactLayout]);
+  useEffect(() => { localStorage.setItem("chart-preset", chartPreset); }, [chartPreset]);
 
   useEffect(() => {
     const style = SIDEBAR_STYLES.find(s => s.name === sidebarStyle);
@@ -125,6 +129,19 @@ const ConfigPage = ({ finance }: Props) => {
     }
     localStorage.setItem("sidebar-style", sidebarStyle);
   }, [sidebarStyle]);
+
+  useEffect(() => {
+    const style = CARD_STYLES.find(s => s.value === cardStyle);
+    if (style) {
+      document.documentElement.style.setProperty("--radius", style.borderRadius);
+    }
+    localStorage.setItem("card-style", cardStyle);
+  }, [cardStyle]);
+
+  useEffect(() => {
+    document.documentElement.style.setProperty("--radius", `${borderRadius / 16}rem`);
+    localStorage.setItem("border-radius", String(borderRadius));
+  }, [borderRadius]);
 
   const handleSave = async () => {
     if (profileType === "casal" && !isPremium) {
@@ -168,7 +185,7 @@ const ConfigPage = ({ finance }: Props) => {
                 <div className="grid grid-cols-2 gap-2 text-xs">
                   <div className="flex items-center gap-1.5"><Lock className="w-3 h-3 text-muted-foreground" /><span>{FREE_LIMITS.receitas} renda</span></div>
                   <div className="flex items-center gap-1.5"><Lock className="w-3 h-3 text-muted-foreground" /><span>{FREE_LIMITS.despesas} despesas</span></div>
-                  <div className="flex items-center gap-1.5"><Lock className="w-3 h-3 text-muted-foreground" /><span>{FREE_LIMITS.metas} metas</span></div>
+                  <div className="flex items-center gap-1.5"><Lock className="w-3 h-3 text-muted-foreground" /><span>Metas: Premium</span></div>
                   <div className="flex items-center gap-1.5"><Lock className="w-3 h-3 text-muted-foreground" /><span>Conta individual</span></div>
                 </div>
                 <Button variant="default" size="sm" className="mt-3 gap-1.5" onClick={() => setShowPremiumDialog(true)}>
@@ -216,9 +233,23 @@ const ConfigPage = ({ finance }: Props) => {
               <Palette className="w-5 h-5 text-primary" />
               <h3 className="font-display font-bold text-base">Tema</h3>
             </div>
-            <div className="flex items-center justify-between">
-              <span className="text-sm">Modo escuro</span>
-              <Switch checked={theme === "dark"} onCheckedChange={toggleTheme} />
+            <div className="grid grid-cols-2 gap-3">
+              <button onClick={() => { if (theme === "dark") toggleTheme(); }}
+                className={`flex items-center gap-3 p-4 rounded-lg border-2 transition-all ${theme === "light" ? "border-primary shadow-md" : "border-border hover:border-muted-foreground/30"}`}>
+                <Sun className="w-5 h-5" />
+                <div className="text-left">
+                  <p className="text-sm font-medium">Claro</p>
+                  <p className="text-xs text-muted-foreground">Fundo branco</p>
+                </div>
+              </button>
+              <button onClick={() => { if (theme === "light") toggleTheme(); }}
+                className={`flex items-center gap-3 p-4 rounded-lg border-2 transition-all ${theme === "dark" ? "border-primary shadow-md" : "border-border hover:border-muted-foreground/30"}`}>
+                <Moon className="w-5 h-5" />
+                <div className="text-left">
+                  <p className="text-sm font-medium">Escuro</p>
+                  <p className="text-xs text-muted-foreground">Fundo escuro</p>
+                </div>
+              </button>
             </div>
           </motion.div>
 
@@ -228,6 +259,7 @@ const ConfigPage = ({ finance }: Props) => {
               <Palette className="w-5 h-5 text-primary" />
               <h3 className="font-display font-bold text-base">Cor de destaque</h3>
             </div>
+            <p className="text-xs text-muted-foreground mb-3">Muda a cor principal do painel inteiro</p>
             <div className="grid grid-cols-3 gap-3">
               {ACCENT_COLORS.map((color) => (
                 <button key={color.name} onClick={() => setAccentColor(color.hsl)}
@@ -239,8 +271,26 @@ const ConfigPage = ({ finance }: Props) => {
             </div>
           </motion.div>
 
-          {/* Chart colors */}
+          {/* Border radius */}
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="bg-card rounded-xl p-5 border border-border shadow-card">
+            <div className="flex items-center gap-2 mb-4">
+              <Layout className="w-5 h-5 text-primary" />
+              <h3 className="font-display font-bold text-base">Arredondamento</h3>
+            </div>
+            <p className="text-xs text-muted-foreground mb-3">Ajuste o arredondamento dos cards e botões</p>
+            <div className="flex items-center gap-4">
+              <span className="text-xs text-muted-foreground w-8">0px</span>
+              <Slider value={[borderRadius]} onValueChange={(v) => setBorderRadius(v[0])} min={0} max={24} step={2} className="flex-1" />
+              <span className="text-xs text-muted-foreground w-10">{borderRadius}px</span>
+            </div>
+            <div className="mt-3 flex gap-3">
+              <div className="w-20 h-12 bg-primary/10 border border-border" style={{ borderRadius: `${borderRadius}px` }} />
+              <div className="flex-1 h-12 bg-primary/10 border border-border" style={{ borderRadius: `${borderRadius}px` }} />
+            </div>
+          </motion.div>
+
+          {/* Chart colors */}
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} className="bg-card rounded-xl p-5 border border-border shadow-card">
             <div className="flex items-center gap-2 mb-4">
               <PieChart className="w-5 h-5 text-primary" />
               <h3 className="font-display font-bold text-base">Cores dos Gráficos</h3>
@@ -264,7 +314,7 @@ const ConfigPage = ({ finance }: Props) => {
           </motion.div>
 
           {/* Sidebar style */}
-          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} className="bg-card rounded-xl p-5 border border-border shadow-card">
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="bg-card rounded-xl p-5 border border-border shadow-card">
             <div className="flex items-center gap-2 mb-4">
               <Layout className="w-5 h-5 text-primary" />
               <h3 className="font-display font-bold text-base">Estilo da Barra Lateral</h3>
@@ -281,7 +331,7 @@ const ConfigPage = ({ finance }: Props) => {
           </motion.div>
 
           {/* Font */}
-          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="bg-card rounded-xl p-5 border border-border shadow-card">
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }} className="bg-card rounded-xl p-5 border border-border shadow-card">
             <div className="flex items-center gap-2 mb-4">
               <Type className="w-5 h-5 text-primary" />
               <h3 className="font-display font-bold text-base">Fonte</h3>
@@ -298,7 +348,7 @@ const ConfigPage = ({ finance }: Props) => {
           </motion.div>
 
           {/* Compact layout */}
-          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }} className="bg-card rounded-xl p-5 border border-border shadow-card">
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="bg-card rounded-xl p-5 border border-border shadow-card">
             <div className="flex items-center gap-2 mb-4">
               <Layout className="w-5 h-5 text-primary" />
               <h3 className="font-display font-bold text-base">Layout</h3>

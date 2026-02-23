@@ -32,6 +32,7 @@ export interface Meta {
 export interface Profile {
   display_name: string;
   profile_type: string;
+  avatar_url?: string;
 }
 
 export interface Subscription {
