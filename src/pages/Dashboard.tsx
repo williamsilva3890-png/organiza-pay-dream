@@ -31,7 +31,7 @@ const Dashboard = () => {
         <Route path="receitas" element={<ReceitasPage finance={finance} />} />
         <Route path="despesas" element={<DespesasPage finance={finance} />} />
         <Route path="metas" element={<MetasPage finance={finance} />} />
-        <Route path="relatorios" element={<RelatoriosPage />} />
+        <Route path="relatorios" element={<RelatoriosPage finance={finance} />} />
         <Route path="config" element={<ConfigPage finance={finance} />} />
       </Routes>
       <NotificationPopup
