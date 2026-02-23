@@ -21,7 +21,7 @@ const ReceitasPage = ({ finance }: Props) => {
 
   const handleAdd = async () => {
     if (!canAddReceita) {
-      toast.error(`Limite do plano gratuito atingido (${FREE_LIMITS.receitas} receitas). Faça upgrade para Premium!`);
+      toast.error(`Limite do plano gratuito atingido (${FREE_LIMITS.receitas} renda). Faça upgrade para Premium!`);
       return;
     }
     if (!form.description || !form.amount || !form.date) return;
@@ -42,12 +42,12 @@ const ReceitasPage = ({ finance }: Props) => {
     setForm({ description: "", amount: "", date: "", category: "Salário" });
     setEditOpen(false);
     setEditId(null);
-    toast.success("Receita atualizada!");
+    toast.success("Renda atualizada!");
   };
 
   const handleDelete = async (id: string) => {
     await deleteReceita(id);
-    toast.success("Receita removida!");
+    toast.success("Renda removida!");
   };
 
   const inputClass = "w-full h-10 px-3 rounded-lg border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/30";
@@ -67,14 +67,14 @@ const ReceitasPage = ({ finance }: Props) => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="font-display font-bold text-2xl">Receitas</h1>
+          <h1 className="font-display font-bold text-2xl">Renda</h1>
           <p className="text-sm text-muted-foreground">Gerencie todas as suas entradas</p>
         </div>
         <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger asChild><Button variant="default" className="gap-2"><Plus className="w-4 h-4" />Nova receita</Button></DialogTrigger>
+          <DialogTrigger asChild><Button variant="default" className="gap-2"><Plus className="w-4 h-4" />Nova renda</Button></DialogTrigger>
           <DialogContent>
-            <DialogHeader><DialogTitle>Nova receita</DialogTitle></DialogHeader>
-            <FormFields onSubmit={handleAdd} label="Adicionar receita" />
+            <DialogHeader><DialogTitle>Nova renda</DialogTitle></DialogHeader>
+            <FormFields onSubmit={handleAdd} label="Adicionar renda" />
           </DialogContent>
         </Dialog>
       </div>
@@ -82,7 +82,7 @@ const ReceitasPage = ({ finance }: Props) => {
       {!isPremium && (
         <div className="flex items-center gap-2 text-xs text-muted-foreground bg-muted/50 rounded-lg px-4 py-2.5">
           <Lock className="w-3.5 h-3.5" />
-          <span>Plano gratuito: {receitas.length}/{FREE_LIMITS.receitas} rendas usadas</span>
+          <span>Plano gratuito: {receitas.length}/{FREE_LIMITS.receitas} renda usada</span>
         </div>
       )}
 
@@ -97,7 +97,7 @@ const ReceitasPage = ({ finance }: Props) => {
         <div className="grid grid-cols-[1fr_auto_auto_auto_auto] gap-4 px-5 py-3 bg-muted/50 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
           <span>Descrição</span><span>Categoria</span><span>Data</span><span className="text-right">Valor</span><span></span>
         </div>
-        {receitas.length === 0 && <div className="px-5 py-8 text-center text-sm text-muted-foreground">Nenhuma receita cadastrada. Adicione sua primeira!</div>}
+        {receitas.length === 0 && <div className="px-5 py-8 text-center text-sm text-muted-foreground">Nenhuma renda cadastrada. Adicione sua primeira!</div>}
         {receitas.map((r, i) => (
           <motion.div key={r.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.05 }}
             className="grid grid-cols-[1fr_auto_auto_auto_auto] gap-4 px-5 py-3.5 border-t border-border items-center hover:bg-muted/30 transition-colors">
@@ -115,7 +115,7 @@ const ReceitasPage = ({ finance }: Props) => {
 
       <Dialog open={editOpen} onOpenChange={setEditOpen}>
         <DialogContent>
-          <DialogHeader><DialogTitle>Editar receita</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle>Editar renda</DialogTitle></DialogHeader>
           <FormFields onSubmit={handleEdit} label="Salvar alterações" />
         </DialogContent>
       </Dialog>

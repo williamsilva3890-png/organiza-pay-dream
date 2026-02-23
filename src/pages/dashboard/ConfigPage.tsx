@@ -166,7 +166,7 @@ const ConfigPage = ({ finance }: Props) => {
               <div className="space-y-2">
                 <p className="text-sm text-muted-foreground">Limites do plano gratuito:</p>
                 <div className="grid grid-cols-2 gap-2 text-xs">
-                  <div className="flex items-center gap-1.5"><Lock className="w-3 h-3 text-muted-foreground" /><span>{FREE_LIMITS.receitas} receitas</span></div>
+                  <div className="flex items-center gap-1.5"><Lock className="w-3 h-3 text-muted-foreground" /><span>{FREE_LIMITS.receitas} renda</span></div>
                   <div className="flex items-center gap-1.5"><Lock className="w-3 h-3 text-muted-foreground" /><span>{FREE_LIMITS.despesas} despesas</span></div>
                   <div className="flex items-center gap-1.5"><Lock className="w-3 h-3 text-muted-foreground" /><span>{FREE_LIMITS.metas} metas</span></div>
                   <div className="flex items-center gap-1.5"><Lock className="w-3 h-3 text-muted-foreground" /><span>Conta individual</span></div>

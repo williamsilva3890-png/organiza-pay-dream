@@ -80,7 +80,7 @@ const DashboardHome = ({ finance }: Props) => {
       <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {[
           { title: "Saldo do mês", value: saldo, icon: Wallet, iconBg: "bg-primary/10", iconColor: "text-primary", positive: saldo >= 0 },
-          { title: "Total de receitas", value: totalReceitas, icon: TrendingUp, iconBg: "bg-success/10", iconColor: "text-success", positive: true },
+          { title: "Total de renda", value: totalReceitas, icon: TrendingUp, iconBg: "bg-success/10", iconColor: "text-success", positive: true },
           { title: "Total de despesas", value: totalDespesas, icon: TrendingDown, iconBg: "bg-destructive/10", iconColor: "text-destructive", positive: false },
         ].map((card, i) => (
           <motion.div key={card.title} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }}
