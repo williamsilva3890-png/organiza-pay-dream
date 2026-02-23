@@ -43,6 +43,15 @@ serve(async (req) => {
           phone_number: phone.replace(/\D/g, ''),
           document: cpf.replace(/\D/g, ''),
         },
+        cart: [
+          {
+            title: 'OrganizaPay Premium - Assinatura Mensal',
+            price: amount,
+            quantity: 1,
+            operation_type: 1,
+            tangible: false,
+          },
+        ],
       }),
     });
 
