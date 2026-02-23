@@ -185,12 +185,13 @@ const ConfigPage = ({ finance }: Props) => {
                 <div className="grid grid-cols-2 gap-2 text-xs">
                   <div className="flex items-center gap-1.5"><Lock className="w-3 h-3 text-muted-foreground" /><span>{FREE_LIMITS.receitas} renda</span></div>
                   <div className="flex items-center gap-1.5"><Lock className="w-3 h-3 text-muted-foreground" /><span>{FREE_LIMITS.despesas} despesas</span></div>
-                  <div className="flex items-center gap-1.5"><Lock className="w-3 h-3 text-muted-foreground" /><span>Metas: Premium</span></div>
                   <div className="flex items-center gap-1.5"><Lock className="w-3 h-3 text-muted-foreground" /><span>Conta individual</span></div>
                 </div>
-                <Button variant="default" size="sm" className="mt-3 gap-1.5" onClick={() => setShowPremiumDialog(true)}>
-                  <Crown className="w-4 h-4" />Assinar Premium
-                </Button>
+                <a href="https://go.tribopay.com.br/i7egqo5x95" target="_blank" rel="noopener noreferrer">
+                  <Button variant="default" size="sm" className="mt-3 gap-1.5">
+                    <Crown className="w-4 h-4" />Assinar Premium
+                  </Button>
+                </a>
               </div>
             )}
           </motion.div>
