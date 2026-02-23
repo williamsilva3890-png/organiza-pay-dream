@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { User, Bell, Palette, Shield, Crown, Lock, Type, Layout, PieChart, Monitor, Moon, Sun } from "lucide-react";
+import { User, Bell, Palette, Shield, Crown, Lock, Type, Layout, PieChart, Monitor, Moon, Sun, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -180,18 +180,38 @@ const ConfigPage = ({ finance }: Props) => {
             {isPremium ? (
               <p className="text-sm text-muted-foreground">Você tem acesso ilimitado a todas as funcionalidades! 🎉</p>
             ) : (
-              <div className="space-y-2">
+              <div className="space-y-3">
                 <p className="text-sm text-muted-foreground">Limites do plano gratuito:</p>
                 <div className="grid grid-cols-2 gap-2 text-xs">
                   <div className="flex items-center gap-1.5"><Lock className="w-3 h-3 text-muted-foreground" /><span>{FREE_LIMITS.receitas} renda</span></div>
                   <div className="flex items-center gap-1.5"><Lock className="w-3 h-3 text-muted-foreground" /><span>{FREE_LIMITS.despesas} despesas</span></div>
                   <div className="flex items-center gap-1.5"><Lock className="w-3 h-3 text-muted-foreground" /><span>Conta individual</span></div>
                 </div>
-                <a href="https://go.tribopay.com.br/i7egqo5x95" target="_blank" rel="noopener noreferrer">
-                  <Button variant="default" size="sm" className="mt-3 gap-1.5">
-                    <Crown className="w-4 h-4" />Assinar Premium
-                  </Button>
-                </a>
+
+                {/* User ID for support */}
+                <div className="bg-muted rounded-lg p-3 text-center space-y-1">
+                  <p className="text-xs text-muted-foreground">Seu código de identificação:</p>
+                  <p className="font-mono font-bold text-sm select-all">{user?.id || "—"}</p>
+                </div>
+
+                <Button variant="default" size="sm" className="w-full gap-1.5" onClick={() => window.open("https://go.tribopay.com.br/i7egqo5x95", "_blank", "noopener,noreferrer")}>
+                  <Crown className="w-4 h-4" />Assinar Premium — R$ 19,90/mês
+                </Button>
+
+                <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg p-3">
+                  <p className="text-xs text-amber-900 dark:text-amber-200">
+                    Caso tenha feito o pagamento e não tenha ficado Premium, envie seu <strong>código acima</strong>, o <strong>comprovante do Pix</strong> e o <strong>Gmail utilizado</strong> para nosso suporte:
+                  </p>
+                  <a
+                    href={`https://wa.me/5592985968379?text=${encodeURIComponent("Fiz o pagamento, mas não fui para o Premium.")}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 mt-2 text-xs text-green-700 dark:text-green-400 font-semibold hover:underline"
+                  >
+                    <MessageCircle className="w-3.5 h-3.5" />
+                    WhatsApp de Suporte
+                  </a>
+                </div>
               </div>
             )}
           </motion.div>
