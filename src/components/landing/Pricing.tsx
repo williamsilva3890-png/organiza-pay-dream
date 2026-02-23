@@ -1,7 +1,9 @@
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Check, Sparkles } from "lucide-react";
 import { Link } from "react-router-dom";
+import PremiumCheckoutDialog from "@/components/dashboard/PremiumCheckoutDialog";
 
 const plans = [
   {
@@ -39,6 +41,8 @@ const plans = [
 ];
 
 const Pricing = () => {
+  const [showPremiumDialog, setShowPremiumDialog] = useState(false);
+
   return (
     <section id="planos" className="py-20 lg:py-28 bg-muted/40">
       <div className="container">
@@ -108,19 +112,28 @@ const Pricing = () => {
                 ))}
               </ul>
 
-              <Link to="/dashboard">
+              {plan.highlighted ? (
                 <Button
-                  variant={plan.highlighted ? "hero" : "outline"}
+                  variant="hero"
                   size="lg"
                   className="w-full"
+                  onClick={() => setShowPremiumDialog(true)}
                 >
                   {plan.cta}
                 </Button>
-              </Link>
+              ) : (
+                <Link to="/dashboard">
+                  <Button variant="outline" size="lg" className="w-full">
+                    {plan.cta}
+                  </Button>
+                </Link>
+              )}
             </motion.div>
           ))}
         </div>
       </div>
+
+      <PremiumCheckoutDialog open={showPremiumDialog} onOpenChange={setShowPremiumDialog} />
     </section>
   );
 };
