@@ -25,35 +25,43 @@ serve(async (req) => {
       );
     }
 
-    // Create transaction via TriboPay API
-    const response = await fetch('https://api.tribopay.com.br/api/public/v1/transactions', {
+    // Create transaction via TriboPay API using query param for token
+    const response = await fetch(`https://api.tribopay.com.br/api/public/v1/transactions?api_token=${TRIBOPAY_TOKEN}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'Accept': 'application/json',
       },
       body: JSON.stringify({
-        api_token: TRIBOPAY_TOKEN,
         amount: amount,
         payment_method: 'pix',
         customer: {
           name: name,
           email: email,
-          phone: phone,
-          tax_number: cpf,
+          phone_number: phone.replace(/\D/g, ''),
+          document: cpf.replace(/\D/g, ''),
         },
-        due_date: due_date,
-        description: 'OrganizaPay Premium - Assinatura Mensal',
+        cart: [
+          {
+            title: 'OrganizaPay Premium - Assinatura Mensal',
+            price: amount,
+            quantity: 1,
+            operation_type: 1,
+            tangible: false,
+          },
+        ],
       }),
     });
 
     const data = await response.json();
+    console.log('TriboPay response:', JSON.stringify(data));
 
     if (!response.ok) {
       console.error('TriboPay API error:', JSON.stringify(data));
       throw new Error(`TriboPay API error [${response.status}]: ${JSON.stringify(data)}`);
     }
 
-    // Return QR code data
+    // Return QR code data from response
     return new Response(
       JSON.stringify({
         qr_code: data.pix_qr_code || data.qr_code || '',
