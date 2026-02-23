@@ -1,9 +1,7 @@
-import { useState } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Check, Sparkles } from "lucide-react";
 import { Link } from "react-router-dom";
-import PremiumCheckoutDialog from "@/components/dashboard/PremiumCheckoutDialog";
 
 const plans = [
   {
@@ -40,8 +38,9 @@ const plans = [
   },
 ];
 
+const TRIBOPAY_CHECKOUT_URL = "https://go.tribopay.com.br/i7egqo5x95";
+
 const Pricing = () => {
-  const [showPremiumDialog, setShowPremiumDialog] = useState(false);
 
   return (
     <section id="planos" className="py-20 lg:py-28 bg-muted/40">
@@ -113,14 +112,11 @@ const Pricing = () => {
               </ul>
 
               {plan.highlighted ? (
-                <Button
-                  variant="hero"
-                  size="lg"
-                  className="w-full"
-                  onClick={() => setShowPremiumDialog(true)}
-                >
-                  {plan.cta}
-                </Button>
+                <a href={TRIBOPAY_CHECKOUT_URL} target="_blank" rel="noopener noreferrer">
+                  <Button variant="hero" size="lg" className="w-full">
+                    {plan.cta}
+                  </Button>
+                </a>
               ) : (
                 <Link to="/dashboard">
                   <Button variant="outline" size="lg" className="w-full">
@@ -133,7 +129,7 @@ const Pricing = () => {
         </div>
       </div>
 
-      <PremiumCheckoutDialog open={showPremiumDialog} onOpenChange={setShowPremiumDialog} />
+      
     </section>
   );
 };
