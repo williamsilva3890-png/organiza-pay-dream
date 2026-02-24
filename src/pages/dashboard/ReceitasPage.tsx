@@ -53,12 +53,12 @@ const ReceitasPage = ({ finance }: Props) => {
   const inputClass = "w-full h-10 px-3 rounded-lg border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/30";
   const fmt = (v: number) => `R$ ${v.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`;
 
-  const FormFields = ({ onSubmit, label }: { onSubmit: () => void; label: string }) => (
+  const renderFormFields = (onSubmit: () => void, label: string) => (
     <div className="space-y-4 pt-2">
-      <div><label className="text-sm font-medium mb-1 block">Descrição</label><input value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className={inputClass} placeholder="Ex: Salário mensal" /></div>
-      <div><label className="text-sm font-medium mb-1 block">Valor (R$)</label><input type="number" value={form.amount} onChange={(e) => setForm({ ...form, amount: e.target.value })} className={inputClass} placeholder="0,00" /></div>
-      <div><label className="text-sm font-medium mb-1 block">Data</label><input type="date" value={form.date} onChange={(e) => setForm({ ...form, date: e.target.value })} className={inputClass} /></div>
-      <div><label className="text-sm font-medium mb-1 block">Categoria</label><select value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} className={inputClass}>{categories.map((c) => <option key={c}>{c}</option>)}</select></div>
+      <div><label className="text-sm font-medium mb-1 block">Descrição</label><input value={form.description} onChange={(e) => setForm(prev => ({ ...prev, description: e.target.value }))} className={inputClass} placeholder="Ex: Salário mensal" /></div>
+      <div><label className="text-sm font-medium mb-1 block">Valor (R$)</label><input type="number" value={form.amount} onChange={(e) => setForm(prev => ({ ...prev, amount: e.target.value }))} className={inputClass} placeholder="0,00" /></div>
+      <div><label className="text-sm font-medium mb-1 block">Data</label><input type="date" value={form.date} onChange={(e) => setForm(prev => ({ ...prev, date: e.target.value }))} className={inputClass} /></div>
+      <div><label className="text-sm font-medium mb-1 block">Categoria</label><select value={form.category} onChange={(e) => setForm(prev => ({ ...prev, category: e.target.value }))} className={inputClass}>{categories.map((c) => <option key={c}>{c}</option>)}</select></div>
       <Button onClick={onSubmit} className="w-full">{label}</Button>
     </div>
   );
@@ -74,7 +74,7 @@ const ReceitasPage = ({ finance }: Props) => {
           <DialogTrigger asChild><Button variant="default" className="gap-2" disabled={!canAddReceita && !isPremium}><Plus className="w-4 h-4" />Nova renda</Button></DialogTrigger>
           <DialogContent>
             <DialogHeader><DialogTitle>Nova renda</DialogTitle></DialogHeader>
-            <FormFields onSubmit={handleAdd} label="Adicionar renda" />
+            {renderFormFields(handleAdd, "Adicionar renda")}
           </DialogContent>
         </Dialog>
       </div>
@@ -94,19 +94,21 @@ const ReceitasPage = ({ finance }: Props) => {
       </motion.div>
 
       <div className="bg-card rounded-xl border border-border shadow-card overflow-hidden">
-        <div className="grid grid-cols-[1fr_auto_auto_auto_auto] gap-4 px-5 py-3 bg-muted/50 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+        <div className="hidden sm:grid grid-cols-[1fr_auto_auto_auto_auto] gap-4 px-5 py-3 bg-muted/50 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
           <span>Descrição</span><span>Categoria</span><span>Data</span><span className="text-right">Valor</span><span></span>
         </div>
         {receitas.length === 0 && <div className="px-5 py-8 text-center text-sm text-muted-foreground">Nenhuma renda cadastrada. Adicione sua primeira!</div>}
         {receitas.map((r, i) => (
           <motion.div key={r.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.05 }}
-            className="grid grid-cols-[1fr_auto_auto_auto_auto] gap-4 px-5 py-3.5 border-t border-border items-center hover:bg-muted/30 transition-colors">
+            className="flex flex-col sm:grid sm:grid-cols-[1fr_auto_auto_auto_auto] gap-1 sm:gap-4 px-4 sm:px-5 py-3 border-t border-border sm:items-center hover:bg-muted/30 transition-colors">
             <span className="text-sm font-medium">{r.description}</span>
-            <span className="text-xs bg-success/10 text-success rounded-full px-2.5 py-1 font-medium">{r.category}</span>
-            <span className="text-sm text-muted-foreground">{new Date(r.date).toLocaleDateString("pt-BR")}</span>
-            <span className="text-sm font-semibold text-success text-right">+{fmt(Number(r.amount))}</span>
+            <div className="flex items-center gap-2 sm:contents">
+              <span className="text-xs bg-success/10 text-success rounded-full px-2.5 py-1 font-medium">{r.category}</span>
+              <span className="text-xs sm:text-sm text-muted-foreground">{new Date(r.date).toLocaleDateString("pt-BR")}</span>
+              <span className="text-sm font-semibold text-success ml-auto sm:ml-0 sm:text-right">+{fmt(Number(r.amount))}</span>
+            </div>
             {isPremium && (
-              <div className="flex gap-1">
+              <div className="flex gap-1 self-end sm:self-auto">
                 <button onClick={() => startEdit(r)} className="p-1.5 rounded-md hover:bg-muted transition-colors"><Pencil className="w-3.5 h-3.5 text-muted-foreground" /></button>
                 <button onClick={() => handleDelete(r.id)} className="p-1.5 rounded-md hover:bg-destructive/10 transition-colors"><Trash2 className="w-3.5 h-3.5 text-destructive" /></button>
               </div>
@@ -118,7 +120,7 @@ const ReceitasPage = ({ finance }: Props) => {
       <Dialog open={editOpen} onOpenChange={setEditOpen}>
         <DialogContent>
           <DialogHeader><DialogTitle>Editar renda</DialogTitle></DialogHeader>
-          <FormFields onSubmit={handleEdit} label="Salvar alterações" />
+          {renderFormFields(handleEdit, "Salvar alterações")}
         </DialogContent>
       </Dialog>
     </div>

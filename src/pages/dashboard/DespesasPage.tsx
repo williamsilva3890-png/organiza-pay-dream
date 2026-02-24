@@ -85,21 +85,21 @@ const DespesasPage = ({ finance }: Props) => {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <h1 className="font-display font-bold text-2xl">Despesas</h1>
           <p className="text-sm text-muted-foreground">Controle suas saídas por categoria</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap items-center justify-between gap-2">
           <Dialog open={openGasto} onOpenChange={setOpenGasto}>
             <DialogTrigger asChild><Button variant="default" className="gap-2" disabled={!canAddDespesa && !isPremium}><Plus className="w-4 h-4" />Novo gasto</Button></DialogTrigger>
             <DialogContent>
               <DialogHeader><DialogTitle>Novo gasto</DialogTitle></DialogHeader>
               <div className="space-y-4 pt-2">
-                <div><label className="text-sm font-medium mb-1 block">Com o que está gastando?</label><input value={formGasto.description} onChange={(e) => setFormGasto({ ...formGasto, description: e.target.value })} className={inputClass} placeholder="Ex: Conta de luz" /></div>
-                <div><label className="text-sm font-medium mb-1 block">Valor (R$)</label><input type="number" value={formGasto.amount} onChange={(e) => setFormGasto({ ...formGasto, amount: e.target.value })} className={inputClass} placeholder="0,00" /></div>
-                <div><label className="text-sm font-medium mb-1 block">Data</label><input type="date" value={formGasto.date} onChange={(e) => setFormGasto({ ...formGasto, date: e.target.value })} className={inputClass} /></div>
-                <div><label className="text-sm font-medium mb-1 block">Categoria</label><select value={formGasto.category} onChange={(e) => setFormGasto({ ...formGasto, category: e.target.value })} className={inputClass}>{expenseCategories.map((c) => <option key={c}>{c}</option>)}</select></div>
+                <div><label className="text-sm font-medium mb-1 block">Com o que está gastando?</label><input value={formGasto.description} onChange={(e) => setFormGasto(prev => ({ ...prev, description: e.target.value }))} className={inputClass} placeholder="Ex: Conta de luz" /></div>
+                <div><label className="text-sm font-medium mb-1 block">Valor (R$)</label><input type="number" value={formGasto.amount} onChange={(e) => setFormGasto(prev => ({ ...prev, amount: e.target.value }))} className={inputClass} placeholder="0,00" /></div>
+                <div><label className="text-sm font-medium mb-1 block">Data</label><input type="date" value={formGasto.date} onChange={(e) => setFormGasto(prev => ({ ...prev, date: e.target.value }))} className={inputClass} /></div>
+                <div><label className="text-sm font-medium mb-1 block">Categoria</label><select value={formGasto.category} onChange={(e) => setFormGasto(prev => ({ ...prev, category: e.target.value }))} className={inputClass}>{expenseCategories.map((c) => <option key={c}>{c}</option>)}</select></div>
                 <Button onClick={handleAddGasto} className="w-full">Adicionar gasto</Button>
               </div>
             </DialogContent>
@@ -109,10 +109,10 @@ const DespesasPage = ({ finance }: Props) => {
             <DialogContent>
               <DialogHeader><DialogTitle>Nova dívida</DialogTitle></DialogHeader>
               <div className="space-y-4 pt-2">
-                <div><label className="text-sm font-medium mb-1 block">Descrição da dívida</label><input value={formDivida.description} onChange={(e) => setFormDivida({ ...formDivida, description: e.target.value })} className={inputClass} placeholder="Ex: Financiamento do carro" /></div>
-                <div><label className="text-sm font-medium mb-1 block">Valor da parcela (R$)</label><input type="number" value={formDivida.amount} onChange={(e) => setFormDivida({ ...formDivida, amount: e.target.value })} className={inputClass} placeholder="0,00" /></div>
-                <div><label className="text-sm font-medium mb-1 block">Data de vencimento</label><input type="date" value={formDivida.date} onChange={(e) => setFormDivida({ ...formDivida, date: e.target.value })} className={inputClass} /></div>
-                <div><label className="text-sm font-medium mb-1 block">Detalhes (parcelas, etc.)</label><input value={formDivida.details} onChange={(e) => setFormDivida({ ...formDivida, details: e.target.value })} className={inputClass} placeholder="Ex: Parcela 3/12" /></div>
+                <div><label className="text-sm font-medium mb-1 block">Descrição da dívida</label><input value={formDivida.description} onChange={(e) => setFormDivida(prev => ({ ...prev, description: e.target.value }))} className={inputClass} placeholder="Ex: Financiamento do carro" /></div>
+                <div><label className="text-sm font-medium mb-1 block">Valor da parcela (R$)</label><input type="number" value={formDivida.amount} onChange={(e) => setFormDivida(prev => ({ ...prev, amount: e.target.value }))} className={inputClass} placeholder="0,00" /></div>
+                <div><label className="text-sm font-medium mb-1 block">Data de vencimento</label><input type="date" value={formDivida.date} onChange={(e) => setFormDivida(prev => ({ ...prev, date: e.target.value }))} className={inputClass} /></div>
+                <div><label className="text-sm font-medium mb-1 block">Detalhes (parcelas, etc.)</label><input value={formDivida.details} onChange={(e) => setFormDivida(prev => ({ ...prev, details: e.target.value }))} className={inputClass} placeholder="Ex: Parcela 3/12" /></div>
                 <Button onClick={handleAddDivida} className="w-full">Adicionar dívida</Button>
               </div>
             </DialogContent>
@@ -127,7 +127,7 @@ const DespesasPage = ({ finance }: Props) => {
         </div>
       )}
 
-      <div className="grid sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="bg-card rounded-xl p-5 border border-border shadow-card">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-lg bg-destructive/10 flex items-center justify-center"><ArrowDownCircle className="w-5 h-5 text-destructive" /></div>
@@ -152,19 +152,21 @@ const DespesasPage = ({ finance }: Props) => {
       <div>
         <h2 className="font-display font-bold text-lg mb-3 flex items-center gap-2"><ShoppingCart className="w-5 h-5 text-warning" /> Gastos</h2>
         <div className="bg-card rounded-xl border border-border shadow-card overflow-hidden">
-          <div className="grid grid-cols-[1fr_auto_auto_auto_auto] gap-4 px-5 py-3 bg-muted/50 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+          <div className="hidden sm:grid grid-cols-[1fr_auto_auto_auto_auto] gap-4 px-5 py-3 bg-muted/50 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
             <span>Descrição</span><span>Categoria</span><span>Data</span><span className="text-right">Valor</span><span></span>
           </div>
           {gastos.length === 0 && <div className="px-5 py-8 text-center text-sm text-muted-foreground">Nenhum gasto cadastrado</div>}
           {gastos.map((d, i) => (
             <motion.div key={d.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.05 }}
-              className="grid grid-cols-[1fr_auto_auto_auto_auto] gap-4 px-5 py-3.5 border-t border-border items-center hover:bg-muted/30 transition-colors">
+              className="flex flex-col sm:grid sm:grid-cols-[1fr_auto_auto_auto_auto] gap-1 sm:gap-4 px-4 sm:px-5 py-3 border-t border-border sm:items-center hover:bg-muted/30 transition-colors">
               <span className="text-sm font-medium">{d.description}</span>
-              <span className={`text-xs rounded-full px-2.5 py-1 font-medium ${categoryColors[d.category] || "bg-muted text-muted-foreground"}`}>{d.category}</span>
-              <span className="text-sm text-muted-foreground">{new Date(d.date).toLocaleDateString("pt-BR")}</span>
-              <span className="text-sm font-semibold text-destructive text-right">-{fmt(Number(d.amount))}</span>
+              <div className="flex items-center gap-2 sm:contents">
+                <span className={`text-xs rounded-full px-2.5 py-1 font-medium ${categoryColors[d.category] || "bg-muted text-muted-foreground"}`}>{d.category}</span>
+                <span className="text-xs sm:text-sm text-muted-foreground">{new Date(d.date).toLocaleDateString("pt-BR")}</span>
+                <span className="text-sm font-semibold text-destructive ml-auto sm:ml-0 sm:text-right">-{fmt(Number(d.amount))}</span>
+              </div>
               {isPremium && (
-                <div className="flex gap-1">
+                <div className="flex gap-1 self-end sm:self-auto">
                   <button onClick={() => startEditGasto(d)} className="p-1.5 rounded-md hover:bg-muted transition-colors"><Pencil className="w-3.5 h-3.5 text-muted-foreground" /></button>
                   <button onClick={() => handleDelete(d.id)} className="p-1.5 rounded-md hover:bg-destructive/10 transition-colors"><Trash2 className="w-3.5 h-3.5 text-destructive" /></button>
                 </div>
@@ -178,19 +180,21 @@ const DespesasPage = ({ finance }: Props) => {
       <div>
         <h2 className="font-display font-bold text-lg mb-3 flex items-center gap-2"><CreditCard className="w-5 h-5 text-destructive" /> Dívidas</h2>
         <div className="bg-card rounded-xl border border-border shadow-card overflow-hidden">
-          <div className="grid grid-cols-[1fr_auto_auto_auto_auto] gap-4 px-5 py-3 bg-muted/50 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+          <div className="hidden sm:grid grid-cols-[1fr_auto_auto_auto_auto] gap-4 px-5 py-3 bg-muted/50 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
             <span>Descrição</span><span>Detalhes</span><span>Vencimento</span><span className="text-right">Valor</span><span></span>
           </div>
           {dividas.length === 0 && <div className="px-5 py-8 text-center text-sm text-muted-foreground">Nenhuma dívida cadastrada</div>}
           {dividas.map((d, i) => (
             <motion.div key={d.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.05 }}
-              className="grid grid-cols-[1fr_auto_auto_auto_auto] gap-4 px-5 py-3.5 border-t border-border items-center hover:bg-muted/30 transition-colors">
+              className="flex flex-col sm:grid sm:grid-cols-[1fr_auto_auto_auto_auto] gap-1 sm:gap-4 px-4 sm:px-5 py-3 border-t border-border sm:items-center hover:bg-muted/30 transition-colors">
               <span className="text-sm font-medium">{d.description}</span>
-              <span className="text-xs bg-destructive/10 text-destructive rounded-full px-2.5 py-1 font-medium">{d.details || "—"}</span>
-              <span className="text-sm text-muted-foreground">{new Date(d.date).toLocaleDateString("pt-BR")}</span>
-              <span className="text-sm font-semibold text-destructive text-right">-{fmt(Number(d.amount))}</span>
+              <div className="flex items-center gap-2 sm:contents">
+                <span className="text-xs bg-destructive/10 text-destructive rounded-full px-2.5 py-1 font-medium">{d.details || "—"}</span>
+                <span className="text-xs sm:text-sm text-muted-foreground">{new Date(d.date).toLocaleDateString("pt-BR")}</span>
+                <span className="text-sm font-semibold text-destructive ml-auto sm:ml-0 sm:text-right">-{fmt(Number(d.amount))}</span>
+              </div>
               {isPremium && (
-                <div className="flex gap-1">
+                <div className="flex gap-1 self-end sm:self-auto">
                   <button onClick={() => startEditDivida(d)} className="p-1.5 rounded-md hover:bg-muted transition-colors"><Pencil className="w-3.5 h-3.5 text-muted-foreground" /></button>
                   <button onClick={() => handleDelete(d.id)} className="p-1.5 rounded-md hover:bg-destructive/10 transition-colors"><Trash2 className="w-3.5 h-3.5 text-destructive" /></button>
                 </div>
@@ -206,18 +210,18 @@ const DespesasPage = ({ finance }: Props) => {
           <DialogHeader><DialogTitle>Editar {editType === "gasto" ? "gasto" : "dívida"}</DialogTitle></DialogHeader>
           {editType === "gasto" ? (
             <div className="space-y-4 pt-2">
-              <div><label className="text-sm font-medium mb-1 block">Descrição</label><input value={formGasto.description} onChange={(e) => setFormGasto({ ...formGasto, description: e.target.value })} className={inputClass} /></div>
-              <div><label className="text-sm font-medium mb-1 block">Valor (R$)</label><input type="number" value={formGasto.amount} onChange={(e) => setFormGasto({ ...formGasto, amount: e.target.value })} className={inputClass} /></div>
-              <div><label className="text-sm font-medium mb-1 block">Data</label><input type="date" value={formGasto.date} onChange={(e) => setFormGasto({ ...formGasto, date: e.target.value })} className={inputClass} /></div>
-              <div><label className="text-sm font-medium mb-1 block">Categoria</label><select value={formGasto.category} onChange={(e) => setFormGasto({ ...formGasto, category: e.target.value })} className={inputClass}>{expenseCategories.map((c) => <option key={c}>{c}</option>)}</select></div>
+              <div><label className="text-sm font-medium mb-1 block">Descrição</label><input value={formGasto.description} onChange={(e) => setFormGasto(prev => ({ ...prev, description: e.target.value }))} className={inputClass} /></div>
+              <div><label className="text-sm font-medium mb-1 block">Valor (R$)</label><input type="number" value={formGasto.amount} onChange={(e) => setFormGasto(prev => ({ ...prev, amount: e.target.value }))} className={inputClass} /></div>
+              <div><label className="text-sm font-medium mb-1 block">Data</label><input type="date" value={formGasto.date} onChange={(e) => setFormGasto(prev => ({ ...prev, date: e.target.value }))} className={inputClass} /></div>
+              <div><label className="text-sm font-medium mb-1 block">Categoria</label><select value={formGasto.category} onChange={(e) => setFormGasto(prev => ({ ...prev, category: e.target.value }))} className={inputClass}>{expenseCategories.map((c) => <option key={c}>{c}</option>)}</select></div>
               <Button onClick={handleEdit} className="w-full">Salvar alterações</Button>
             </div>
           ) : (
             <div className="space-y-4 pt-2">
-              <div><label className="text-sm font-medium mb-1 block">Descrição</label><input value={formDivida.description} onChange={(e) => setFormDivida({ ...formDivida, description: e.target.value })} className={inputClass} /></div>
-              <div><label className="text-sm font-medium mb-1 block">Valor (R$)</label><input type="number" value={formDivida.amount} onChange={(e) => setFormDivida({ ...formDivida, amount: e.target.value })} className={inputClass} /></div>
-              <div><label className="text-sm font-medium mb-1 block">Data</label><input type="date" value={formDivida.date} onChange={(e) => setFormDivida({ ...formDivida, date: e.target.value })} className={inputClass} /></div>
-              <div><label className="text-sm font-medium mb-1 block">Detalhes</label><input value={formDivida.details} onChange={(e) => setFormDivida({ ...formDivida, details: e.target.value })} className={inputClass} /></div>
+              <div><label className="text-sm font-medium mb-1 block">Descrição</label><input value={formDivida.description} onChange={(e) => setFormDivida(prev => ({ ...prev, description: e.target.value }))} className={inputClass} /></div>
+              <div><label className="text-sm font-medium mb-1 block">Valor (R$)</label><input type="number" value={formDivida.amount} onChange={(e) => setFormDivida(prev => ({ ...prev, amount: e.target.value }))} className={inputClass} /></div>
+              <div><label className="text-sm font-medium mb-1 block">Data</label><input type="date" value={formDivida.date} onChange={(e) => setFormDivida(prev => ({ ...prev, date: e.target.value }))} className={inputClass} /></div>
+              <div><label className="text-sm font-medium mb-1 block">Detalhes</label><input value={formDivida.details} onChange={(e) => setFormDivida(prev => ({ ...prev, details: e.target.value }))} className={inputClass} /></div>
               <Button onClick={handleEdit} className="w-full">Salvar alterações</Button>
             </div>
           )}
