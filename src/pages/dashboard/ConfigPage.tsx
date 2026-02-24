@@ -1,12 +1,14 @@
 import { useState, useEffect } from "react";
-import { User, Bell, Palette, Shield, Crown, Lock, Type, Layout, PieChart, Monitor, Moon, Sun, MessageCircle, Lightbulb, Send } from "lucide-react";
+import { User, Bell, Palette, Shield, Crown, Lock, Type, Layout, PieChart, Monitor, Moon, Sun, MessageCircle, Lightbulb, Send, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Slider } from "@/components/ui/slider";
+import { Textarea } from "@/components/ui/textarea";
 import { motion } from "framer-motion";
 import { useTheme } from "@/components/ThemeProvider";
 import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useFinanceData, FREE_LIMITS } from "@/hooks/useFinanceData";
 import PremiumCheckoutDialog from "@/components/dashboard/PremiumCheckoutDialog";
@@ -75,7 +77,101 @@ const CARD_STYLES = [
   { name: "Flat", value: "flat", borderRadius: "0.5rem", shadow: "none" },
 ];
 
+const SUGGESTION_OPTIONS = [
+  { category: "Funcionalidade", text: "Adicionar controle de cartão de crédito" },
+  { category: "Funcionalidade", text: "Criar relatório mensal em PDF" },
+  { category: "Funcionalidade", text: "Adicionar categorias personalizadas" },
+  { category: "Integração", text: "Integração com banco/conta digital" },
+  { category: "Funcionalidade", text: "Adicionar lembrete de contas a pagar" },
+  { category: "Funcionalidade", text: "Modo de orçamento mensal" },
+];
+
+const SuggestionsTab = ({ user, profile }: { user: any; profile: any }) => {
+  const [customMessage, setCustomMessage] = useState("");
+  const [sending, setSending] = useState(false);
+  const [sentIds, setSentIds] = useState<string[]>([]);
+
+  const sendSuggestion = async (category: string, message: string, id?: string) => {
+    if (!user) return;
+    setSending(true);
+    const { error } = await supabase.from("suggestions").insert({
+      user_id: user.id,
+      user_email: user.email,
+      user_name: profile?.display_name || "Usuário",
+      category,
+      message,
+    } as any);
+
+    if (error) {
+      toast.error("Erro ao enviar sugestão");
+    } else {
+      toast.success("Sugestão enviada com sucesso! Obrigado 🎉");
+      if (id) setSentIds(prev => [...prev, id]);
+      setCustomMessage("");
+    }
+    setSending(false);
+  };
+
+  return (
+    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="bg-card rounded-xl p-5 border border-border shadow-card">
+      <div className="flex items-center gap-2 mb-4">
+        <Lightbulb className="w-5 h-5 text-primary" />
+        <h3 className="font-display font-bold text-base">Envie sua sugestão</h3>
+      </div>
+      <p className="text-sm text-muted-foreground mb-4">
+        Escolha uma opção abaixo ou escreva sua própria sugestão. Sua opinião é muito importante para melhorarmos o OrganizaPay!
+      </p>
+
+      <div className="space-y-2 mb-4">
+        {SUGGESTION_OPTIONS.map((opt) => {
+          const isSent = sentIds.includes(opt.text);
+          return (
+            <button
+              key={opt.text}
+              disabled={sending || isSent}
+              onClick={() => sendSuggestion(opt.category, opt.text, opt.text)}
+              className={`w-full text-left p-3 rounded-lg border transition-all flex items-center gap-3 ${
+                isSent ? "border-green-300 bg-green-50 dark:bg-green-950/20 dark:border-green-800" : "border-border hover:border-primary/50 hover:bg-primary/5"
+              }`}
+            >
+              {isSent ? (
+                <Check className="w-4 h-4 text-green-500 shrink-0" />
+              ) : (
+                <Send className="w-4 h-4 text-muted-foreground shrink-0" />
+              )}
+              <span className="text-sm">{opt.text}</span>
+              {isSent && <span className="text-[10px] text-green-600 dark:text-green-400 ml-auto">Enviada!</span>}
+            </button>
+          );
+        })}
+      </div>
+
+      <div className="border-t border-border pt-4 space-y-3">
+        <p className="text-sm font-medium">Outra sugestão?</p>
+        <Textarea
+          placeholder="Descreva sua sugestão ou o que está precisando no sistema..."
+          value={customMessage}
+          onChange={(e) => setCustomMessage(e.target.value)}
+          className="min-h-[80px]"
+          maxLength={500}
+        />
+        <Button
+          variant="default"
+          size="sm"
+          className="gap-1.5"
+          disabled={sending || !customMessage.trim()}
+          onClick={() => sendSuggestion("Outra", customMessage.trim())}
+        >
+          <Send className="w-4 h-4" />
+          Enviar Sugestão
+        </Button>
+      </div>
+    </motion.div>
+  );
+};
+
 const ConfigPage = ({ finance }: Props) => {
+
   const { theme, toggleTheme } = useTheme();
   const { user } = useAuth();
   const { profile, updateProfile, isPremium, subscription } = finance;
@@ -427,54 +523,7 @@ const ConfigPage = ({ finance }: Props) => {
         </TabsContent>
         {/* Suggestions tab */}
         <TabsContent value="sugestoes" className="space-y-5 mt-5">
-          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="bg-card rounded-xl p-5 border border-border shadow-card">
-            <div className="flex items-center gap-2 mb-4">
-              <Lightbulb className="w-5 h-5 text-primary" />
-              <h3 className="font-display font-bold text-base">Envie sua sugestão</h3>
-            </div>
-            <p className="text-sm text-muted-foreground mb-4">
-              Escolha uma opção abaixo ou escreva sua própria sugestão. Sua opinião é muito importante para melhorarmos o OrganizaPay!
-            </p>
-
-            <div className="space-y-2 mb-4">
-              {[
-                "Adicionar controle de cartão de crédito",
-                "Criar relatório mensal em PDF",
-                "Adicionar categorias personalizadas",
-                "Integração com banco/conta digital",
-                "Adicionar lembrete de contas a pagar",
-                "Modo de orçamento mensal",
-              ].map((suggestion) => (
-                <button
-                  key={suggestion}
-                  onClick={() => {
-                    const msg = encodeURIComponent(`Sugestão para o OrganizaPay:\n\n${suggestion}`);
-                    window.open(`https://wa.me/5592985968379?text=${msg}`, "_blank", "noopener,noreferrer");
-                  }}
-                  className="w-full text-left p-3 rounded-lg border border-border hover:border-primary/50 hover:bg-primary/5 transition-all flex items-center gap-3"
-                >
-                  <Send className="w-4 h-4 text-muted-foreground shrink-0" />
-                  <span className="text-sm">{suggestion}</span>
-                </button>
-              ))}
-            </div>
-
-            <div className="border-t border-border pt-4">
-              <p className="text-sm font-medium mb-2">Outra sugestão?</p>
-              <Button
-                variant="outline"
-                size="sm"
-                className="gap-1.5"
-                onClick={() => {
-                  const msg = encodeURIComponent("Tenho uma sugestão para o OrganizaPay:\n\n");
-                  window.open(`https://wa.me/5592985968379?text=${msg}`, "_blank", "noopener,noreferrer");
-                }}
-              >
-                <MessageCircle className="w-4 h-4" />
-                Enviar pelo WhatsApp
-              </Button>
-            </div>
-          </motion.div>
+          <SuggestionsTab user={user} profile={profile} />
 
           {/* WhatsApp support */}
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }} className="bg-card rounded-xl p-5 border border-border shadow-card">
