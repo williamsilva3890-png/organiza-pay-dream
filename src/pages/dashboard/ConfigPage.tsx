@@ -256,12 +256,12 @@ const ConfigPage = ({ finance }: Props) => {
       </div>
 
       <Tabs defaultValue="perfil" className="w-full">
-        <TabsList className="grid w-full grid-cols-5">
-          <TabsTrigger value="perfil" className="gap-1.5 text-xs"><User className="w-3.5 h-3.5" />Perfil</TabsTrigger>
-          <TabsTrigger value="aparencia" className="gap-1.5 text-xs"><Palette className="w-3.5 h-3.5" />Aparência</TabsTrigger>
-          <TabsTrigger value="notificacoes" className="gap-1.5 text-xs"><Bell className="w-3.5 h-3.5" />Alertas</TabsTrigger>
-          <TabsTrigger value="seguranca" className="gap-1.5 text-xs"><Shield className="w-3.5 h-3.5" />Segurança</TabsTrigger>
-          <TabsTrigger value="sugestoes" className="gap-1.5 text-xs"><Lightbulb className="w-3.5 h-3.5" />Sugestões</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-3 sm:grid-cols-5 h-auto gap-1">
+          <TabsTrigger value="perfil" className="gap-1 text-xs px-2"><User className="w-3.5 h-3.5" /><span className="hidden sm:inline">Perfil</span><span className="sm:hidden">Perfil</span></TabsTrigger>
+          <TabsTrigger value="aparencia" className="gap-1 text-xs px-2"><Palette className="w-3.5 h-3.5" /><span className="hidden sm:inline">Aparência</span><span className="sm:hidden">Tema</span></TabsTrigger>
+          <TabsTrigger value="notificacoes" className="gap-1 text-xs px-2"><Bell className="w-3.5 h-3.5" /><span className="hidden sm:inline">Alertas</span><span className="sm:hidden">Alertas</span></TabsTrigger>
+          <TabsTrigger value="seguranca" className="gap-1 text-xs px-2"><Shield className="w-3.5 h-3.5" /><span className="hidden sm:inline">Segurança</span><span className="sm:hidden">Seg.</span></TabsTrigger>
+          <TabsTrigger value="sugestoes" className="gap-1 text-xs px-2"><Lightbulb className="w-3.5 h-3.5" /><span className="hidden sm:inline">Sugestões</span><span className="sm:hidden">Sugest.</span></TabsTrigger>
         </TabsList>
 
         {/* Profile tab */}

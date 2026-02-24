@@ -51,10 +51,10 @@ const MetasPage = ({ finance }: Props) => {
             <DialogContent>
               <DialogHeader><DialogTitle>Nova meta financeira</DialogTitle></DialogHeader>
               <div className="space-y-4 pt-2">
-                <div><label className="text-sm font-medium mb-1 block">Título</label><input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} className={inputClass} placeholder="Ex: Reserva de emergência" /></div>
-                <div><label className="text-sm font-medium mb-1 block">Valor alvo (R$)</label><input type="number" value={form.target} onChange={(e) => setForm({ ...form, target: e.target.value })} className={inputClass} placeholder="0,00" /></div>
-                <div><label className="text-sm font-medium mb-1 block">Prazo</label><input value={form.deadline} onChange={(e) => setForm({ ...form, deadline: e.target.value })} className={inputClass} placeholder="Ex: Dez 2026" /></div>
-                <div><label className="text-sm font-medium mb-1 block">Descrição</label><input value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className={inputClass} placeholder="Ex: Guardar para emergências" /></div>
+                <div><label className="text-sm font-medium mb-1 block">Título</label><input value={form.title} onChange={(e) => setForm(prev => ({ ...prev, title: e.target.value }))} className={inputClass} placeholder="Ex: Reserva de emergência" /></div>
+                <div><label className="text-sm font-medium mb-1 block">Valor alvo (R$)</label><input type="number" value={form.target} onChange={(e) => setForm(prev => ({ ...prev, target: e.target.value }))} className={inputClass} placeholder="0,00" /></div>
+                <div><label className="text-sm font-medium mb-1 block">Prazo</label><input value={form.deadline} onChange={(e) => setForm(prev => ({ ...prev, deadline: e.target.value }))} className={inputClass} placeholder="Ex: Dez 2026" /></div>
+                <div><label className="text-sm font-medium mb-1 block">Descrição</label><input value={form.description} onChange={(e) => setForm(prev => ({ ...prev, description: e.target.value }))} className={inputClass} placeholder="Ex: Guardar para emergências" /></div>
                 <Button onClick={handleAdd} className="w-full">Criar meta</Button>
               </div>
             </DialogContent>

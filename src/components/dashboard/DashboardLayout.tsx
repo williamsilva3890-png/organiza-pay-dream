@@ -1,4 +1,5 @@
 import { ReactNode, useState, useRef } from "react";
+import AvatarCropDialog from "@/components/dashboard/AvatarCropDialog";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard, ArrowUpCircle, ArrowDownCircle, Target,
@@ -33,6 +34,8 @@ const DashboardLayout = ({ children, profile, isPremium, onProfileUpdate, isAdmi
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [cropDialogOpen, setCropDialogOpen] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const displayName = profile?.display_name || "Usuário";
@@ -44,16 +47,22 @@ const DashboardLayout = ({ children, profile, isPremium, onProfileUpdate, isAdmi
     navigate("/");
   };
 
-  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleAvatarSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file || !user) return;
-    
-    const fileExt = file.name.split('.').pop();
-    const filePath = `${user.id}/avatar.${fileExt}`;
+    if (!file) return;
+    setSelectedFile(file);
+    setCropDialogOpen(true);
+    // Reset input so same file can be selected again
+    e.target.value = "";
+  };
+
+  const handleCropComplete = async (croppedBlob: Blob) => {
+    if (!user) return;
+    const filePath = `${user.id}/avatar.png`;
     
     const { error: uploadError } = await supabase.storage
       .from('avatars')
-      .upload(filePath, file, { upsert: true });
+      .upload(filePath, croppedBlob, { upsert: true, contentType: 'image/png' });
     
     if (uploadError) {
       toast.error("Erro ao enviar foto");
@@ -64,7 +73,9 @@ const DashboardLayout = ({ children, profile, isPremium, onProfileUpdate, isAdmi
       .from('avatars')
       .getPublicUrl(filePath);
     
-    await supabase.from("profiles").update({ avatar_url: publicUrl } as any).eq("user_id", user.id);
+    // Add cache buster
+    const urlWithCacheBust = `${publicUrl}?t=${Date.now()}`;
+    await supabase.from("profiles").update({ avatar_url: urlWithCacheBust } as any).eq("user_id", user.id);
     onProfileUpdate?.();
     toast.success("Foto atualizada!");
   };
@@ -104,7 +115,7 @@ const DashboardLayout = ({ children, profile, isPremium, onProfileUpdate, isAdmi
               <div className="absolute inset-0 rounded-full bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                 <Camera className="w-3.5 h-3.5 text-white" />
               </div>
-              <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} />
+              <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarSelect} />
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-sidebar-foreground truncate">{displayName}</p>
@@ -184,6 +195,12 @@ const DashboardLayout = ({ children, profile, isPremium, onProfileUpdate, isAdmi
         </header>
         <main className="flex-1 p-4 lg:p-8">{children}</main>
       </div>
+      <AvatarCropDialog
+        open={cropDialogOpen}
+        onOpenChange={setCropDialogOpen}
+        imageFile={selectedFile}
+        onCropComplete={handleCropComplete}
+      />
     </div>
   );
 };
