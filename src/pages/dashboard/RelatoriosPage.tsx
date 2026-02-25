@@ -1,4 +1,4 @@
-import { FileBarChart, Download, Lock, Crown } from "lucide-react";
+import { FileBarChart, Download, Lock, Crown, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
@@ -9,7 +9,7 @@ interface Props {
 }
 
 const RelatoriosPage = ({ finance }: Props) => {
-  const { isPremium, receitas, despesas, totalReceitas, totalDespesas, saldo } = finance;
+  const { isPremium, receitas, despesas, totalReceitas, totalDespesas, saldo, resetAll } = finance;
 
   const handleExportPDF = () => {
     if (!isPremium) {
@@ -17,7 +17,6 @@ const RelatoriosPage = ({ finance }: Props) => {
       return;
     }
 
-    // Generate a simple PDF report
     const content = `
 RELATÓRIO FINANCEIRO - OrganizaPay
 ===================================
@@ -48,6 +47,13 @@ ${despesas.map(d => `${d.date} | ${d.description} | R$ ${Number(d.amount).toLoca
     toast.success("Relatório exportado com sucesso!");
   };
 
+  const handleResetAll = async () => {
+    if (!isPremium) { toast.error("Disponível apenas no plano Premium! 🔒"); return; }
+    if (!confirm("Tem certeza que deseja zerar TODOS os dados (rendas, despesas e metas)? Esta ação não pode ser desfeita.")) return;
+    await resetAll({ receitas: true, despesas: true, metas: true });
+    toast.success("Todos os dados foram zerados!");
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -55,10 +61,17 @@ ${despesas.map(d => `${d.date} | ${d.description} | R$ ${Number(d.amount).toLoca
           <h1 className="font-display font-bold text-2xl">Relatórios</h1>
           <p className="text-sm text-muted-foreground">Visualize e exporte seus relatórios financeiros</p>
         </div>
-        <Button variant={isPremium ? "outline" : "default"} className="gap-2" onClick={handleExportPDF}>
-          {isPremium ? <Download className="w-4 h-4" /> : <Lock className="w-4 h-4" />}
-          Exportar PDF
-        </Button>
+        <div className="flex items-center gap-2">
+          {isPremium && (
+            <Button variant="ghost" size="sm" className="gap-1.5 text-destructive hover:text-destructive" onClick={handleResetAll}>
+              <RotateCcw className="w-4 h-4" />Zerar tudo
+            </Button>
+          )}
+          <Button variant={isPremium ? "outline" : "default"} className="gap-2" onClick={handleExportPDF}>
+            {isPremium ? <Download className="w-4 h-4" /> : <Lock className="w-4 h-4" />}
+            Exportar PDF
+          </Button>
+        </div>
       </div>
 
       {!isPremium && (

@@ -18,6 +18,7 @@ export interface Despesa {
   category: string;
   type: "gasto" | "divida";
   details?: string;
+  paid?: boolean;
 }
 
 export interface Meta {
@@ -127,9 +128,44 @@ export const useFinanceData = () => {
     fetchAll();
   };
 
+  const toggleDespesaPaid = async (id: string, paid: boolean) => {
+    if (!user) return;
+    await supabase.from("despesas").update({ paid } as any).eq("id", id).eq("user_id", user.id);
+    fetchAll();
+  };
+
   const updateProfile = async (data: Partial<Profile>) => {
     if (!user) return;
     await supabase.from("profiles").update(data as any).eq("user_id", user.id);
+    fetchAll();
+  };
+
+  // Reset functions
+  const resetReceitas = async () => {
+    if (!user) return;
+    await supabase.from("receitas").delete().eq("user_id", user.id);
+    fetchAll();
+  };
+
+  const resetDespesas = async () => {
+    if (!user) return;
+    await supabase.from("despesas").delete().eq("user_id", user.id);
+    fetchAll();
+  };
+
+  const resetMetas = async () => {
+    if (!user) return;
+    await supabase.from("metas").delete().eq("user_id", user.id);
+    fetchAll();
+  };
+
+  const resetAll = async (sections: { receitas?: boolean; despesas?: boolean; metas?: boolean }) => {
+    if (!user) return;
+    const ops: PromiseLike<any>[] = [];
+    if (sections.receitas) ops.push(supabase.from("receitas").delete().eq("user_id", user.id));
+    if (sections.despesas) ops.push(supabase.from("despesas").delete().eq("user_id", user.id));
+    if (sections.metas) ops.push(supabase.from("metas").delete().eq("user_id", user.id));
+    await Promise.all(ops);
     fetchAll();
   };
 
@@ -145,8 +181,10 @@ export const useFinanceData = () => {
     receitas, despesas, metas, profile, subscription, loading, isPremium,
     addReceita, addDespesa, addMeta, updateProfile, fetchAll,
     updateReceita, deleteReceita, updateDespesa, deleteDespesa,
+    toggleDespesaPaid,
     totalReceitas, totalDespesas, saldo,
     gastos, dividas, totalGastos, totalDividas,
     canAddReceita, canAddDespesa, canAddMeta, canUseSharedAccount,
+    resetReceitas, resetDespesas, resetMetas, resetAll,
   };
 };

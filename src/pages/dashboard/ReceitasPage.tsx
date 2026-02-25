@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ArrowUpCircle, Plus, Lock, Pencil, Trash2 } from "lucide-react";
+import { ArrowUpCircle, Plus, Lock, Pencil, Trash2, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -13,7 +13,7 @@ interface Props {
 }
 
 const ReceitasPage = ({ finance }: Props) => {
-  const { receitas, totalReceitas, addReceita, updateReceita, deleteReceita, canAddReceita, isPremium } = finance;
+  const { receitas, totalReceitas, addReceita, updateReceita, deleteReceita, canAddReceita, isPremium, resetReceitas } = finance;
   const [open, setOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
@@ -50,6 +50,12 @@ const ReceitasPage = ({ finance }: Props) => {
     toast.success("Renda removida!");
   };
 
+  const handleReset = async () => {
+    if (!confirm("Tem certeza que deseja zerar TODAS as rendas? Esta ação não pode ser desfeita.")) return;
+    await resetReceitas();
+    toast.success("Rendas zeradas!");
+  };
+
   const inputClass = "w-full h-10 px-3 rounded-lg border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/30";
   const fmt = (v: number) => `R$ ${v.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`;
 
@@ -70,13 +76,20 @@ const ReceitasPage = ({ finance }: Props) => {
           <h1 className="font-display font-bold text-2xl">Renda</h1>
           <p className="text-sm text-muted-foreground">Gerencie todas as suas entradas</p>
         </div>
-        <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger asChild><Button variant="default" className="gap-2" disabled={!canAddReceita && !isPremium}><Plus className="w-4 h-4" />Nova renda</Button></DialogTrigger>
-          <DialogContent>
-            <DialogHeader><DialogTitle>Nova renda</DialogTitle></DialogHeader>
-            {renderFormFields(handleAdd, "Adicionar renda")}
-          </DialogContent>
-        </Dialog>
+        <div className="flex items-center gap-2">
+          {isPremium && receitas.length > 0 && (
+            <Button variant="ghost" size="sm" className="gap-1.5 text-destructive hover:text-destructive" onClick={handleReset}>
+              <RotateCcw className="w-4 h-4" />Zerar
+            </Button>
+          )}
+          <Dialog open={open} onOpenChange={setOpen}>
+            <DialogTrigger asChild><Button variant="default" className="gap-2" disabled={!canAddReceita && !isPremium}><Plus className="w-4 h-4" />Nova renda</Button></DialogTrigger>
+            <DialogContent>
+              <DialogHeader><DialogTitle>Nova renda</DialogTitle></DialogHeader>
+              {renderFormFields(handleAdd, "Adicionar renda")}
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
 
       {!isPremium && (

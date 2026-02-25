@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Target, Plus, Lock } from "lucide-react";
+import { Target, Plus, Lock, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { motion } from "framer-motion";
@@ -12,7 +12,7 @@ interface Props {
 }
 
 const MetasPage = ({ finance }: Props) => {
-  const { metas, addMeta, canAddMeta, isPremium } = finance;
+  const { metas, addMeta, canAddMeta, isPremium, resetMetas } = finance;
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState({ title: "", target: "", deadline: "", description: "" });
 
@@ -33,6 +33,12 @@ const MetasPage = ({ finance }: Props) => {
     setOpen(false);
   };
 
+  const handleReset = async () => {
+    if (!confirm("Tem certeza que deseja zerar TODAS as metas? Esta ação não pode ser desfeita.")) return;
+    await resetMetas();
+    toast.success("Metas zeradas!");
+  };
+
   const inputClass = "w-full h-10 px-3 rounded-lg border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/30";
   const fmt = (v: number) => `R$ ${v.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`;
 
@@ -43,27 +49,34 @@ const MetasPage = ({ finance }: Props) => {
           <h1 className="font-display font-bold text-2xl">Metas financeiras</h1>
           <p className="text-sm text-muted-foreground">Acompanhe o progresso das suas metas</p>
         </div>
-        {isPremium ? (
-          <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger asChild>
-              <Button variant="default" className="gap-2"><Plus className="w-4 h-4" />Nova meta</Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader><DialogTitle>Nova meta financeira</DialogTitle></DialogHeader>
-              <div className="space-y-4 pt-2">
-                <div><label className="text-sm font-medium mb-1 block">Título</label><input value={form.title} onChange={(e) => setForm(prev => ({ ...prev, title: e.target.value }))} className={inputClass} placeholder="Ex: Reserva de emergência" /></div>
-                <div><label className="text-sm font-medium mb-1 block">Valor alvo (R$)</label><input type="number" value={form.target} onChange={(e) => setForm(prev => ({ ...prev, target: e.target.value }))} className={inputClass} placeholder="0,00" /></div>
-                <div><label className="text-sm font-medium mb-1 block">Prazo</label><input value={form.deadline} onChange={(e) => setForm(prev => ({ ...prev, deadline: e.target.value }))} className={inputClass} placeholder="Ex: Dez 2026" /></div>
-                <div><label className="text-sm font-medium mb-1 block">Descrição</label><input value={form.description} onChange={(e) => setForm(prev => ({ ...prev, description: e.target.value }))} className={inputClass} placeholder="Ex: Guardar para emergências" /></div>
-                <Button onClick={handleAdd} className="w-full">Criar meta</Button>
-              </div>
-            </DialogContent>
-          </Dialog>
-        ) : (
-          <Button variant="default" className="gap-2" disabled>
-            <Lock className="w-4 h-4" />Nova meta
-          </Button>
-        )}
+        <div className="flex items-center gap-2">
+          {isPremium && metas.length > 0 && (
+            <Button variant="ghost" size="sm" className="gap-1.5 text-destructive hover:text-destructive" onClick={handleReset}>
+              <RotateCcw className="w-4 h-4" />Zerar
+            </Button>
+          )}
+          {isPremium ? (
+            <Dialog open={open} onOpenChange={setOpen}>
+              <DialogTrigger asChild>
+                <Button variant="default" className="gap-2"><Plus className="w-4 h-4" />Nova meta</Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader><DialogTitle>Nova meta financeira</DialogTitle></DialogHeader>
+                <div className="space-y-4 pt-2">
+                  <div><label className="text-sm font-medium mb-1 block">Título</label><input value={form.title} onChange={(e) => setForm(prev => ({ ...prev, title: e.target.value }))} className={inputClass} placeholder="Ex: Reserva de emergência" /></div>
+                  <div><label className="text-sm font-medium mb-1 block">Valor alvo (R$)</label><input type="number" value={form.target} onChange={(e) => setForm(prev => ({ ...prev, target: e.target.value }))} className={inputClass} placeholder="0,00" /></div>
+                  <div><label className="text-sm font-medium mb-1 block">Prazo</label><input value={form.deadline} onChange={(e) => setForm(prev => ({ ...prev, deadline: e.target.value }))} className={inputClass} placeholder="Ex: Dez 2026" /></div>
+                  <div><label className="text-sm font-medium mb-1 block">Descrição</label><input value={form.description} onChange={(e) => setForm(prev => ({ ...prev, description: e.target.value }))} className={inputClass} placeholder="Ex: Guardar para emergências" /></div>
+                  <Button onClick={handleAdd} className="w-full">Criar meta</Button>
+                </div>
+              </DialogContent>
+            </Dialog>
+          ) : (
+            <Button variant="default" className="gap-2" disabled>
+              <Lock className="w-4 h-4" />Nova meta
+            </Button>
+          )}
+        </div>
       </div>
 
       {!isPremium && (

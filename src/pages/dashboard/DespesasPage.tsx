@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ArrowDownCircle, Plus, CreditCard, ShoppingCart, Lock, Pencil, Trash2 } from "lucide-react";
+import { ArrowDownCircle, Plus, CreditCard, ShoppingCart, Lock, Pencil, Trash2, CheckCircle, Circle, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -22,7 +22,7 @@ interface Props {
 }
 
 const DespesasPage = ({ finance }: Props) => {
-  const { gastos, dividas, totalGastos, totalDividas, totalDespesas, addDespesa, updateDespesa, deleteDespesa, canAddDespesa, isPremium } = finance;
+  const { gastos, dividas, totalGastos, totalDividas, totalDespesas, addDespesa, updateDespesa, deleteDespesa, toggleDespesaPaid, canAddDespesa, isPremium, resetDespesas } = finance;
   const [openGasto, setOpenGasto] = useState(false);
   const [openDivida, setOpenDivida] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
@@ -80,6 +80,17 @@ const DespesasPage = ({ finance }: Props) => {
     toast.success("Despesa removida!");
   };
 
+  const handleTogglePaid = async (id: string, currentPaid: boolean) => {
+    await toggleDespesaPaid(id, !currentPaid);
+    toast.success(!currentPaid ? "Marcado como pago ✅" : "Desmarcado");
+  };
+
+  const handleReset = async () => {
+    if (!confirm("Tem certeza que deseja zerar TODAS as despesas? Esta ação não pode ser desfeita.")) return;
+    await resetDespesas();
+    toast.success("Despesas zeradas!");
+  };
+
   const inputClass = "w-full h-10 px-3 rounded-lg border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/30";
   const fmt = (v: number) => `R$ ${v.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`;
 
@@ -117,6 +128,11 @@ const DespesasPage = ({ finance }: Props) => {
               </div>
             </DialogContent>
           </Dialog>
+          {isPremium && (gastos.length > 0 || dividas.length > 0) && (
+            <Button variant="ghost" size="sm" className="gap-1.5 text-destructive hover:text-destructive" onClick={handleReset}>
+              <RotateCcw className="w-4 h-4" />Zerar
+            </Button>
+          )}
         </div>
       </div>
 
@@ -152,14 +168,17 @@ const DespesasPage = ({ finance }: Props) => {
       <div>
         <h2 className="font-display font-bold text-lg mb-3 flex items-center gap-2"><ShoppingCart className="w-5 h-5 text-warning" /> Gastos</h2>
         <div className="bg-card rounded-xl border border-border shadow-card overflow-hidden">
-          <div className="hidden sm:grid grid-cols-[1fr_auto_auto_auto_auto] gap-4 px-5 py-3 bg-muted/50 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-            <span>Descrição</span><span>Categoria</span><span>Data</span><span className="text-right">Valor</span><span></span>
+          <div className="hidden sm:grid grid-cols-[auto_1fr_auto_auto_auto_auto] gap-4 px-5 py-3 bg-muted/50 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+            <span>Status</span><span>Descrição</span><span>Categoria</span><span>Data</span><span className="text-right">Valor</span><span></span>
           </div>
           {gastos.length === 0 && <div className="px-5 py-8 text-center text-sm text-muted-foreground">Nenhum gasto cadastrado</div>}
           {gastos.map((d, i) => (
             <motion.div key={d.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.05 }}
-              className="flex flex-col sm:grid sm:grid-cols-[1fr_auto_auto_auto_auto] gap-1 sm:gap-4 px-4 sm:px-5 py-3 border-t border-border sm:items-center hover:bg-muted/30 transition-colors">
-              <span className="text-sm font-medium">{d.description}</span>
+              className={`flex flex-col sm:grid sm:grid-cols-[auto_1fr_auto_auto_auto_auto] gap-1 sm:gap-4 px-4 sm:px-5 py-3 border-t border-border sm:items-center hover:bg-muted/30 transition-colors ${d.paid ? "opacity-60" : ""}`}>
+              <button onClick={() => handleTogglePaid(d.id, !!d.paid)} className="self-start sm:self-center p-0.5" title={d.paid ? "Desmarcar como pago" : "Marcar como pago"}>
+                {d.paid ? <CheckCircle className="w-5 h-5 text-green-500" /> : <Circle className="w-5 h-5 text-muted-foreground" />}
+              </button>
+              <span className={`text-sm font-medium ${d.paid ? "line-through text-muted-foreground" : ""}`}>{d.description}</span>
               <div className="flex items-center gap-2 sm:contents">
                 <span className={`text-xs rounded-full px-2.5 py-1 font-medium ${categoryColors[d.category] || "bg-muted text-muted-foreground"}`}>{d.category}</span>
                 <span className="text-xs sm:text-sm text-muted-foreground">{new Date(d.date).toLocaleDateString("pt-BR")}</span>
@@ -180,14 +199,17 @@ const DespesasPage = ({ finance }: Props) => {
       <div>
         <h2 className="font-display font-bold text-lg mb-3 flex items-center gap-2"><CreditCard className="w-5 h-5 text-destructive" /> Dívidas</h2>
         <div className="bg-card rounded-xl border border-border shadow-card overflow-hidden">
-          <div className="hidden sm:grid grid-cols-[1fr_auto_auto_auto_auto] gap-4 px-5 py-3 bg-muted/50 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-            <span>Descrição</span><span>Detalhes</span><span>Vencimento</span><span className="text-right">Valor</span><span></span>
+          <div className="hidden sm:grid grid-cols-[auto_1fr_auto_auto_auto_auto] gap-4 px-5 py-3 bg-muted/50 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+            <span>Status</span><span>Descrição</span><span>Detalhes</span><span>Vencimento</span><span className="text-right">Valor</span><span></span>
           </div>
           {dividas.length === 0 && <div className="px-5 py-8 text-center text-sm text-muted-foreground">Nenhuma dívida cadastrada</div>}
           {dividas.map((d, i) => (
             <motion.div key={d.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.05 }}
-              className="flex flex-col sm:grid sm:grid-cols-[1fr_auto_auto_auto_auto] gap-1 sm:gap-4 px-4 sm:px-5 py-3 border-t border-border sm:items-center hover:bg-muted/30 transition-colors">
-              <span className="text-sm font-medium">{d.description}</span>
+              className={`flex flex-col sm:grid sm:grid-cols-[auto_1fr_auto_auto_auto_auto] gap-1 sm:gap-4 px-4 sm:px-5 py-3 border-t border-border sm:items-center hover:bg-muted/30 transition-colors ${d.paid ? "opacity-60" : ""}`}>
+              <button onClick={() => handleTogglePaid(d.id, !!d.paid)} className="self-start sm:self-center p-0.5" title={d.paid ? "Desmarcar como pago" : "Marcar como pago"}>
+                {d.paid ? <CheckCircle className="w-5 h-5 text-green-500" /> : <Circle className="w-5 h-5 text-muted-foreground" />}
+              </button>
+              <span className={`text-sm font-medium ${d.paid ? "line-through text-muted-foreground" : ""}`}>{d.description}</span>
               <div className="flex items-center gap-2 sm:contents">
                 <span className="text-xs bg-destructive/10 text-destructive rounded-full px-2.5 py-1 font-medium">{d.details || "—"}</span>
                 <span className="text-xs sm:text-sm text-muted-foreground">{new Date(d.date).toLocaleDateString("pt-BR")}</span>

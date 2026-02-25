@@ -1,14 +1,16 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Eye, EyeOff } from "lucide-react";
 import { motion } from "framer-motion";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import logoImg from "@/assets/logo.png";
+
 const Login = () => {
   const navigate = useNavigate();
   const { signIn, signUp } = useAuth();
@@ -18,6 +20,21 @@ const Login = () => {
   const [isSignUp, setIsSignUp] = useState(false);
   const [nome, setNome] = useState("");
   const [loading, setLoading] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
+
+  // Load saved credentials on mount
+  useEffect(() => {
+    const saved = localStorage.getItem("organizapay-saved-login");
+    if (saved) {
+      try {
+        const { email: savedEmail, remember } = JSON.parse(saved);
+        if (remember && savedEmail) {
+          setEmail(savedEmail);
+          setRememberMe(true);
+        }
+      } catch {}
+    }
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -41,6 +58,12 @@ const Login = () => {
       if (error) {
         toast.error(error.message === "Invalid login credentials" ? "Email ou senha incorretos" : error.message);
       } else {
+        // Save or clear remembered login
+        if (rememberMe) {
+          localStorage.setItem("organizapay-saved-login", JSON.stringify({ email, remember: true }));
+        } else {
+          localStorage.removeItem("organizapay-saved-login");
+        }
         navigate("/dashboard");
       }
     }
@@ -124,6 +147,19 @@ const Login = () => {
                   </button>
                 </div>
               </div>
+
+              {!isSignUp && (
+                <div className="flex items-center gap-2">
+                  <Checkbox
+                    id="remember"
+                    checked={rememberMe}
+                    onCheckedChange={(checked) => setRememberMe(checked === true)}
+                  />
+                  <Label htmlFor="remember" className="text-sm text-muted-foreground cursor-pointer">
+                    Lembrar meu e-mail
+                  </Label>
+                </div>
+              )}
 
               <Button type="submit" className="w-full" size="lg" disabled={loading}>
                 {loading ? "Carregando..." : isSignUp ? "Criar conta" : "Login"}
