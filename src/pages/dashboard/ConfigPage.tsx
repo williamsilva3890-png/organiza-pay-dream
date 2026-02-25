@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { User, Bell, Palette, Shield, Crown, Lock, Type, Layout, PieChart, Monitor, Moon, Sun, MessageCircle, Lightbulb, Send, Check } from "lucide-react";
+import { User, Bell, Palette, Shield, Crown, Lock, Type, Layout, PieChart, Monitor, Moon, Sun, MessageCircle, Lightbulb, Send, Check, RotateCcw, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -170,6 +170,152 @@ const SuggestionsTab = ({ user, profile }: { user: any; profile: any }) => {
   );
 };
 
+const ResetTab = ({ finance }: Props) => {
+  const { isPremium, resetAll, resetReceitas, resetDespesas, resetMetas } = finance;
+  const [scheduledReset, setScheduledReset] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem("organizapay-scheduled-reset") || "null");
+    } catch { return null; }
+  });
+  const [resetDays, setResetDays] = useState("30");
+  const [resetSections, setResetSections] = useState({ receitas: true, despesas: true, metas: false });
+
+  // Check scheduled reset on mount
+  useEffect(() => {
+    if (!scheduledReset) return;
+    const resetDate = new Date(scheduledReset.date);
+    if (resetDate <= new Date()) {
+      // Time to reset!
+      resetAll(scheduledReset.sections).then(() => {
+        localStorage.removeItem("organizapay-scheduled-reset");
+        setScheduledReset(null);
+        toast.success("Reset agendado executado com sucesso! 🔄");
+      });
+    }
+  }, [scheduledReset]);
+
+  const handleScheduleReset = () => {
+    if (!isPremium) { toast.error("Disponível apenas no plano Premium! 🔒"); return; }
+    const days = parseInt(resetDays);
+    if (isNaN(days) || days < 1) { toast.error("Insira um número de dias válido"); return; }
+    if (!resetSections.receitas && !resetSections.despesas && !resetSections.metas) {
+      toast.error("Selecione pelo menos uma seção para resetar");
+      return;
+    }
+    const resetDate = new Date();
+    resetDate.setDate(resetDate.getDate() + days);
+    const config = { date: resetDate.toISOString(), sections: resetSections, days };
+    localStorage.setItem("organizapay-scheduled-reset", JSON.stringify(config));
+    setScheduledReset(config);
+    toast.success(`Reset agendado para ${resetDate.toLocaleDateString("pt-BR")}!`);
+  };
+
+  const cancelScheduledReset = () => {
+    localStorage.removeItem("organizapay-scheduled-reset");
+    setScheduledReset(null);
+    toast.success("Reset agendado cancelado");
+  };
+
+  return (
+    <>
+      {/* Manual reset */}
+      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="bg-card rounded-xl p-5 border border-border shadow-card">
+        <div className="flex items-center gap-2 mb-4">
+          <RotateCcw className="w-5 h-5 text-primary" />
+          <h3 className="font-display font-bold text-base">Reset manual</h3>
+        </div>
+        <p className="text-sm text-muted-foreground mb-4">Zere dados de seções específicas. Esta ação não pode ser desfeita.</p>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <Button variant="outline" size="sm" className="gap-1.5" disabled={!isPremium}
+            onClick={async () => { if (confirm("Zerar todas as rendas?")) { await resetReceitas(); toast.success("Rendas zeradas!"); } }}>
+            <RotateCcw className="w-3.5 h-3.5" />Zerar Rendas
+          </Button>
+          <Button variant="outline" size="sm" className="gap-1.5" disabled={!isPremium}
+            onClick={async () => { if (confirm("Zerar todas as despesas?")) { await resetDespesas(); toast.success("Despesas zeradas!"); } }}>
+            <RotateCcw className="w-3.5 h-3.5" />Zerar Despesas
+          </Button>
+          <Button variant="outline" size="sm" className="gap-1.5" disabled={!isPremium}
+            onClick={async () => { if (confirm("Zerar todas as metas?")) { await resetMetas(); toast.success("Metas zeradas!"); } }}>
+            <RotateCcw className="w-3.5 h-3.5" />Zerar Metas
+          </Button>
+        </div>
+        {!isPremium && (
+          <p className="text-xs text-muted-foreground mt-3 flex items-center gap-1"><Lock className="w-3 h-3" /> Disponível apenas no plano Premium</p>
+        )}
+      </motion.div>
+
+      {/* Scheduled reset */}
+      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }} className="bg-card rounded-xl p-5 border border-border shadow-card">
+        <div className="flex items-center gap-2 mb-4">
+          <Calendar className="w-5 h-5 text-primary" />
+          <h3 className="font-display font-bold text-base">Reset agendado</h3>
+        </div>
+        <p className="text-sm text-muted-foreground mb-4">
+          Programe um reset automático. Escolha o intervalo em dias e quais seções deseja resetar.
+        </p>
+
+        {scheduledReset ? (
+          <div className="space-y-3">
+            <div className="bg-primary/5 border border-primary/20 rounded-lg p-4">
+              <p className="text-sm font-medium">📅 Reset agendado para {new Date(scheduledReset.date).toLocaleDateString("pt-BR")}</p>
+              <p className="text-xs text-muted-foreground mt-1">
+                Seções: {[
+                  scheduledReset.sections.receitas && "Rendas",
+                  scheduledReset.sections.despesas && "Despesas",
+                  scheduledReset.sections.metas && "Metas",
+                ].filter(Boolean).join(", ")}
+              </p>
+            </div>
+            <Button variant="outline" size="sm" className="gap-1.5 text-destructive hover:text-destructive" onClick={cancelScheduledReset}>
+              Cancelar reset agendado
+            </Button>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            <div>
+              <label className="text-sm font-medium mb-1 block">Intervalo (dias)</label>
+              <input
+                type="number"
+                value={resetDays}
+                onChange={(e) => setResetDays(e.target.value)}
+                min="1"
+                className="w-full h-10 px-3 rounded-lg border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+                placeholder="Ex: 30"
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium mb-2 block">Seções para resetar</label>
+              <div className="space-y-2">
+                {[
+                  { key: "receitas" as const, label: "Rendas" },
+                  { key: "despesas" as const, label: "Despesas" },
+                  { key: "metas" as const, label: "Metas" },
+                ].map((item) => (
+                  <label key={item.key} className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={resetSections[item.key]}
+                      onChange={(e) => setResetSections(prev => ({ ...prev, [item.key]: e.target.checked }))}
+                      className="rounded border-border"
+                    />
+                    <span className="text-sm">{item.label}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+            <Button variant="default" size="sm" className="gap-1.5" disabled={!isPremium} onClick={handleScheduleReset}>
+              <Calendar className="w-4 h-4" />Agendar reset
+            </Button>
+            {!isPremium && (
+              <p className="text-xs text-muted-foreground flex items-center gap-1"><Lock className="w-3 h-3" /> Disponível apenas no plano Premium</p>
+            )}
+          </div>
+        )}
+      </motion.div>
+    </>
+  );
+};
+
 const ConfigPage = ({ finance }: Props) => {
 
   const { theme, toggleTheme } = useTheme();
@@ -256,12 +402,13 @@ const ConfigPage = ({ finance }: Props) => {
       </div>
 
       <Tabs defaultValue="perfil" className="w-full">
-        <TabsList className="grid w-full grid-cols-3 sm:grid-cols-5 h-auto gap-1">
+        <TabsList className="grid w-full grid-cols-3 sm:grid-cols-6 h-auto gap-1">
           <TabsTrigger value="perfil" className="gap-1 text-xs px-2"><User className="w-3.5 h-3.5" /><span className="hidden sm:inline">Perfil</span><span className="sm:hidden">Perfil</span></TabsTrigger>
           <TabsTrigger value="aparencia" className="gap-1 text-xs px-2"><Palette className="w-3.5 h-3.5" /><span className="hidden sm:inline">Aparência</span><span className="sm:hidden">Tema</span></TabsTrigger>
           <TabsTrigger value="notificacoes" className="gap-1 text-xs px-2"><Bell className="w-3.5 h-3.5" /><span className="hidden sm:inline">Alertas</span><span className="sm:hidden">Alertas</span></TabsTrigger>
           <TabsTrigger value="seguranca" className="gap-1 text-xs px-2"><Shield className="w-3.5 h-3.5" /><span className="hidden sm:inline">Segurança</span><span className="sm:hidden">Seg.</span></TabsTrigger>
           <TabsTrigger value="sugestoes" className="gap-1 text-xs px-2"><Lightbulb className="w-3.5 h-3.5" /><span className="hidden sm:inline">Sugestões</span><span className="sm:hidden">Sugest.</span></TabsTrigger>
+          <TabsTrigger value="reset" className="gap-1 text-xs px-2"><RotateCcw className="w-3.5 h-3.5" /><span className="hidden sm:inline">Reset</span><span className="sm:hidden">Reset</span></TabsTrigger>
         </TabsList>
 
         {/* Profile tab */}
@@ -544,8 +691,11 @@ const ConfigPage = ({ finance }: Props) => {
             </a>
           </motion.div>
         </TabsContent>
+        {/* Reset tab */}
+        <TabsContent value="reset" className="space-y-5 mt-5">
+          <ResetTab finance={finance} />
+        </TabsContent>
       </Tabs>
-
       <PremiumCheckoutDialog open={showPremiumDialog} onOpenChange={setShowPremiumDialog} />
     </div>
   );

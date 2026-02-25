@@ -23,6 +23,7 @@ export type Database = {
           description: string
           details: string | null
           id: string
+          paid: boolean
           type: string
           user_id: string
         }
@@ -34,6 +35,7 @@ export type Database = {
           description: string
           details?: string | null
           id?: string
+          paid?: boolean
           type?: string
           user_id: string
         }
@@ -45,6 +47,7 @@ export type Database = {
           description?: string
           details?: string | null
           id?: string
+          paid?: boolean
           type?: string
           user_id?: string
         }
