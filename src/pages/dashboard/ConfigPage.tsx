@@ -326,7 +326,7 @@ const ConfigPage = ({ finance }: Props) => {
   const [profileType, setProfileType] = useState(profile?.profile_type || "solteiro");
   const [accentColor, setAccentColor] = useState(() => localStorage.getItem("accent-color") || "270 60% 55%");
   const [fontFamily, setFontFamily] = useState(() => localStorage.getItem("font-family") || "'Plus Jakarta Sans', sans-serif");
-  const [compactLayout, setCompactLayout] = useState(() => localStorage.getItem("compact-layout") === "true");
+  const [_compactLayout, _setCompactLayout] = useState(() => localStorage.getItem("compact-layout") === "true");
   const [chartPreset, setChartPreset] = useState(() => localStorage.getItem("chart-preset") || "Roxo Clássico");
   const [sidebarStyle, setSidebarStyle] = useState(() => localStorage.getItem("sidebar-style") || "Escuro");
   const [cardStyle, setCardStyle] = useState(() => localStorage.getItem("card-style") || "default");
@@ -360,7 +360,7 @@ const ConfigPage = ({ finance }: Props) => {
     localStorage.setItem("font-family", fontFamily);
   }, [fontFamily]);
 
-  useEffect(() => { localStorage.setItem("compact-layout", String(compactLayout)); }, [compactLayout]);
+  useEffect(() => { localStorage.setItem("compact-layout", String(_compactLayout)); }, [_compactLayout]);
   useEffect(() => { localStorage.setItem("chart-preset", chartPreset); }, [chartPreset]);
 
   useEffect(() => {
@@ -612,18 +612,59 @@ const ConfigPage = ({ finance }: Props) => {
             </div>
           </motion.div>
 
-          {/* Compact layout */}
+          {/* Layout mode */}
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="bg-card rounded-xl p-5 border border-border shadow-card">
             <div className="flex items-center gap-2 mb-4">
               <Layout className="w-5 h-5 text-primary" />
-              <h3 className="font-display font-bold text-base">Layout</h3>
+              <h3 className="font-display font-bold text-base">Modo do Painel</h3>
             </div>
-            <div className="flex items-center justify-between">
-              <div>
-                <span className="text-sm font-medium">Layout compacto</span>
-                <p className="text-xs text-muted-foreground">Reduz espaçamentos para mostrar mais informações</p>
-              </div>
-              <Switch checked={compactLayout} onCheckedChange={setCompactLayout} />
+            <p className="text-xs text-muted-foreground mb-3">Escolha o nível de detalhes exibido no dashboard</p>
+            <div className="grid grid-cols-3 gap-3">
+              {[
+                { value: "basico", label: "Básico", desc: "Cards resumidos", preview: (
+                  <div className="space-y-1">
+                    <div className="h-2 w-full rounded bg-primary/30" />
+                    <div className="h-2 w-3/4 rounded bg-primary/20" />
+                  </div>
+                )},
+                { value: "normal", label: "Normal", desc: "Cards + gráficos", preview: (
+                  <div className="space-y-1">
+                    <div className="h-2 w-full rounded bg-primary/30" />
+                    <div className="flex gap-0.5">
+                      <div className="h-3 w-1/3 rounded bg-primary/25" />
+                      <div className="h-3 w-1/3 rounded bg-primary/20" />
+                      <div className="h-3 w-1/3 rounded bg-primary/15" />
+                    </div>
+                    <div className="h-2 w-2/3 rounded bg-primary/20" />
+                  </div>
+                )},
+                { value: "avancado", label: "Avançado", desc: "Tudo + detalhes", preview: (
+                  <div className="space-y-1">
+                    <div className="flex gap-0.5">
+                      <div className="h-2 w-1/4 rounded bg-primary/30" />
+                      <div className="h-2 w-1/4 rounded bg-primary/25" />
+                      <div className="h-2 w-1/4 rounded bg-primary/20" />
+                      <div className="h-2 w-1/4 rounded bg-primary/15" />
+                    </div>
+                    <div className="flex gap-0.5">
+                      <div className="h-3 w-1/2 rounded bg-primary/25" />
+                      <div className="h-3 w-1/2 rounded bg-primary/20" />
+                    </div>
+                    <div className="h-2 w-full rounded bg-primary/15" />
+                    <div className="h-1.5 w-3/4 rounded bg-primary/10" />
+                  </div>
+                )},
+              ].map((mode) => {
+                const current = localStorage.getItem("dashboard-layout") || "normal";
+                return (
+                  <button key={mode.value} onClick={() => { localStorage.setItem("dashboard-layout", mode.value); window.dispatchEvent(new Event("storage")); toast.success(`Layout "${mode.label}" ativado!`); }}
+                    className={`flex flex-col items-center gap-2 p-3 rounded-lg border-2 transition-all ${current === mode.value ? "border-primary shadow-md" : "border-border hover:border-muted-foreground/30"}`}>
+                    <div className="w-full p-2 rounded bg-muted/50">{mode.preview}</div>
+                    <span className="text-xs font-medium">{mode.label}</span>
+                    <span className="text-[10px] text-muted-foreground">{mode.desc}</span>
+                  </button>
+                );
+              })}
             </div>
           </motion.div>
         </TabsContent>

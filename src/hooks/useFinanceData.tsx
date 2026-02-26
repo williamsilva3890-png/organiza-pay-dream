@@ -8,6 +8,7 @@ export interface Receita {
   amount: number;
   date: string;
   category: string;
+  recurrence?: string | null;
 }
 
 export interface Despesa {
