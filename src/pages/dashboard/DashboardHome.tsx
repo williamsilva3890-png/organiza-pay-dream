@@ -310,7 +310,7 @@ const DashboardHome = ({ finance }: Props) => {
     );
   }
 
-  // ===== NORMAL (default) =====
+   // ===== NORMAL (default) =====
   return (
     <div className="space-y-6">
       {/* Financial summary cards */}
@@ -341,34 +341,27 @@ const DashboardHome = ({ finance }: Props) => {
         </motion.div>
       )}
 
-      {/* Gastos & Dívidas */}
-      {(gastos.length > 0 || dividas.length > 0) && (
-        <div className="grid sm:grid-cols-2 gap-4">
-          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="bg-card rounded-xl p-5 border border-border shadow-card">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="w-10 h-10 rounded-lg bg-warning/10 flex items-center justify-center"><ShoppingCart className="w-5 h-5 text-warning" /></div>
-              <div><p className="text-sm text-muted-foreground">Gastos do mês</p><p className="font-display font-bold text-xl">{fmt(totalGastos)}</p></div>
-            </div>
-            <div className="space-y-1.5 text-xs text-muted-foreground">
-              {gastos.slice(0, 4).map(g => (<div key={g.id} className="flex justify-between"><span>{g.description}</span><span className="text-foreground font-medium">{fmt(Number(g.amount))}</span></div>))}
-            </div>
-          </motion.div>
-          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }} className="bg-card rounded-xl p-5 border border-border shadow-card">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="w-10 h-10 rounded-lg bg-destructive/10 flex items-center justify-center"><CreditCard className="w-5 h-5 text-destructive" /></div>
-              <div><p className="text-sm text-muted-foreground">Dívidas do mês</p><p className="font-display font-bold text-xl text-destructive">{fmt(totalDividas)}</p></div>
-            </div>
-            <div className="space-y-1.5 text-xs text-muted-foreground">
-              {dividas.slice(0, 4).map(d => (<div key={d.id} className="flex justify-between"><span>{d.description}</span><span className="text-destructive font-medium">{fmt(Number(d.amount))}</span></div>))}
-              {dividas.length === 0 && <p className="text-center py-2">Nenhuma dívida</p>}
-            </div>
-          </motion.div>
-        </div>
-      )}
-
-      {/* Pie chart + Transactions */}
+      {/* Charts row — Bar + Pie */}
       <div className="grid lg:grid-cols-2 gap-6">
-        <div className="bg-card rounded-xl p-5 border border-border shadow-card">
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="bg-card rounded-xl p-5 border border-border shadow-card">
+          <h3 className="font-display font-bold text-base mb-4">Receitas vs Despesas</h3>
+          {monthlyData.some(m => m.receitas > 0 || m.despesas > 0) ? (
+            <ResponsiveContainer width="100%" height={220}>
+              <BarChart data={monthlyData} barGap={4}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
+                <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} />
+                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} />
+                <Tooltip formatter={(v: number) => fmt(v)} contentStyle={{ borderRadius: "8px", border: "1px solid hsl(var(--border))", fontSize: "12px", background: "hsl(var(--card))" }} />
+                <Bar dataKey="receitas" name="Renda" fill="hsl(var(--chart-income))" radius={[4, 4, 0, 0]} barSize={18} />
+                <Bar dataKey="despesas" name="Despesas" fill="hsl(var(--chart-expense))" radius={[4, 4, 0, 0]} barSize={18} />
+              </BarChart>
+            </ResponsiveContainer>
+          ) : (
+            <p className="text-sm text-muted-foreground text-center py-8">Sem dados para exibir</p>
+          )}
+        </motion.div>
+
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }} className="bg-card rounded-xl p-5 border border-border shadow-card">
           <h3 className="font-display font-bold text-base mb-4">Despesas por categoria</h3>
           {pieData.length > 0 ? (
             <div className="flex flex-col sm:flex-row items-center gap-6">
@@ -394,33 +387,88 @@ const DashboardHome = ({ finance }: Props) => {
           ) : (
             <p className="text-sm text-muted-foreground text-center py-8">Adicione gastos para ver o gráfico</p>
           )}
-        </div>
+        </motion.div>
+      </div>
 
-        <div className="bg-card rounded-xl p-5 border border-border shadow-card">
-          <h3 className="font-display font-bold text-base mb-4">Últimas movimentações</h3>
-          {transactions.length > 0 ? (
-            <div className="space-y-3">
-              {transactions.map(tx => (
-                <div key={tx.id} className="flex items-center gap-3 py-2 border-b border-border last:border-0">
-                  <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${tx.txType === "income" ? "bg-success/10" : "bg-destructive/10"}`}>
-                    {tx.txType === "income" ? <ArrowUpCircle className="w-4 h-4 text-success" /> : <ArrowDownCircle className="w-4 h-4 text-destructive" />}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium truncate">{tx.description}</p>
-                    <p className="text-xs text-muted-foreground">{tx.category}</p>
-                  </div>
-                  <div className="text-right">
-                    <p className={`text-sm font-semibold ${tx.txType === "income" ? "text-success" : "text-destructive"}`}>
-                      {tx.txType === "income" ? "+" : "-"}{fmt(Number(tx.amount))}
-                    </p>
-                  </div>
-                </div>
-              ))}
+      {/* Area chart trend */}
+      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="bg-card rounded-xl p-5 border border-border shadow-card">
+        <h3 className="font-display font-bold text-base mb-4">Tendência mensal</h3>
+        {monthlyData.some(m => m.receitas > 0 || m.despesas > 0) ? (
+          <ResponsiveContainer width="100%" height={200}>
+            <AreaChart data={monthlyData}>
+              <defs>
+                <linearGradient id="gradIncomeNormal" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="hsl(var(--chart-income))" stopOpacity={0.3} />
+                  <stop offset="95%" stopColor="hsl(var(--chart-income))" stopOpacity={0} />
+                </linearGradient>
+                <linearGradient id="gradExpenseNormal" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="hsl(var(--chart-expense))" stopOpacity={0.3} />
+                  <stop offset="95%" stopColor="hsl(var(--chart-expense))" stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
+              <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} />
+              <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} />
+              <Tooltip formatter={(v: number) => fmt(v)} contentStyle={{ borderRadius: "8px", border: "1px solid hsl(var(--border))", fontSize: "12px", background: "hsl(var(--card))" }} />
+              <Area type="monotone" dataKey="receitas" name="Renda" stroke="hsl(var(--chart-income))" fill="url(#gradIncomeNormal)" strokeWidth={2} dot={{ r: 3, fill: "hsl(var(--chart-income))" }} />
+              <Area type="monotone" dataKey="despesas" name="Despesas" stroke="hsl(var(--chart-expense))" fill="url(#gradExpenseNormal)" strokeWidth={2} dot={{ r: 3, fill: "hsl(var(--chart-expense))" }} />
+            </AreaChart>
+          </ResponsiveContainer>
+        ) : (
+          <p className="text-sm text-muted-foreground text-center py-8">Sem dados para exibir</p>
+        )}
+      </motion.div>
+
+      {/* Gastos & Dívidas */}
+      {(gastos.length > 0 || dividas.length > 0) && (
+        <div className="grid sm:grid-cols-2 gap-4">
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="bg-card rounded-xl p-5 border border-border shadow-card">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-10 h-10 rounded-lg bg-warning/10 flex items-center justify-center"><ShoppingCart className="w-5 h-5 text-warning" /></div>
+              <div><p className="text-sm text-muted-foreground">Gastos do mês</p><p className="font-display font-bold text-xl">{fmt(totalGastos)}</p></div>
             </div>
-          ) : (
-            <p className="text-sm text-muted-foreground text-center py-8">Nenhuma movimentação ainda</p>
-          )}
+            <div className="space-y-1.5 text-xs text-muted-foreground">
+              {gastos.slice(0, 4).map(g => (<div key={g.id} className="flex justify-between"><span>{g.description}</span><span className="text-foreground font-medium">{fmt(Number(g.amount))}</span></div>))}
+            </div>
+          </motion.div>
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }} className="bg-card rounded-xl p-5 border border-border shadow-card">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-10 h-10 rounded-lg bg-destructive/10 flex items-center justify-center"><CreditCard className="w-5 h-5 text-destructive" /></div>
+              <div><p className="text-sm text-muted-foreground">Dívidas do mês</p><p className="font-display font-bold text-xl text-destructive">{fmt(totalDividas)}</p></div>
+            </div>
+            <div className="space-y-1.5 text-xs text-muted-foreground">
+              {dividas.slice(0, 4).map(d => (<div key={d.id} className="flex justify-between"><span>{d.description}</span><span className="text-destructive font-medium">{fmt(Number(d.amount))}</span></div>))}
+              {dividas.length === 0 && <p className="text-center py-2">Nenhuma dívida</p>}
+            </div>
+          </motion.div>
         </div>
+      )}
+
+      {/* Transactions */}
+      <div className="bg-card rounded-xl p-5 border border-border shadow-card">
+        <h3 className="font-display font-bold text-base mb-4">Últimas movimentações</h3>
+        {transactions.length > 0 ? (
+          <div className="space-y-3">
+            {transactions.map(tx => (
+              <div key={tx.id} className="flex items-center gap-3 py-2 border-b border-border last:border-0">
+                <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${tx.txType === "income" ? "bg-success/10" : "bg-destructive/10"}`}>
+                  {tx.txType === "income" ? <ArrowUpCircle className="w-4 h-4 text-success" /> : <ArrowDownCircle className="w-4 h-4 text-destructive" />}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium truncate">{tx.description}</p>
+                  <p className="text-xs text-muted-foreground">{tx.category}</p>
+                </div>
+                <div className="text-right">
+                  <p className={`text-sm font-semibold ${tx.txType === "income" ? "text-success" : "text-destructive"}`}>
+                    {tx.txType === "income" ? "+" : "-"}{fmt(Number(tx.amount))}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="text-sm text-muted-foreground text-center py-8">Nenhuma movimentação ainda</p>
+        )}
       </div>
 
       {/* Goals */}
