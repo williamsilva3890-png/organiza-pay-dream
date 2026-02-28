@@ -87,87 +87,107 @@ export const useFinanceData = () => {
   const canAddMeta = isPremium || metas.length < FREE_LIMITS.metas;
   const canUseSharedAccount = isPremium;
 
+  // --- Optimistic CRUD ---
+
   const addReceita = async (data: Omit<Receita, "id">) => {
     if (!user) return;
-    await supabase.from("receitas").insert({ ...data, user_id: user.id } as any);
-    fetchAll();
+    const tempId = crypto.randomUUID();
+    const optimistic = { ...data, id: tempId } as Receita;
+    setReceitas(prev => [optimistic, ...prev]);
+    const { error } = await supabase.from("receitas").insert({ ...data, user_id: user.id } as any);
+    if (error) { setReceitas(prev => prev.filter(r => r.id !== tempId)); return; }
+    // Re-fetch to get real ID
+    const { data: fresh } = await supabase.from("receitas").select("*").eq("user_id", user.id).order("date", { ascending: false });
+    if (fresh) setReceitas(fresh as any);
   };
 
   const addDespesa = async (data: Omit<Despesa, "id">) => {
     if (!user) return;
-    await supabase.from("despesas").insert({ ...data, user_id: user.id } as any);
-    fetchAll();
+    const tempId = crypto.randomUUID();
+    const optimistic = { ...data, id: tempId } as Despesa;
+    setDespesas(prev => [optimistic, ...prev]);
+    const { error } = await supabase.from("despesas").insert({ ...data, user_id: user.id } as any);
+    if (error) { setDespesas(prev => prev.filter(d => d.id !== tempId)); return; }
+    const { data: fresh } = await supabase.from("despesas").select("*").eq("user_id", user.id).order("date", { ascending: false });
+    if (fresh) setDespesas(fresh as any);
   };
 
   const addMeta = async (data: Omit<Meta, "id">) => {
     if (!user) return;
-    await supabase.from("metas").insert({ ...data, user_id: user.id } as any);
-    fetchAll();
+    const tempId = crypto.randomUUID();
+    const optimistic = { ...data, id: tempId } as Meta;
+    setMetas(prev => [optimistic, ...prev]);
+    const { error } = await supabase.from("metas").insert({ ...data, user_id: user.id } as any);
+    if (error) { setMetas(prev => prev.filter(m => m.id !== tempId)); return; }
+    const { data: fresh } = await supabase.from("metas").select("*").eq("user_id", user.id).order("created_at", { ascending: false });
+    if (fresh) setMetas(fresh as any);
   };
 
   const updateReceita = async (id: string, data: Partial<Omit<Receita, "id">>) => {
     if (!user) return;
+    setReceitas(prev => prev.map(r => r.id === id ? { ...r, ...data } : r));
     await supabase.from("receitas").update(data as any).eq("id", id).eq("user_id", user.id);
-    fetchAll();
   };
 
   const deleteReceita = async (id: string) => {
     if (!user) return;
+    setReceitas(prev => prev.filter(r => r.id !== id));
     await supabase.from("receitas").delete().eq("id", id).eq("user_id", user.id);
-    fetchAll();
   };
 
   const updateDespesa = async (id: string, data: Partial<Omit<Despesa, "id">>) => {
     if (!user) return;
+    setDespesas(prev => prev.map(d => d.id === id ? { ...d, ...data } : d));
     await supabase.from("despesas").update(data as any).eq("id", id).eq("user_id", user.id);
-    fetchAll();
   };
 
   const deleteDespesa = async (id: string) => {
     if (!user) return;
+    setDespesas(prev => prev.filter(d => d.id !== id));
     await supabase.from("despesas").delete().eq("id", id).eq("user_id", user.id);
-    fetchAll();
   };
 
   const toggleDespesaPaid = async (id: string, paid: boolean) => {
     if (!user) return;
+    setDespesas(prev => prev.map(d => d.id === id ? { ...d, paid } : d));
     await supabase.from("despesas").update({ paid } as any).eq("id", id).eq("user_id", user.id);
-    fetchAll();
   };
 
   const updateProfile = async (data: Partial<Profile>) => {
     if (!user) return;
+    setProfile(prev => prev ? { ...prev, ...data } : null);
     await supabase.from("profiles").update(data as any).eq("user_id", user.id);
-    fetchAll();
   };
 
   // Reset functions
   const resetReceitas = async () => {
     if (!user) return;
+    setReceitas([]);
     await supabase.from("receitas").delete().eq("user_id", user.id);
-    fetchAll();
   };
 
   const resetDespesas = async () => {
     if (!user) return;
+    setDespesas([]);
     await supabase.from("despesas").delete().eq("user_id", user.id);
-    fetchAll();
   };
 
   const resetMetas = async () => {
     if (!user) return;
+    setMetas([]);
     await supabase.from("metas").delete().eq("user_id", user.id);
-    fetchAll();
   };
 
   const resetAll = async (sections: { receitas?: boolean; despesas?: boolean; metas?: boolean }) => {
     if (!user) return;
+    if (sections.receitas) setReceitas([]);
+    if (sections.despesas) setDespesas([]);
+    if (sections.metas) setMetas([]);
     const ops: PromiseLike<any>[] = [];
     if (sections.receitas) ops.push(supabase.from("receitas").delete().eq("user_id", user.id));
     if (sections.despesas) ops.push(supabase.from("despesas").delete().eq("user_id", user.id));
     if (sections.metas) ops.push(supabase.from("metas").delete().eq("user_id", user.id));
     await Promise.all(ops);
-    fetchAll();
   };
 
   const totalReceitas = receitas.reduce((s, r) => s + Number(r.amount), 0);
