@@ -1,7 +1,10 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Wallet, TrendingUp, TrendingDown, ArrowUpRight, ArrowDownRight, CreditCard, ShoppingCart, ArrowUpCircle, ArrowDownCircle, Target, CalendarDays, Repeat } from "lucide-react";
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid, AreaChart, Area } from "recharts";
+import { Wallet, TrendingUp, TrendingDown, CreditCard, ShoppingCart, ArrowUpCircle, ArrowDownCircle, Target, Repeat } from "lucide-react";
+import {
+  PieChart, Pie, Cell, ResponsiveContainer, Tooltip, BarChart, Bar, XAxis, YAxis,
+  CartesianGrid, AreaChart, Area, LineChart, Line, Legend, RadialBarChart, RadialBar,
+} from "recharts";
 import { Progress } from "@/components/ui/progress";
 import type { useFinanceData } from "@/hooks/useFinanceData";
 
@@ -26,6 +29,15 @@ const CHART_COLOR_PRESETS: Record<string, Record<string, string>> = {
 };
 
 const fmt = (v: number) => `R$ ${v.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`;
+
+const tooltipStyle = {
+  borderRadius: "10px",
+  border: "1px solid hsl(var(--border))",
+  fontSize: "12px",
+  background: "hsl(var(--card))",
+  color: "hsl(var(--foreground))",
+  boxShadow: "0 8px 24px -4px hsl(var(--foreground) / 0.1)",
+};
 
 interface Props {
   finance: ReturnType<typeof useFinanceData>;
@@ -60,23 +72,34 @@ const DashboardHome = ({ finance }: Props) => {
     ...despesas.slice(0, 5).map(d => ({ ...d, txType: "expense" as const })),
   ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).slice(0, 6);
 
-  // Bar chart data for advanced mode (last 6 months)
+  // Monthly data (last 6 months)
   const monthlyData = (() => {
-    const months: Record<string, { month: string; receitas: number; despesas: number }> = {};
+    const months: Record<string, { month: string; receitas: number; despesas: number; saldo: number }> = {};
     const now = new Date();
     for (let i = 5; i >= 0; i--) {
       const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
       const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
       const label = d.toLocaleDateString("pt-BR", { month: "short" }).replace(".", "");
-      months[key] = { month: label, receitas: 0, despesas: 0 };
+      months[key] = { month: label, receitas: 0, despesas: 0, saldo: 0 };
     }
     receitas.forEach(r => { const k = r.date.substring(0, 7); if (months[k]) months[k].receitas += Number(r.amount); });
     despesas.forEach(d => { const k = d.date.substring(0, 7); if (months[k]) months[k].despesas += Number(d.amount); });
+    Object.values(months).forEach(m => { m.saldo = m.receitas - m.despesas; });
     return Object.values(months);
   })();
 
+  const hasMonthlyData = monthlyData.some(m => m.receitas > 0 || m.despesas > 0);
+
   // Recurring income count
   const recurringCount = receitas.filter(r => (r as any).recurrence).length;
+
+  // Radial data for savings rate
+  const savingsRate = totalReceitas > 0 ? Math.max(0, Math.round(((totalReceitas - totalDespesas) / totalReceitas) * 100)) : 0;
+  const radialData = [{ name: "Economia", value: savingsRate, fill: "hsl(var(--chart-income))" }];
+
+  // Paid vs unpaid
+  const paidCount = despesas.filter(d => d.paid).length;
+  const unpaidCount = despesas.length - paidCount;
 
   if (loading) {
     return <div className="flex items-center justify-center py-20"><p className="text-muted-foreground">Carregando dados...</p></div>;
@@ -120,10 +143,6 @@ const DashboardHome = ({ finance }: Props) => {
 
   // ===== AVANÇADO =====
   if (layoutMode === "avancado") {
-    const paidCount = despesas.filter(d => d.paid).length;
-    const unpaidCount = despesas.length - paidCount;
-    const savingsRate = totalReceitas > 0 ? Math.round(((totalReceitas - totalDespesas) / totalReceitas) * 100) : 0;
-
     return (
       <div className="space-y-6">
         {/* 4 summary cards */}
@@ -184,83 +203,144 @@ const DashboardHome = ({ finance }: Props) => {
           </div>
         )}
 
-        {/* Bar chart + Pie chart */}
-        <div className="grid lg:grid-cols-2 gap-6">
-          <div className="bg-card rounded-xl p-5 border border-border shadow-card">
-            <h3 className="font-display font-bold text-base mb-4">Receitas vs Despesas</h3>
-            {monthlyData.some(m => m.receitas > 0 || m.despesas > 0) ? (
-              <ResponsiveContainer width="100%" height={220}>
-                <BarChart data={monthlyData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                  <XAxis dataKey="month" tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" />
-                  <YAxis tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" />
-                  <Tooltip formatter={(v: number) => fmt(v)} contentStyle={{ borderRadius: "8px", border: "1px solid hsl(var(--border))", fontSize: "12px", background: "hsl(var(--card))" }} />
-                  <Bar dataKey="receitas" name="Renda" fill="hsl(var(--chart-income))" radius={[4, 4, 0, 0]} />
-                  <Bar dataKey="despesas" name="Despesas" fill="hsl(var(--chart-expense))" radius={[4, 4, 0, 0]} />
+        {/* Bar chart + Donut + Radial gauge */}
+        <div className="grid lg:grid-cols-3 gap-6">
+          {/* Stacked-style bar chart */}
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="bg-card rounded-xl p-5 border border-border shadow-card lg:col-span-2">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-display font-bold text-base">Receitas vs Despesas</h3>
+              <div className="flex items-center gap-3 text-[11px] text-muted-foreground">
+                <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-sm" style={{ background: "hsl(var(--chart-income))" }} /> Renda</span>
+                <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-sm" style={{ background: "hsl(var(--chart-expense))" }} /> Despesas</span>
+              </div>
+            </div>
+            {hasMonthlyData ? (
+              <ResponsiveContainer width="100%" height={240}>
+                <BarChart data={monthlyData} barGap={6}>
+                  <defs>
+                    <linearGradient id="barIncomeGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="hsl(var(--chart-income))" stopOpacity={1} />
+                      <stop offset="100%" stopColor="hsl(var(--chart-income))" stopOpacity={0.6} />
+                    </linearGradient>
+                    <linearGradient id="barExpenseGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="hsl(var(--chart-expense))" stopOpacity={1} />
+                      <stop offset="100%" stopColor="hsl(var(--chart-expense))" stopOpacity={0.6} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
+                  <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} />
+                  <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} tickFormatter={(v) => v >= 1000 ? `${(v / 1000).toFixed(0)}k` : String(v)} />
+                  <Tooltip formatter={(v: number) => fmt(v)} contentStyle={tooltipStyle} />
+                  <Bar dataKey="receitas" name="Renda" fill="url(#barIncomeGrad)" radius={[6, 6, 0, 0]} barSize={22} />
+                  <Bar dataKey="despesas" name="Despesas" fill="url(#barExpenseGrad)" radius={[6, 6, 0, 0]} barSize={22} />
                 </BarChart>
               </ResponsiveContainer>
             ) : (
-              <p className="text-sm text-muted-foreground text-center py-8">Sem dados para exibir</p>
+              <p className="text-sm text-muted-foreground text-center py-12">Sem dados para exibir</p>
             )}
-          </div>
+          </motion.div>
 
-          <div className="bg-card rounded-xl p-5 border border-border shadow-card">
+          {/* Radial gauge — savings rate */}
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }} className="bg-card rounded-xl p-5 border border-border shadow-card flex flex-col items-center justify-center">
+            <h3 className="font-display font-bold text-base mb-2 self-start">Taxa de economia</h3>
+            <div className="w-40 h-40 relative">
+              <ResponsiveContainer width="100%" height="100%">
+                <RadialBarChart cx="50%" cy="50%" innerRadius="70%" outerRadius="100%" barSize={12} data={radialData} startAngle={90} endAngle={-270}>
+                  <RadialBar background={{ fill: "hsl(var(--muted))" }} dataKey="value" cornerRadius={10} />
+                </RadialBarChart>
+              </ResponsiveContainer>
+              <div className="absolute inset-0 flex flex-col items-center justify-center">
+                <span className="font-display font-bold text-3xl">{savingsRate}%</span>
+                <span className="text-[10px] text-muted-foreground">economizado</span>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+
+        {/* Donut chart + Line chart trend */}
+        <div className="grid lg:grid-cols-2 gap-6">
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="bg-card rounded-xl p-5 border border-border shadow-card">
             <h3 className="font-display font-bold text-base mb-4">Despesas por categoria</h3>
             {pieData.length > 0 ? (
               <div className="flex flex-col sm:flex-row items-center gap-6">
-                <div className="w-48 h-48">
+                <div className="w-44 h-44 relative">
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
-                      <Pie data={pieData} cx="50%" cy="50%" innerRadius={50} outerRadius={80} paddingAngle={3} dataKey="value" strokeWidth={0}>
+                      <Pie data={pieData} cx="50%" cy="50%" innerRadius={45} outerRadius={70} paddingAngle={4} dataKey="value" strokeWidth={0}>
                         {pieData.map((entry, index) => (<Cell key={index} fill={entry.color} />))}
                       </Pie>
-                      <Tooltip formatter={(value: number) => fmt(value)} contentStyle={{ borderRadius: "8px", border: "1px solid hsl(var(--border))", fontSize: "13px" }} />
+                      <Tooltip formatter={(value: number) => fmt(value)} contentStyle={tooltipStyle} />
                     </PieChart>
                   </ResponsiveContainer>
+                  <div className="absolute inset-0 flex flex-col items-center justify-center">
+                    <span className="font-display font-bold text-lg">{fmt(totalGastos)}</span>
+                    <span className="text-[10px] text-muted-foreground">total gastos</span>
+                  </div>
                 </div>
-                <div className="grid grid-cols-2 gap-x-6 gap-y-2.5 text-sm">
-                  {pieData.map(item => (
-                    <div key={item.name} className="flex items-center gap-2">
-                      <div className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: item.color }} />
-                      <span className="text-muted-foreground">{item.name}</span>
-                    </div>
-                  ))}
+                <div className="grid grid-cols-2 gap-x-5 gap-y-2.5 text-sm">
+                  {pieData.map(item => {
+                    const pct = totalGastos > 0 ? Math.round((item.value / totalGastos) * 100) : 0;
+                    return (
+                      <div key={item.name} className="flex items-center gap-2">
+                        <div className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: item.color }} />
+                        <span className="text-muted-foreground">{item.name} <span className="text-foreground font-medium">{pct}%</span></span>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             ) : (
               <p className="text-sm text-muted-foreground text-center py-8">Adicione gastos para ver o gráfico</p>
             )}
-          </div>
+          </motion.div>
+
+          {/* Line chart with dots */}
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }} className="bg-card rounded-xl p-5 border border-border shadow-card">
+            <h3 className="font-display font-bold text-base mb-4">Evolução do saldo</h3>
+            {hasMonthlyData ? (
+              <ResponsiveContainer width="100%" height={200}>
+                <LineChart data={monthlyData}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
+                  <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} />
+                  <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} tickFormatter={(v) => v >= 1000 ? `${(v / 1000).toFixed(0)}k` : v <= -1000 ? `${(v / 1000).toFixed(0)}k` : String(v)} />
+                  <Tooltip formatter={(v: number) => fmt(v)} contentStyle={tooltipStyle} />
+                  <Line type="monotone" dataKey="saldo" name="Saldo" stroke="hsl(var(--primary))" strokeWidth={3} dot={{ r: 5, fill: "hsl(var(--primary))", strokeWidth: 2, stroke: "hsl(var(--card))" }} activeDot={{ r: 7, strokeWidth: 3 }} />
+                </LineChart>
+              </ResponsiveContainer>
+            ) : (
+              <p className="text-sm text-muted-foreground text-center py-8">Sem dados para exibir</p>
+            )}
+          </motion.div>
         </div>
 
         {/* Area chart trend */}
-        <div className="bg-card rounded-xl p-5 border border-border shadow-card">
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="bg-card rounded-xl p-5 border border-border shadow-card">
           <h3 className="font-display font-bold text-base mb-4">Tendência mensal</h3>
-          {monthlyData.some(m => m.receitas > 0 || m.despesas > 0) ? (
-            <ResponsiveContainer width="100%" height={180}>
+          {hasMonthlyData ? (
+            <ResponsiveContainer width="100%" height={200}>
               <AreaChart data={monthlyData}>
                 <defs>
-                  <linearGradient id="gradIncome" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="hsl(var(--chart-income))" stopOpacity={0.3} />
+                  <linearGradient id="gradIncomeAdv" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="hsl(var(--chart-income))" stopOpacity={0.35} />
                     <stop offset="95%" stopColor="hsl(var(--chart-income))" stopOpacity={0} />
                   </linearGradient>
-                  <linearGradient id="gradExpense" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="hsl(var(--chart-expense))" stopOpacity={0.3} />
+                  <linearGradient id="gradExpenseAdv" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="hsl(var(--chart-expense))" stopOpacity={0.35} />
                     <stop offset="95%" stopColor="hsl(var(--chart-expense))" stopOpacity={0} />
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                <XAxis dataKey="month" tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" />
-                <YAxis tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" />
-                <Tooltip formatter={(v: number) => fmt(v)} contentStyle={{ borderRadius: "8px", border: "1px solid hsl(var(--border))", fontSize: "12px", background: "hsl(var(--card))" }} />
-                <Area type="monotone" dataKey="receitas" name="Renda" stroke="hsl(var(--chart-income))" fill="url(#gradIncome)" strokeWidth={2} />
-                <Area type="monotone" dataKey="despesas" name="Despesas" stroke="hsl(var(--chart-expense))" fill="url(#gradExpense)" strokeWidth={2} />
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
+                <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} />
+                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} tickFormatter={(v) => v >= 1000 ? `${(v / 1000).toFixed(0)}k` : String(v)} />
+                <Tooltip formatter={(v: number) => fmt(v)} contentStyle={tooltipStyle} />
+                <Area type="monotone" dataKey="receitas" name="Renda" stroke="hsl(var(--chart-income))" fill="url(#gradIncomeAdv)" strokeWidth={2.5} dot={{ r: 4, fill: "hsl(var(--chart-income))", strokeWidth: 2, stroke: "hsl(var(--card))" }} />
+                <Area type="monotone" dataKey="despesas" name="Despesas" stroke="hsl(var(--chart-expense))" fill="url(#gradExpenseAdv)" strokeWidth={2.5} dot={{ r: 4, fill: "hsl(var(--chart-expense))", strokeWidth: 2, stroke: "hsl(var(--card))" }} />
               </AreaChart>
             </ResponsiveContainer>
           ) : (
             <p className="text-sm text-muted-foreground text-center py-8">Sem dados para exibir</p>
           )}
-        </div>
+        </motion.div>
 
         {/* Transactions + Goals side by side */}
         <div className="grid lg:grid-cols-2 gap-6">
@@ -310,15 +390,15 @@ const DashboardHome = ({ finance }: Props) => {
     );
   }
 
-   // ===== NORMAL (default) =====
+  // ===== NORMAL (default) =====
   return (
     <div className="space-y-6">
       {/* Financial summary cards */}
       <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {[
-          { title: "Saldo do mês", value: saldo, icon: Wallet, iconBg: "bg-primary/10", iconColor: "text-primary", positive: saldo >= 0 },
-          { title: "Total de renda", value: totalReceitas, icon: TrendingUp, iconBg: "bg-success/10", iconColor: "text-success", positive: true },
-          { title: "Total de despesas", value: totalDespesas, icon: TrendingDown, iconBg: "bg-destructive/10", iconColor: "text-destructive", positive: false },
+          { title: "Saldo do mês", value: saldo, icon: Wallet, iconBg: "bg-primary/10", iconColor: "text-primary" },
+          { title: "Total de renda", value: totalReceitas, icon: TrendingUp, iconBg: "bg-success/10", iconColor: "text-success" },
+          { title: "Total de despesas", value: totalDespesas, icon: TrendingDown, iconBg: "bg-destructive/10", iconColor: "text-destructive" },
         ].map((card, i) => (
           <motion.div key={card.title} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }}
             className="bg-card rounded-xl p-5 border border-border shadow-card">
@@ -341,19 +421,35 @@ const DashboardHome = ({ finance }: Props) => {
         </motion.div>
       )}
 
-      {/* Charts row — Bar + Pie */}
+      {/* Charts row — Bar + Donut */}
       <div className="grid lg:grid-cols-2 gap-6">
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="bg-card rounded-xl p-5 border border-border shadow-card">
-          <h3 className="font-display font-bold text-base mb-4">Receitas vs Despesas</h3>
-          {monthlyData.some(m => m.receitas > 0 || m.despesas > 0) ? (
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="font-display font-bold text-base">Receitas vs Despesas</h3>
+            <div className="flex items-center gap-3 text-[11px] text-muted-foreground">
+              <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-sm" style={{ background: "hsl(var(--chart-income))" }} /> Renda</span>
+              <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-sm" style={{ background: "hsl(var(--chart-expense))" }} /> Despesas</span>
+            </div>
+          </div>
+          {hasMonthlyData ? (
             <ResponsiveContainer width="100%" height={220}>
               <BarChart data={monthlyData} barGap={4}>
+                <defs>
+                  <linearGradient id="barIncomeGradN" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="hsl(var(--chart-income))" stopOpacity={1} />
+                    <stop offset="100%" stopColor="hsl(var(--chart-income))" stopOpacity={0.6} />
+                  </linearGradient>
+                  <linearGradient id="barExpenseGradN" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="hsl(var(--chart-expense))" stopOpacity={1} />
+                    <stop offset="100%" stopColor="hsl(var(--chart-expense))" stopOpacity={0.6} />
+                  </linearGradient>
+                </defs>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
                 <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} />
-                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} />
-                <Tooltip formatter={(v: number) => fmt(v)} contentStyle={{ borderRadius: "8px", border: "1px solid hsl(var(--border))", fontSize: "12px", background: "hsl(var(--card))" }} />
-                <Bar dataKey="receitas" name="Renda" fill="hsl(var(--chart-income))" radius={[4, 4, 0, 0]} barSize={18} />
-                <Bar dataKey="despesas" name="Despesas" fill="hsl(var(--chart-expense))" radius={[4, 4, 0, 0]} barSize={18} />
+                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} tickFormatter={(v) => v >= 1000 ? `${(v / 1000).toFixed(0)}k` : String(v)} />
+                <Tooltip formatter={(v: number) => fmt(v)} contentStyle={tooltipStyle} />
+                <Bar dataKey="receitas" name="Renda" fill="url(#barIncomeGradN)" radius={[6, 6, 0, 0]} barSize={18} />
+                <Bar dataKey="despesas" name="Despesas" fill="url(#barExpenseGradN)" radius={[6, 6, 0, 0]} barSize={18} />
               </BarChart>
             </ResponsiveContainer>
           ) : (
@@ -365,23 +461,30 @@ const DashboardHome = ({ finance }: Props) => {
           <h3 className="font-display font-bold text-base mb-4">Despesas por categoria</h3>
           {pieData.length > 0 ? (
             <div className="flex flex-col sm:flex-row items-center gap-6">
-              <div className="w-48 h-48">
+              <div className="w-44 h-44 relative">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
-                    <Pie data={pieData} cx="50%" cy="50%" innerRadius={50} outerRadius={80} paddingAngle={3} dataKey="value" strokeWidth={0}>
+                    <Pie data={pieData} cx="50%" cy="50%" innerRadius={45} outerRadius={70} paddingAngle={4} dataKey="value" strokeWidth={0}>
                       {pieData.map((entry, index) => (<Cell key={index} fill={entry.color} />))}
                     </Pie>
-                    <Tooltip formatter={(value: number) => fmt(value)} contentStyle={{ borderRadius: "8px", border: "1px solid hsl(var(--border))", fontSize: "13px" }} />
+                    <Tooltip formatter={(value: number) => fmt(value)} contentStyle={tooltipStyle} />
                   </PieChart>
                 </ResponsiveContainer>
+                <div className="absolute inset-0 flex flex-col items-center justify-center">
+                  <span className="font-display font-bold text-lg">{fmt(totalGastos)}</span>
+                  <span className="text-[10px] text-muted-foreground">total</span>
+                </div>
               </div>
-              <div className="grid grid-cols-2 gap-x-6 gap-y-2.5 text-sm">
-                {pieData.map(item => (
-                  <div key={item.name} className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: item.color }} />
-                    <span className="text-muted-foreground">{item.name}</span>
-                  </div>
-                ))}
+              <div className="grid grid-cols-2 gap-x-5 gap-y-2.5 text-sm">
+                {pieData.map(item => {
+                  const pct = totalGastos > 0 ? Math.round((item.value / totalGastos) * 100) : 0;
+                  return (
+                    <div key={item.name} className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: item.color }} />
+                      <span className="text-muted-foreground">{item.name} <span className="text-foreground font-medium">{pct}%</span></span>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           ) : (
@@ -390,28 +493,28 @@ const DashboardHome = ({ finance }: Props) => {
         </motion.div>
       </div>
 
-      {/* Area chart trend */}
+      {/* Area trend chart */}
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="bg-card rounded-xl p-5 border border-border shadow-card">
         <h3 className="font-display font-bold text-base mb-4">Tendência mensal</h3>
-        {monthlyData.some(m => m.receitas > 0 || m.despesas > 0) ? (
+        {hasMonthlyData ? (
           <ResponsiveContainer width="100%" height={200}>
             <AreaChart data={monthlyData}>
               <defs>
-                <linearGradient id="gradIncomeNormal" x1="0" y1="0" x2="0" y2="1">
+                <linearGradient id="gradIncomeN" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="5%" stopColor="hsl(var(--chart-income))" stopOpacity={0.3} />
                   <stop offset="95%" stopColor="hsl(var(--chart-income))" stopOpacity={0} />
                 </linearGradient>
-                <linearGradient id="gradExpenseNormal" x1="0" y1="0" x2="0" y2="1">
+                <linearGradient id="gradExpenseN" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="5%" stopColor="hsl(var(--chart-expense))" stopOpacity={0.3} />
                   <stop offset="95%" stopColor="hsl(var(--chart-expense))" stopOpacity={0} />
                 </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
               <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} />
-              <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} />
-              <Tooltip formatter={(v: number) => fmt(v)} contentStyle={{ borderRadius: "8px", border: "1px solid hsl(var(--border))", fontSize: "12px", background: "hsl(var(--card))" }} />
-              <Area type="monotone" dataKey="receitas" name="Renda" stroke="hsl(var(--chart-income))" fill="url(#gradIncomeNormal)" strokeWidth={2} dot={{ r: 3, fill: "hsl(var(--chart-income))" }} />
-              <Area type="monotone" dataKey="despesas" name="Despesas" stroke="hsl(var(--chart-expense))" fill="url(#gradExpenseNormal)" strokeWidth={2} dot={{ r: 3, fill: "hsl(var(--chart-expense))" }} />
+              <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} tickFormatter={(v) => v >= 1000 ? `${(v / 1000).toFixed(0)}k` : String(v)} />
+              <Tooltip formatter={(v: number) => fmt(v)} contentStyle={tooltipStyle} />
+              <Area type="monotone" dataKey="receitas" name="Renda" stroke="hsl(var(--chart-income))" fill="url(#gradIncomeN)" strokeWidth={2.5} dot={{ r: 4, fill: "hsl(var(--chart-income))", strokeWidth: 2, stroke: "hsl(var(--card))" }} />
+              <Area type="monotone" dataKey="despesas" name="Despesas" stroke="hsl(var(--chart-expense))" fill="url(#gradExpenseN)" strokeWidth={2.5} dot={{ r: 4, fill: "hsl(var(--chart-expense))", strokeWidth: 2, stroke: "hsl(var(--card))" }} />
             </AreaChart>
           </ResponsiveContainer>
         ) : (
