@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
 
@@ -58,6 +58,7 @@ export const useFinanceData = () => {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [subscription, setSubscription] = useState<Subscription>({ plan: "free" });
   const [loading, setLoading] = useState(true);
+  const addingRef = useRef(false);
 
   const isPremium = subscription.plan === "premium";
 
@@ -91,37 +92,48 @@ export const useFinanceData = () => {
   // --- Optimistic CRUD ---
 
   const addReceita = async (data: Omit<Receita, "id">) => {
-    if (!user) return;
+    if (!user || addingRef.current) return;
+    addingRef.current = true;
     const tempId = crypto.randomUUID();
     const optimistic = { ...data, id: tempId } as Receita;
     setReceitas(prev => [optimistic, ...prev]);
     const { error } = await supabase.from("receitas").insert({ ...data, user_id: user.id } as any);
-    if (error) { setReceitas(prev => prev.filter(r => r.id !== tempId)); return; }
-    // Re-fetch to get real ID
-    const { data: fresh } = await supabase.from("receitas").select("*").eq("user_id", user.id).order("date", { ascending: false });
-    if (fresh) setReceitas(fresh as any);
+    if (error) { setReceitas(prev => prev.filter(r => r.id !== tempId)); }
+    else {
+      const { data: fresh } = await supabase.from("receitas").select("*").eq("user_id", user.id).order("date", { ascending: false });
+      if (fresh) setReceitas(fresh as any);
+    }
+    addingRef.current = false;
   };
 
   const addDespesa = async (data: Omit<Despesa, "id">) => {
-    if (!user) return;
+    if (!user || addingRef.current) return;
+    addingRef.current = true;
     const tempId = crypto.randomUUID();
     const optimistic = { ...data, id: tempId } as Despesa;
     setDespesas(prev => [optimistic, ...prev]);
     const { error } = await supabase.from("despesas").insert({ ...data, user_id: user.id } as any);
-    if (error) { setDespesas(prev => prev.filter(d => d.id !== tempId)); return; }
-    const { data: fresh } = await supabase.from("despesas").select("*").eq("user_id", user.id).order("date", { ascending: false });
-    if (fresh) setDespesas(fresh as any);
+    if (error) { setDespesas(prev => prev.filter(d => d.id !== tempId)); }
+    else {
+      const { data: fresh } = await supabase.from("despesas").select("*").eq("user_id", user.id).order("date", { ascending: false });
+      if (fresh) setDespesas(fresh as any);
+    }
+    addingRef.current = false;
   };
 
   const addMeta = async (data: Omit<Meta, "id">) => {
-    if (!user) return;
+    if (!user || addingRef.current) return;
+    addingRef.current = true;
     const tempId = crypto.randomUUID();
     const optimistic = { ...data, id: tempId } as Meta;
     setMetas(prev => [optimistic, ...prev]);
     const { error } = await supabase.from("metas").insert({ ...data, user_id: user.id } as any);
-    if (error) { setMetas(prev => prev.filter(m => m.id !== tempId)); return; }
-    const { data: fresh } = await supabase.from("metas").select("*").eq("user_id", user.id).order("created_at", { ascending: false });
-    if (fresh) setMetas(fresh as any);
+    if (error) { setMetas(prev => prev.filter(m => m.id !== tempId)); }
+    else {
+      const { data: fresh } = await supabase.from("metas").select("*").eq("user_id", user.id).order("created_at", { ascending: false });
+      if (fresh) setMetas(fresh as any);
+    }
+    addingRef.current = false;
   };
 
   const updateReceita = async (id: string, data: Partial<Omit<Receita, "id">>) => {

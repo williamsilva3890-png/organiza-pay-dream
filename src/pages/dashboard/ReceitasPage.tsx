@@ -25,6 +25,7 @@ const ReceitasPage = ({ finance }: Props) => {
   const [open, setOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
   const [form, setForm] = useState({ description: "", amount: "", date: "", category: "Salário", recurrence: "", recurrence_day: "" });
 
   const handleAdd = async () => {
@@ -90,7 +91,9 @@ const ReceitasPage = ({ finance }: Props) => {
           </select>
         </div>
       )}
-      <Button onClick={onSubmit} className="w-full">{label}</Button>
+      <Button onClick={onSubmit} className="w-full" disabled={submitting}>
+        {submitting ? "Salvando..." : label}
+      </Button>
     </div>
   );
 

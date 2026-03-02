@@ -18,15 +18,15 @@ interface Props {
 }
 
 const ACCENT_COLORS = [
-  { name: "Violeta", hsl: "270 60% 55%", hslDark: "270 55% 60%" },
+  { name: "Navy", hsl: "215 65% 25%", hslDark: "38 92% 50%" },
   { name: "Azul", hsl: "210 70% 50%", hslDark: "210 65% 55%" },
-  { name: "Roxo", hsl: "290 65% 50%", hslDark: "290 60% 55%" },
+  { name: "Amber", hsl: "38 92% 50%", hslDark: "38 88% 55%" },
   { name: "Rosa", hsl: "330 70% 50%", hslDark: "330 65% 55%" },
   { name: "Laranja", hsl: "25 90% 50%", hslDark: "25 85% 55%" },
   { name: "Vermelho", hsl: "0 72% 50%", hslDark: "0 67% 50%" },
-  { name: "Verde", hsl: "150 60% 40%", hslDark: "150 55% 50%" },
+  { name: "Verde", hsl: "160 60% 40%", hslDark: "160 55% 50%" },
   { name: "Ciano", hsl: "190 80% 42%", hslDark: "190 75% 50%" },
-  { name: "Amarelo", hsl: "45 95% 48%", hslDark: "45 90% 55%" },
+  { name: "Roxo", hsl: "270 60% 55%", hslDark: "270 55% 60%" },
 ];
 
 const FONT_OPTIONS = [
