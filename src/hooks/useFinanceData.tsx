@@ -9,6 +9,7 @@ export interface Receita {
   date: string;
   category: string;
   recurrence?: string | null;
+  recurrence_day?: number | null;
 }
 
 export interface Despesa {

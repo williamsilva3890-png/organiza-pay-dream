@@ -1,0 +1,1 @@
+ALTER TABLE public.receitas ADD COLUMN recurrence_day integer DEFAULT NULL;

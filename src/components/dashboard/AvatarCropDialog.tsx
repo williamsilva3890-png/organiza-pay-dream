@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
@@ -21,7 +21,7 @@ const AvatarCropDialog = ({ open, onOpenChange, imageFile, onCropComplete }: Ava
   const imgRef = useRef<HTMLImageElement>(null);
 
   // Load image when file changes
-  useState(() => {
+  useEffect(() => {
     if (imageFile) {
       const reader = new FileReader();
       reader.onload = (e) => setImageSrc(e.target?.result as string);
@@ -29,7 +29,7 @@ const AvatarCropDialog = ({ open, onOpenChange, imageFile, onCropComplete }: Ava
       setScale(1);
       setPosition({ x: 0, y: 0 });
     }
-  });
+  }, [imageFile]);
 
   const handleMouseDown = useCallback((e: React.MouseEvent | React.TouchEvent) => {
     setDragging(true);
