@@ -14,6 +14,7 @@ interface Props {
 const MetasPage = ({ finance }: Props) => {
   const { metas, addMeta, canAddMeta, isPremium, resetMetas } = finance;
   const [open, setOpen] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const [form, setForm] = useState({ title: "", target: "", deadline: "", description: "" });
 
   const handleAdd = async () => {
@@ -21,7 +22,8 @@ const MetasPage = ({ finance }: Props) => {
       toast.error("Metas financeiras estão disponíveis apenas no plano Premium!");
       return;
     }
-    if (!form.title || !form.target || !form.deadline) return;
+    if (!form.title || !form.target || !form.deadline || submitting) return;
+    setSubmitting(true);
     await addMeta({
       title: form.title,
       current_amount: 0,
@@ -30,6 +32,7 @@ const MetasPage = ({ finance }: Props) => {
       description: form.description,
     });
     setForm({ title: "", target: "", deadline: "", description: "" });
+    setSubmitting(false);
     setOpen(false);
   };
 
@@ -67,7 +70,7 @@ const MetasPage = ({ finance }: Props) => {
                   <div><label className="text-sm font-medium mb-1 block">Valor alvo (R$)</label><input type="number" value={form.target} onChange={(e) => setForm(prev => ({ ...prev, target: e.target.value }))} className={inputClass} placeholder="0,00" /></div>
                   <div><label className="text-sm font-medium mb-1 block">Prazo</label><input value={form.deadline} onChange={(e) => setForm(prev => ({ ...prev, deadline: e.target.value }))} className={inputClass} placeholder="Ex: Dez 2026" /></div>
                   <div><label className="text-sm font-medium mb-1 block">Descrição</label><input value={form.description} onChange={(e) => setForm(prev => ({ ...prev, description: e.target.value }))} className={inputClass} placeholder="Ex: Guardar para emergências" /></div>
-                  <Button onClick={handleAdd} className="w-full">Criar meta</Button>
+                  <Button onClick={handleAdd} className="w-full" disabled={submitting}>{submitting ? "Criando..." : "Criar meta"}</Button>
                 </div>
               </DialogContent>
             </Dialog>

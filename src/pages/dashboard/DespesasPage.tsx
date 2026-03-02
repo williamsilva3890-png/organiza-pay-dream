@@ -30,20 +30,25 @@ const DespesasPage = ({ finance }: Props) => {
   const [editType, setEditType] = useState<"gasto" | "divida">("gasto");
   const [formGasto, setFormGasto] = useState({ description: "", amount: "", date: "", category: "Moradia" });
   const [formDivida, setFormDivida] = useState({ description: "", amount: "", date: "", details: "" });
+  const [submitting, setSubmitting] = useState(false);
 
   const handleAddGasto = async () => {
     if (!canAddDespesa) { toast.error(`Limite do plano gratuito atingido (${FREE_LIMITS.despesas} despesas). Faça upgrade para Premium!`); return; }
-    if (!formGasto.description || !formGasto.amount || !formGasto.date) return;
+    if (!formGasto.description || !formGasto.amount || !formGasto.date || submitting) return;
+    setSubmitting(true);
     await addDespesa({ description: formGasto.description, amount: parseFloat(formGasto.amount), date: formGasto.date, category: formGasto.category, type: "gasto" });
     setFormGasto({ description: "", amount: "", date: "", category: "Moradia" });
+    setSubmitting(false);
     setOpenGasto(false);
   };
 
   const handleAddDivida = async () => {
     if (!canAddDespesa) { toast.error(`Limite do plano gratuito atingido (${FREE_LIMITS.despesas} despesas). Faça upgrade para Premium!`); return; }
-    if (!formDivida.description || !formDivida.amount || !formDivida.date) return;
+    if (!formDivida.description || !formDivida.amount || !formDivida.date || submitting) return;
+    setSubmitting(true);
     await addDespesa({ description: formDivida.description, amount: parseFloat(formDivida.amount), date: formDivida.date, category: "Dívida", type: "divida", details: formDivida.details });
     setFormDivida({ description: "", amount: "", date: "", details: "" });
+    setSubmitting(false);
     setOpenDivida(false);
   };
 
@@ -111,7 +116,7 @@ const DespesasPage = ({ finance }: Props) => {
                 <div><label className="text-sm font-medium mb-1 block">Valor (R$)</label><input type="number" value={formGasto.amount} onChange={(e) => setFormGasto(prev => ({ ...prev, amount: e.target.value }))} className={inputClass} placeholder="0,00" /></div>
                 <div><label className="text-sm font-medium mb-1 block">Data</label><input type="date" value={formGasto.date} onChange={(e) => setFormGasto(prev => ({ ...prev, date: e.target.value }))} className={inputClass} /></div>
                 <div><label className="text-sm font-medium mb-1 block">Categoria</label><select value={formGasto.category} onChange={(e) => setFormGasto(prev => ({ ...prev, category: e.target.value }))} className={inputClass}>{expenseCategories.map((c) => <option key={c}>{c}</option>)}</select></div>
-                <Button onClick={handleAddGasto} className="w-full">Adicionar gasto</Button>
+                <Button onClick={handleAddGasto} className="w-full" disabled={submitting}>{submitting ? "Salvando..." : "Adicionar gasto"}</Button>
               </div>
             </DialogContent>
           </Dialog>
@@ -124,7 +129,7 @@ const DespesasPage = ({ finance }: Props) => {
                 <div><label className="text-sm font-medium mb-1 block">Valor da parcela (R$)</label><input type="number" value={formDivida.amount} onChange={(e) => setFormDivida(prev => ({ ...prev, amount: e.target.value }))} className={inputClass} placeholder="0,00" /></div>
                 <div><label className="text-sm font-medium mb-1 block">Data de vencimento</label><input type="date" value={formDivida.date} onChange={(e) => setFormDivida(prev => ({ ...prev, date: e.target.value }))} className={inputClass} /></div>
                 <div><label className="text-sm font-medium mb-1 block">Detalhes (parcelas, etc.)</label><input value={formDivida.details} onChange={(e) => setFormDivida(prev => ({ ...prev, details: e.target.value }))} className={inputClass} placeholder="Ex: Parcela 3/12" /></div>
-                <Button onClick={handleAddDivida} className="w-full">Adicionar dívida</Button>
+                <Button onClick={handleAddDivida} className="w-full" disabled={submitting}>{submitting ? "Salvando..." : "Adicionar dívida"}</Button>
               </div>
             </DialogContent>
           </Dialog>
