@@ -43,6 +43,7 @@ const Dashboard = () => {
         totalDespesas={finance.totalDespesas}
         saldo={finance.saldo}
         metasCount={finance.metas.length}
+        despesasPendentes={finance.despesas.filter(d => !d.paid).length}
       />
     </DashboardLayout>
   );

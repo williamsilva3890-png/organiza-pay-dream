@@ -14,6 +14,8 @@ const recurrenceOptions = [
   { value: "mensal", label: "Mensal" },
 ];
 
+const dayOptions = Array.from({ length: 31 }, (_, i) => i + 1);
+
 interface Props {
   finance: ReturnType<typeof useFinanceData>;
 }
@@ -23,7 +25,7 @@ const ReceitasPage = ({ finance }: Props) => {
   const [open, setOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
-  const [form, setForm] = useState({ description: "", amount: "", date: "", category: "Salário", recurrence: "" });
+  const [form, setForm] = useState({ description: "", amount: "", date: "", category: "Salário", recurrence: "", recurrence_day: "" });
 
   const handleAdd = async () => {
     if (!canAddReceita) {
@@ -31,21 +33,29 @@ const ReceitasPage = ({ finance }: Props) => {
       return;
     }
     if (!form.description || !form.amount || !form.date) return;
-    await addReceita({ description: form.description, amount: parseFloat(form.amount), date: form.date, category: form.category, recurrence: form.recurrence || undefined });
-    setForm({ description: "", amount: "", date: "", category: "Salário", recurrence: "" });
+    await addReceita({
+      description: form.description, amount: parseFloat(form.amount), date: form.date,
+      category: form.category, recurrence: form.recurrence || undefined,
+      recurrence_day: form.recurrence === "mensal" && form.recurrence_day ? parseInt(form.recurrence_day) : undefined,
+    });
+    setForm({ description: "", amount: "", date: "", category: "Salário", recurrence: "", recurrence_day: "" });
     setOpen(false);
   };
 
   const startEdit = (r: any) => {
     setEditId(r.id);
-    setForm({ description: r.description, amount: String(r.amount), date: r.date, category: r.category, recurrence: r.recurrence || "" });
+    setForm({ description: r.description, amount: String(r.amount), date: r.date, category: r.category, recurrence: r.recurrence || "", recurrence_day: r.recurrence_day ? String(r.recurrence_day) : "" });
     setEditOpen(true);
   };
 
   const handleEdit = async () => {
     if (!editId || !form.description || !form.amount || !form.date) return;
-    await updateReceita(editId, { description: form.description, amount: parseFloat(form.amount), date: form.date, category: form.category, recurrence: form.recurrence || null });
-    setForm({ description: "", amount: "", date: "", category: "Salário", recurrence: "" });
+    await updateReceita(editId, {
+      description: form.description, amount: parseFloat(form.amount), date: form.date,
+      category: form.category, recurrence: form.recurrence || null,
+      recurrence_day: form.recurrence === "mensal" && form.recurrence_day ? parseInt(form.recurrence_day) : null,
+    });
+    setForm({ description: "", amount: "", date: "", category: "Salário", recurrence: "", recurrence_day: "" });
     setEditOpen(false);
     setEditId(null);
     toast.success("Renda atualizada!");
@@ -72,6 +82,14 @@ const ReceitasPage = ({ finance }: Props) => {
       <div><label className="text-sm font-medium mb-1 block">Data</label><input type="date" value={form.date} onChange={(e) => setForm(prev => ({ ...prev, date: e.target.value }))} className={inputClass} /></div>
       <div><label className="text-sm font-medium mb-1 block">Categoria</label><select value={form.category} onChange={(e) => setForm(prev => ({ ...prev, category: e.target.value }))} className={inputClass}>{categories.map((c) => <option key={c}>{c}</option>)}</select></div>
       <div><label className="text-sm font-medium mb-1 block">Recorrência</label><select value={form.recurrence} onChange={(e) => setForm(prev => ({ ...prev, recurrence: e.target.value }))} className={inputClass}>{recurrenceOptions.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}</select></div>
+      {form.recurrence === "mensal" && (
+        <div><label className="text-sm font-medium mb-1 block">Dia do recebimento</label>
+          <select value={form.recurrence_day} onChange={(e) => setForm(prev => ({ ...prev, recurrence_day: e.target.value }))} className={inputClass}>
+            <option value="">Selecione o dia</option>
+            {dayOptions.map((d) => <option key={d} value={String(d)}>Dia {d}</option>)}
+          </select>
+        </div>
+      )}
       <Button onClick={onSubmit} className="w-full">{label}</Button>
     </div>
   );
@@ -124,7 +142,11 @@ const ReceitasPage = ({ finance }: Props) => {
             <span className="text-sm font-medium">{r.description}</span>
             <div className="flex items-center gap-2 sm:contents">
               <span className="text-xs bg-success/10 text-success rounded-full px-2.5 py-1 font-medium">{r.category}</span>
-              {(r as any).recurrence && <span className="text-[10px] bg-primary/10 text-primary rounded-full px-2 py-0.5 font-medium">{(r as any).recurrence === "mensal" ? "Mensal" : (r as any).recurrence === "semanal" ? "Semanal" : "Diária"}</span>}
+              {(r as any).recurrence && (
+                <span className="text-[10px] bg-primary/10 text-primary rounded-full px-2 py-0.5 font-medium">
+                  {(r as any).recurrence === "mensal" ? `Mensal${(r as any).recurrence_day ? ` (dia ${(r as any).recurrence_day})` : ""}` : (r as any).recurrence === "semanal" ? "Semanal" : "Diária"}
+                </span>
+              )}
               <span className="text-xs sm:text-sm text-muted-foreground">{new Date(r.date).toLocaleDateString("pt-BR")}</span>
               <span className="text-sm font-semibold text-success ml-auto sm:ml-0 sm:text-right">+{fmt(Number(r.amount))}</span>
             </div>
