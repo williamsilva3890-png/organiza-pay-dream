@@ -16,6 +16,8 @@ interface Suggestion {
   message: string;
   status: string;
   created_at: string;
+  admin_reply: string | null;
+  replied_at: string | null;
 }
 
 interface SubscriberInfo {
@@ -51,6 +53,8 @@ const AdminPage = () => {
   const [msgBody, setMsgBody] = useState("");
   const [sending, setSending] = useState(false);
   const [activeTab, setActiveTab] = useState<"overview" | "subscribers" | "messages">("overview");
+  const [replyingTo, setReplyingTo] = useState<string | null>(null);
+  const [replyText, setReplyText] = useState("");
 
   const fetchData = async () => {
     setLoading(true);
@@ -127,6 +131,19 @@ const AdminPage = () => {
     const { error } = await supabase.from("suggestions").delete().eq("id", id);
     if (error) { toast.error("Erro ao deletar"); return; }
     toast.success("Sugestão removida!");
+    fetchData();
+  };
+
+  const sendReply = async (id: string) => {
+    if (!replyText.trim()) return;
+    const { error } = await supabase
+      .from("suggestions")
+      .update({ admin_reply: replyText.trim(), replied_at: new Date().toISOString() } as any)
+      .eq("id", id);
+    if (error) { toast.error("Erro ao enviar resposta"); return; }
+    toast.success("Resposta enviada ao cliente! ✉️");
+    setReplyingTo(null);
+    setReplyText("");
     fetchData();
   };
 
@@ -261,12 +278,54 @@ const AdminPage = () => {
                         <span className={`text-xs font-medium ${statusInfo.color}`}>{statusInfo.label}</span>
                       </div>
                     </div>
+
+                    {/* Admin reply display */}
+                    {s.admin_reply && (
+                      <div className="bg-primary/5 border border-primary/20 rounded-lg p-3 ml-4">
+                        <div className="flex items-center gap-1.5 mb-1">
+                          <MessageSquare className="w-3 h-3 text-primary" />
+                          <span className="text-[11px] font-semibold text-primary">Resposta do Admin</span>
+                          {s.replied_at && (
+                            <span className="text-[10px] text-muted-foreground ml-auto">
+                              {new Date(s.replied_at).toLocaleDateString("pt-BR", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" })}
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-sm">{s.admin_reply}</p>
+                      </div>
+                    )}
+
+                    {/* Reply input */}
+                    {replyingTo === s.id && (
+                      <div className="flex gap-2 ml-4">
+                        <Textarea
+                          value={replyText}
+                          onChange={(e) => setReplyText(e.target.value)}
+                          placeholder="Escreva sua resposta ao cliente..."
+                          className="min-h-[60px] text-sm flex-1"
+                        />
+                        <div className="flex flex-col gap-1">
+                          <Button size="sm" className="text-xs h-7" onClick={() => sendReply(s.id)} disabled={!replyText.trim()}>
+                            <Send className="w-3 h-3 mr-1" /> Enviar
+                          </Button>
+                          <Button variant="ghost" size="sm" className="text-xs h-7" onClick={() => { setReplyingTo(null); setReplyText(""); }}>
+                            Cancelar
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+
                     <div className="flex items-center gap-2 pt-1 border-t border-border">
                       {s.status !== "analisando" && (
                         <Button variant="outline" size="sm" className="text-xs h-7" onClick={() => updateStatus(s.id, "analisando")}>Analisando</Button>
                       )}
                       {s.status !== "concluido" && (
                         <Button variant="outline" size="sm" className="text-xs h-7" onClick={() => updateStatus(s.id, "concluido")}>Concluído</Button>
+                      )}
+                      {replyingTo !== s.id && (
+                        <Button variant="outline" size="sm" className="text-xs h-7 gap-1" onClick={() => { setReplyingTo(s.id); setReplyText(s.admin_reply || ""); }}>
+                          <MessageSquare className="w-3 h-3" /> {s.admin_reply ? "Editar resposta" : "Responder"}
+                        </Button>
                       )}
                       <Button variant="ghost" size="sm" className="text-xs h-7 text-destructive hover:text-destructive ml-auto" onClick={() => deleteSuggestion(s.id)}>
                         <Trash2 className="w-3 h-3" />

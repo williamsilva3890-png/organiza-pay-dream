@@ -298,30 +298,36 @@ export type Database = {
       }
       suggestions: {
         Row: {
+          admin_reply: string | null
           category: string
           created_at: string
           id: string
           message: string
+          replied_at: string | null
           status: string
           user_email: string | null
           user_id: string
           user_name: string | null
         }
         Insert: {
+          admin_reply?: string | null
           category: string
           created_at?: string
           id?: string
           message: string
+          replied_at?: string | null
           status?: string
           user_email?: string | null
           user_id: string
           user_name?: string | null
         }
         Update: {
+          admin_reply?: string | null
           category?: string
           created_at?: string
           id?: string
           message?: string
+          replied_at?: string | null
           status?: string
           user_email?: string | null
           user_id?: string
