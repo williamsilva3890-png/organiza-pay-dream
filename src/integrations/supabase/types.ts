@@ -14,6 +14,30 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_messages: {
+        Row: {
+          created_at: string
+          created_by: string
+          id: string
+          message: string
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          id?: string
+          message: string
+          title: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          id?: string
+          message?: string
+          title?: string
+        }
+        Relationships: []
+      }
       despesas: {
         Row: {
           amount: number
@@ -155,6 +179,7 @@ export type Database = {
       subscriptions: {
         Row: {
           created_at: string
+          expires_at: string | null
           id: string
           plan: string
           updated_at: string
@@ -162,6 +187,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          expires_at?: string | null
           id?: string
           plan?: string
           updated_at?: string
@@ -169,6 +195,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          expires_at?: string | null
           id?: string
           plan?: string
           updated_at?: string

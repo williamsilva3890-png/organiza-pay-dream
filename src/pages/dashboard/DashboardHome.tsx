@@ -411,44 +411,51 @@ const DashboardHome = ({ finance }: Props) => {
   // ===== NORMAL (default) =====
   return (
     <div className="space-y-6">
-      {/* Radial gauge cards */}
+      {/* Modern gauge cards */}
       {(() => {
         const now = new Date();
         const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
         const dayOfMonth = now.getDate();
         const dailyAvg = dayOfMonth > 0 ? Math.round(totalDespesas / dayOfMonth) : 0;
         const monthIndex = now.getMonth();
-        const yearlyProj = monthIndex > 0 ? Math.round(totalReceitas * (12 / (monthIndex + 1))) : totalReceitas * 12;
         const lastMD = monthlyData[monthlyData.length - 2];
         const thisMD = monthlyData[monthlyData.length - 1];
         const incomePct = lastMD && lastMD.receitas > 0 ? Math.round(((thisMD.receitas - lastMD.receitas) / lastMD.receitas) * 100) : 0;
         const expensePct = lastMD && lastMD.despesas > 0 ? Math.round(((thisMD.despesas - lastMD.despesas) / lastMD.despesas) * 100) : 0;
 
         const gauges = [
-          { label: "Mensal", value: savingsRate, change: incomePct, color: "hsl(var(--primary))" },
-          { label: "Diário", value: Math.min(100, Math.round((dailyAvg / (totalReceitas / daysInMonth || 1)) * 100)), change: expensePct, color: "hsl(270 80% 70%)" },
-          { label: "Anual", value: Math.min(100, Math.round((monthIndex + 1) / 12 * 100)), change: incomePct, color: "hsl(var(--primary))" },
+          { label: "Mensal", value: savingsRate, change: incomePct, color: "hsl(270 70% 60%)", trackColor: "hsl(270 30% 20%)" },
+          { label: "Diário", value: Math.min(100, Math.round((dailyAvg / (totalReceitas / daysInMonth || 1)) * 100)), change: expensePct, color: "hsl(280 80% 65%)", trackColor: "hsl(280 30% 20%)" },
+          { label: "Anual", value: Math.min(100, Math.round((monthIndex + 1) / 12 * 100)), change: incomePct, color: "hsl(260 75% 70%)", trackColor: "hsl(260 30% 20%)" },
         ];
 
         return (
           <div className="grid sm:grid-cols-3 gap-4">
             {gauges.map((g, i) => (
-              <motion.div key={g.label} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }}
-                className="bg-card rounded-xl p-5 border border-border shadow-card flex flex-col items-center">
-                <div className="w-24 h-24 relative mb-3">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <RadialBarChart cx="50%" cy="50%" innerRadius="75%" outerRadius="100%" barSize={8} data={[{ value: g.value, fill: g.color }]} startAngle={90} endAngle={-270}>
-                      <RadialBar background={{ fill: "hsl(var(--muted))" }} dataKey="value" cornerRadius={10} />
-                    </RadialBarChart>
-                  </ResponsiveContainer>
+              <motion.div key={g.label} initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: i * 0.1, type: "spring", stiffness: 200 }}
+                className="bg-card rounded-2xl p-6 border border-border shadow-card flex flex-col items-center relative overflow-hidden group">
+                {/* Glow effect */}
+                <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500" style={{ background: `radial-gradient(circle at 50% 50%, ${g.color.replace(')', ' / 0.08)')}, transparent 70%)` }} />
+                <div className="w-28 h-28 relative mb-4">
+                  <svg viewBox="0 0 100 100" className="w-full h-full -rotate-90">
+                    {/* Track */}
+                    <circle cx="50" cy="50" r="42" fill="none" stroke="hsl(var(--muted))" strokeWidth="7" strokeLinecap="round" />
+                    {/* Progress */}
+                    <circle cx="50" cy="50" r="42" fill="none" stroke={g.color} strokeWidth="7" strokeLinecap="round"
+                      strokeDasharray={`${2 * Math.PI * 42}`}
+                      strokeDashoffset={`${2 * Math.PI * 42 * (1 - g.value / 100)}`}
+                      className="transition-all duration-1000 ease-out"
+                      style={{ filter: `drop-shadow(0 0 6px ${g.color.replace(')', ' / 0.5)')})` }}
+                    />
+                  </svg>
                   <div className="absolute inset-0 flex flex-col items-center justify-center">
-                    <span className="font-display font-bold text-2xl">{g.value}</span>
+                    <span className="font-display font-bold text-3xl">{g.value}</span>
                   </div>
                 </div>
-                <p className={`text-[11px] font-medium mb-0.5 ${g.change >= 0 ? "text-success" : "text-destructive"}`}>
+                <p className={`text-xs font-semibold mb-1 ${g.change >= 0 ? "text-success" : "text-destructive"}`}>
                   {g.change >= 0 ? "+" : ""}{g.change}%
                 </p>
-                <p className="text-xs text-muted-foreground">{g.label}</p>
+                <p className="text-sm text-muted-foreground font-medium">{g.label}</p>
               </motion.div>
             ))}
           </div>

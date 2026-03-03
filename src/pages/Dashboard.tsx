@@ -11,6 +11,7 @@ import RelatoriosPage from "@/pages/dashboard/RelatoriosPage";
 import ConfigPage from "@/pages/dashboard/ConfigPage";
 import AdminPage from "@/pages/dashboard/AdminPage";
 import NotificationPopup from "@/components/dashboard/NotificationPopup";
+import AdminBroadcastBanner from "@/components/dashboard/AdminBroadcastBanner";
 
 const Dashboard = () => {
   const { user, loading: authLoading } = useAuth();
@@ -28,7 +29,8 @@ const Dashboard = () => {
   if (!user) return <Navigate to="/login" replace />;
 
   return (
-    <DashboardLayout profile={finance.profile} isPremium={finance.isPremium} onProfileUpdate={finance.fetchAll} isAdmin={isAdmin}>
+    <DashboardLayout profile={finance.profile} isPremium={finance.isPremium} onProfileUpdate={finance.fetchAll} isAdmin={isAdmin} subscription={finance.subscription}>
+      <AdminBroadcastBanner />
       <Routes>
         <Route index element={<DashboardHome finance={finance} />} />
         <Route path="receitas" element={<ReceitasPage finance={finance} />} />
@@ -44,6 +46,7 @@ const Dashboard = () => {
         saldo={finance.saldo}
         metasCount={finance.metas.length}
         despesasPendentes={finance.despesas.filter(d => !d.paid).length}
+        expiresAt={finance.subscription.expires_at}
       />
     </DashboardLayout>
   );
