@@ -57,10 +57,11 @@ const FriendsTab = ({ user, isAdmin, displayName, profiles, refreshProfiles }: F
     setAdding(true);
 
     // Find user by referral code
+    const codeUpper = friendCode.trim().toUpperCase();
     const { data: refData } = await supabase
       .from("referral_codes")
       .select("user_id")
-      .eq("code", friendCode.trim())
+      .eq("code", codeUpper)
       .maybeSingle();
 
     if (!refData) {
