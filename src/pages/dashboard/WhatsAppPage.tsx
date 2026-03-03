@@ -118,6 +118,7 @@ const WhatsAppPage = ({ isPremium }: WhatsAppPageProps) => {
           </div>
           <div>
             <h1 className="text-2xl font-bold">Integração WhatsApp</h1>
+            <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-amber-500/50 text-amber-500 font-semibold uppercase tracking-wider">Em breve</Badge>
             <p className="text-sm text-muted-foreground">Controle suas finanças direto pelo WhatsApp</p>
           </div>
           <Badge variant={isConnected ? "default" : "secondary"} className="ml-auto text-xs">
