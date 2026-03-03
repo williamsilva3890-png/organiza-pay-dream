@@ -46,6 +46,27 @@ const DashboardLayout = ({ children, profile, isPremium, onProfileUpdate, isAdmi
     localStorage.setItem("sidebar-collapsed", String(sidebarCollapsed));
   }, [sidebarCollapsed]);
 
+  // Check for unread admin replies on suggestions
+  useEffect(() => {
+    if (!user) return;
+    const checkReplies = async () => {
+      const { data } = await supabase
+        .from("suggestions")
+        .select("id, admin_reply")
+        .eq("user_id", user.id)
+        .not("admin_reply", "is", null);
+      if (data && data.length > 0) {
+        const readKey = "organizapay-read-replies";
+        const readIds: string[] = JSON.parse(localStorage.getItem(readKey) || "[]");
+        const unread = data.filter((s: any) => !readIds.includes(s.id));
+        if (unread.length > 0) {
+          toast.info(`📩 Você tem ${unread.length} resposta(s) da equipe! Veja em Configurações > Sugestões.`, { duration: 8000 });
+        }
+      }
+    };
+    checkReplies();
+  }, [user]);
+
   const displayName = profile?.display_name || "Usuário";
   const initials = displayName.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase();
   const avatarUrl = profile?.avatar_url;
