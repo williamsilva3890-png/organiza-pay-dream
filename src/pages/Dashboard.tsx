@@ -40,7 +40,7 @@ const Dashboard = () => {
         <Route path="metas" element={<MetasPage finance={finance} />} />
         <Route path="relatorios" element={<RelatoriosPage finance={finance} />} />
         <Route path="config" element={<ConfigPage finance={finance} />} />
-        <Route path="chat" element={<ChatPage />} />
+        <Route path="chat" element={<ChatPage isPremium={finance.isPremium} />} />
         <Route path="whatsapp" element={<WhatsAppPage isPremium={finance.isPremium} />} />
         {isAdmin && <Route path="admin" element={<AdminPage />} />}
       </Routes>
