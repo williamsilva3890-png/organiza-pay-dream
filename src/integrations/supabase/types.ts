@@ -275,6 +275,36 @@ export type Database = {
         }
         Relationships: []
       }
+      shared_accounts: {
+        Row: {
+          created_at: string
+          id: string
+          invite_code: string
+          owner_id: string
+          partner_id: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          invite_code?: string
+          owner_id: string
+          partner_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          invite_code?: string
+          owner_id?: string
+          partner_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       subscriptions: {
         Row: {
           created_at: string
@@ -364,6 +394,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      accept_couple_invite: { Args: { p_code: string }; Returns: Json }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
