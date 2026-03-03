@@ -7,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ChatPanel from "@/components/chat/ChatPanel";
 import FriendsTab from "@/components/chat/FriendsTab";
 import ReferralTab from "@/components/chat/ReferralTab";
+import AdminSupportInbox from "@/components/chat/AdminSupportInbox";
 import type { UserProfile } from "@/components/chat/ChatPanel";
 
 const ChatPage = () => {
@@ -96,7 +97,20 @@ const ChatPage = () => {
         </TabsContent>
 
         <TabsContent value="admin">
-          <ChatPanel chatType="admin" user={user} isAdmin={isAdmin} displayName={displayName} profiles={profiles} />
+          {isAdmin ? (
+            <AdminSupportInbox user={user} isAdmin={isAdmin} displayName={displayName} profiles={profiles} />
+          ) : (
+            <>
+              <div className="flex items-center gap-2 mb-3 pb-3 border-b border-border">
+                <ShieldCheck className="w-5 h-5 text-primary" />
+                <div>
+                  <h3 className="font-semibold text-sm">Suporte</h3>
+                  <p className="text-[10px] text-muted-foreground">Conversa privada com a equipe</p>
+                </div>
+              </div>
+              <ChatPanel chatType={`admin-${user?.id}`} user={user} isAdmin={isAdmin} displayName={displayName} profiles={profiles} />
+            </>
+          )}
         </TabsContent>
 
         <TabsContent value="indicar">
