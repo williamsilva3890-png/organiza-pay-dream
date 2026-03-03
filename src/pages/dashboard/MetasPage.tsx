@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Target, Plus, Lock, RotateCcw } from "lucide-react";
+import { Target, Plus, Lock, RotateCcw, Pencil, Trash2, PlusCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { motion } from "framer-motion";
@@ -12,10 +12,20 @@ interface Props {
 }
 
 const MetasPage = ({ finance }: Props) => {
-  const { metas, addMeta, canAddMeta, isPremium, resetMetas } = finance;
+  const { metas, addMeta, updateMeta, deleteMeta, canAddMeta, isPremium, resetMetas } = finance;
   const [open, setOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [form, setForm] = useState({ title: "", target: "", deadline: "", description: "" });
+
+  // Deposit dialog
+  const [depositOpen, setDepositOpen] = useState(false);
+  const [depositMetaId, setDepositMetaId] = useState<string | null>(null);
+  const [depositAmount, setDepositAmount] = useState("");
+
+  // Edit dialog
+  const [editOpen, setEditOpen] = useState(false);
+  const [editId, setEditId] = useState<string | null>(null);
+  const [editForm, setEditForm] = useState({ title: "", target: "", deadline: "", description: "" });
 
   const handleAdd = async () => {
     if (!canAddMeta) {
@@ -34,6 +44,55 @@ const MetasPage = ({ finance }: Props) => {
     setForm({ title: "", target: "", deadline: "", description: "" });
     setSubmitting(false);
     setOpen(false);
+    toast.success("Meta criada!");
+  };
+
+  const handleDeposit = async () => {
+    if (!depositMetaId || !depositAmount || submitting) return;
+    setSubmitting(true);
+    const meta = metas.find(m => m.id === depositMetaId);
+    if (meta) {
+      const newAmount = Number(meta.current_amount) + parseFloat(depositAmount);
+      await updateMeta(depositMetaId, { current_amount: Math.min(newAmount, Number(meta.target_amount)) });
+      toast.success(`+R$ ${parseFloat(depositAmount).toFixed(2)} depositado na meta!`);
+    }
+    setDepositAmount("");
+    setDepositOpen(false);
+    setDepositMetaId(null);
+    setSubmitting(false);
+  };
+
+  const startDeposit = (id: string) => {
+    setDepositMetaId(id);
+    setDepositAmount("");
+    setDepositOpen(true);
+  };
+
+  const startEdit = (m: any) => {
+    setEditId(m.id);
+    setEditForm({ title: m.title, target: String(m.target_amount), deadline: m.deadline, description: m.description || "" });
+    setEditOpen(true);
+  };
+
+  const handleEdit = async () => {
+    if (!editId || !editForm.title || !editForm.target || !editForm.deadline || submitting) return;
+    setSubmitting(true);
+    await updateMeta(editId, {
+      title: editForm.title,
+      target_amount: parseFloat(editForm.target),
+      deadline: editForm.deadline,
+      description: editForm.description,
+    });
+    setEditOpen(false);
+    setEditId(null);
+    setSubmitting(false);
+    toast.success("Meta atualizada!");
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm("Tem certeza que deseja excluir esta meta?")) return;
+    await deleteMeta(id);
+    toast.success("Meta removida!");
   };
 
   const handleReset = async () => {
@@ -70,7 +129,7 @@ const MetasPage = ({ finance }: Props) => {
                   <div><label className="text-sm font-medium mb-1 block">Valor alvo (R$)</label><input type="number" value={form.target} onChange={(e) => setForm(prev => ({ ...prev, target: e.target.value }))} className={inputClass} placeholder="0,00" /></div>
                   <div><label className="text-sm font-medium mb-1 block">Prazo</label><input value={form.deadline} onChange={(e) => setForm(prev => ({ ...prev, deadline: e.target.value }))} className={inputClass} placeholder="Ex: Dez 2026" /></div>
                   <div><label className="text-sm font-medium mb-1 block">Descrição</label><input value={form.description} onChange={(e) => setForm(prev => ({ ...prev, description: e.target.value }))} className={inputClass} placeholder="Ex: Guardar para emergências" /></div>
-                  <Button onClick={handleAdd} className="w-full" disabled={submitting}>{submitting ? "Criando..." : "Criar meta"}</Button>
+                  <Button onClick={handleAdd} className="w-full" disabled={submitting}>{submitting ? "Salvando..." : "Criar meta"}</Button>
                 </div>
               </DialogContent>
             </Dialog>
@@ -103,20 +162,61 @@ const MetasPage = ({ finance }: Props) => {
               className="bg-card rounded-xl p-5 border border-border shadow-card">
               <div className="flex items-start justify-between mb-3">
                 <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center"><Target className="w-5 h-5 text-primary" /></div>
-                <span className="text-xs text-muted-foreground bg-muted rounded-full px-2.5 py-1">{goal.deadline}</span>
+                <div className="flex items-center gap-1">
+                  <span className="text-xs text-muted-foreground bg-muted rounded-full px-2.5 py-1">{goal.deadline}</span>
+                  {isPremium && (
+                    <div className="flex gap-0.5">
+                      <button onClick={() => startEdit(goal)} className="p-1 rounded-md hover:bg-muted transition-colors"><Pencil className="w-3.5 h-3.5 text-muted-foreground" /></button>
+                      <button onClick={() => handleDelete(goal.id)} className="p-1 rounded-md hover:bg-destructive/10 transition-colors"><Trash2 className="w-3.5 h-3.5 text-destructive" /></button>
+                    </div>
+                  )}
+                </div>
               </div>
               <h3 className="font-display font-bold text-base mb-1">{goal.title}</h3>
               <p className="text-xs text-muted-foreground mb-4">{goal.description}</p>
               <Progress value={pct} className="h-2.5 mb-2" />
-              <div className="flex items-center justify-between text-xs text-muted-foreground">
+              <div className="flex items-center justify-between text-xs text-muted-foreground mb-3">
                 <span>{fmt(Number(goal.current_amount))}</span>
                 <span className="font-semibold text-foreground">{pct}%</span>
                 <span>{fmt(Number(goal.target_amount))}</span>
               </div>
+              {isPremium && pct < 100 && (
+                <Button variant="outline" size="sm" className="w-full gap-1.5" onClick={() => startDeposit(goal.id)}>
+                  <PlusCircle className="w-3.5 h-3.5" /> Depositar
+                </Button>
+              )}
+              {pct >= 100 && (
+                <div className="text-center text-xs font-semibold text-success bg-success/10 rounded-lg py-1.5">🎉 Meta atingida!</div>
+              )}
             </motion.div>
           );
         })}
       </div>
+
+      {/* Deposit dialog */}
+      <Dialog open={depositOpen} onOpenChange={setDepositOpen}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Depositar na meta</DialogTitle></DialogHeader>
+          <div className="space-y-4 pt-2">
+            <div><label className="text-sm font-medium mb-1 block">Valor do depósito (R$)</label><input type="number" value={depositAmount} onChange={(e) => setDepositAmount(e.target.value)} className={inputClass} placeholder="0,00" /></div>
+            <Button onClick={handleDeposit} className="w-full" disabled={submitting}>{submitting ? "Salvando..." : "Depositar"}</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit dialog */}
+      <Dialog open={editOpen} onOpenChange={setEditOpen}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Editar meta</DialogTitle></DialogHeader>
+          <div className="space-y-4 pt-2">
+            <div><label className="text-sm font-medium mb-1 block">Título</label><input value={editForm.title} onChange={(e) => setEditForm(prev => ({ ...prev, title: e.target.value }))} className={inputClass} /></div>
+            <div><label className="text-sm font-medium mb-1 block">Valor alvo (R$)</label><input type="number" value={editForm.target} onChange={(e) => setEditForm(prev => ({ ...prev, target: e.target.value }))} className={inputClass} /></div>
+            <div><label className="text-sm font-medium mb-1 block">Prazo</label><input value={editForm.deadline} onChange={(e) => setEditForm(prev => ({ ...prev, deadline: e.target.value }))} className={inputClass} /></div>
+            <div><label className="text-sm font-medium mb-1 block">Descrição</label><input value={editForm.description} onChange={(e) => setEditForm(prev => ({ ...prev, description: e.target.value }))} className={inputClass} /></div>
+            <Button onClick={handleEdit} className="w-full" disabled={submitting}>{submitting ? "Salvando..." : "Salvar alterações"}</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

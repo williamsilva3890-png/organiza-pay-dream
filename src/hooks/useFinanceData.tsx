@@ -50,6 +50,15 @@ export const FREE_LIMITS = {
   allowSharedAccount: false,
 };
 
+// Sound utility
+const playIncomeSound = () => {
+  try {
+    const audio = new Audio("/sounds/income-added.mp3");
+    audio.volume = 0.5;
+    audio.play().catch(() => {});
+  } catch {}
+};
+
 export const useFinanceData = () => {
   const { user } = useAuth();
   const [receitas, setReceitas] = useState<Receita[]>([]);
@@ -100,6 +109,7 @@ export const useFinanceData = () => {
     const { error } = await supabase.from("receitas").insert({ ...data, user_id: user.id } as any);
     if (error) { setReceitas(prev => prev.filter(r => r.id !== tempId)); }
     else {
+      playIncomeSound();
       const { data: fresh } = await supabase.from("receitas").select("*").eq("user_id", user.id).order("date", { ascending: false });
       if (fresh) setReceitas(fresh as any);
     }
@@ -115,6 +125,23 @@ export const useFinanceData = () => {
     const { error } = await supabase.from("despesas").insert({ ...data, user_id: user.id } as any);
     if (error) { setDespesas(prev => prev.filter(d => d.id !== tempId)); }
     else {
+      const { data: fresh } = await supabase.from("despesas").select("*").eq("user_id", user.id).order("date", { ascending: false });
+      if (fresh) setDespesas(fresh as any);
+    }
+    addingRef.current = false;
+  };
+
+  // Add multiple despesas at once (for installments)
+  const addMultipleDespesas = async (items: Omit<Despesa, "id">[]) => {
+    if (!user || addingRef.current || items.length === 0) return;
+    addingRef.current = true;
+    const tempItems = items.map(item => ({ ...item, id: crypto.randomUUID() } as Despesa));
+    setDespesas(prev => [...tempItems, ...prev]);
+    const { error } = await supabase.from("despesas").insert(items.map(item => ({ ...item, user_id: user.id })) as any);
+    if (error) {
+      const tempIds = new Set(tempItems.map(t => t.id));
+      setDespesas(prev => prev.filter(d => !tempIds.has(d.id)));
+    } else {
       const { data: fresh } = await supabase.from("despesas").select("*").eq("user_id", user.id).order("date", { ascending: false });
       if (fresh) setDespesas(fresh as any);
     }
@@ -166,6 +193,18 @@ export const useFinanceData = () => {
     await supabase.from("despesas").update({ paid } as any).eq("id", id).eq("user_id", user.id);
   };
 
+  const updateMeta = async (id: string, data: Partial<Omit<Meta, "id">>) => {
+    if (!user) return;
+    setMetas(prev => prev.map(m => m.id === id ? { ...m, ...data } : m));
+    await supabase.from("metas").update(data as any).eq("id", id).eq("user_id", user.id);
+  };
+
+  const deleteMeta = async (id: string) => {
+    if (!user) return;
+    setMetas(prev => prev.filter(m => m.id !== id));
+    await supabase.from("metas").delete().eq("id", id).eq("user_id", user.id);
+  };
+
   const updateProfile = async (data: Partial<Profile>) => {
     if (!user) return;
     setProfile(prev => prev ? { ...prev, ...data } : null);
@@ -213,9 +252,9 @@ export const useFinanceData = () => {
 
   return {
     receitas, despesas, metas, profile, subscription, loading, isPremium,
-    addReceita, addDespesa, addMeta, updateProfile, fetchAll,
+    addReceita, addDespesa, addMultipleDespesas, addMeta, updateProfile, fetchAll,
     updateReceita, deleteReceita, updateDespesa, deleteDespesa,
-    toggleDespesaPaid,
+    toggleDespesaPaid, updateMeta, deleteMeta,
     totalReceitas, totalDespesas, saldo,
     gastos, dividas, totalGastos, totalDividas,
     canAddReceita, canAddDespesa, canAddMeta, canUseSharedAccount,

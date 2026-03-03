@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ArrowDownCircle, Plus, CreditCard, ShoppingCart, Lock, Pencil, Trash2, CheckCircle, Circle, RotateCcw } from "lucide-react";
+import { ArrowDownCircle, Plus, CreditCard, ShoppingCart, Lock, Pencil, Trash2, CheckCircle, Circle, RotateCcw, ChevronDown, ChevronUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -7,11 +7,11 @@ import { toast } from "sonner";
 import { useFinanceData, FREE_LIMITS } from "@/hooks/useFinanceData";
 
 const categoryColors: Record<string, string> = {
-  Moradia: "bg-[hsl(280_60%_55%)]/10 text-[hsl(280_60%_55%)]",
-  Alimentação: "bg-[hsl(35_95%_55%)]/10 text-[hsl(35_95%_55%)]",
-  Transporte: "bg-[hsl(210_70%_55%)]/10 text-[hsl(210_70%_55%)]",
-  Saúde: "bg-[hsl(160_45%_50%)]/10 text-[hsl(160_45%_50%)]",
-  Lazer: "bg-[hsl(330_70%_55%)]/10 text-[hsl(330_70%_55%)]",
+  Moradia: "bg-primary/10 text-primary",
+  Alimentação: "bg-warning/10 text-warning",
+  Transporte: "bg-accent/10 text-accent",
+  Saúde: "bg-success/10 text-success",
+  Lazer: "bg-destructive/10 text-destructive",
   Dívida: "bg-destructive/10 text-destructive",
 };
 
@@ -22,15 +22,16 @@ interface Props {
 }
 
 const DespesasPage = ({ finance }: Props) => {
-  const { gastos, dividas, totalGastos, totalDividas, totalDespesas, addDespesa, updateDespesa, deleteDespesa, toggleDespesaPaid, canAddDespesa, isPremium, resetDespesas } = finance;
+  const { gastos, dividas, totalGastos, totalDividas, totalDespesas, addDespesa, addMultipleDespesas, updateDespesa, deleteDespesa, toggleDespesaPaid, canAddDespesa, isPremium, resetDespesas } = finance;
   const [openGasto, setOpenGasto] = useState(false);
   const [openDivida, setOpenDivida] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
   const [editType, setEditType] = useState<"gasto" | "divida">("gasto");
   const [formGasto, setFormGasto] = useState({ description: "", amount: "", date: "", category: "Moradia" });
-  const [formDivida, setFormDivida] = useState({ description: "", amount: "", date: "", details: "" });
+  const [formDivida, setFormDivida] = useState({ description: "", amount: "", date: "", details: "", parcelas: "1" });
   const [submitting, setSubmitting] = useState(false);
+  const [expandedDivida, setExpandedDivida] = useState<string | null>(null);
 
   const handleAddGasto = async () => {
     if (!canAddDespesa) { toast.error(`Limite do plano gratuito atingido (${FREE_LIMITS.despesas} despesas). Faça upgrade para Premium!`); return; }
@@ -46,8 +47,36 @@ const DespesasPage = ({ finance }: Props) => {
     if (!canAddDespesa) { toast.error(`Limite do plano gratuito atingido (${FREE_LIMITS.despesas} despesas). Faça upgrade para Premium!`); return; }
     if (!formDivida.description || !formDivida.amount || !formDivida.date || submitting) return;
     setSubmitting(true);
-    await addDespesa({ description: formDivida.description, amount: parseFloat(formDivida.amount), date: formDivida.date, category: "Dívida", type: "divida", details: formDivida.details });
-    setFormDivida({ description: "", amount: "", date: "", details: "" });
+    
+    const numParcelas = Math.max(1, parseInt(formDivida.parcelas) || 1);
+    const valorParcela = parseFloat(formDivida.amount);
+    
+    if (numParcelas > 1) {
+      // Create multiple installments
+      const baseDate = new Date(formDivida.date);
+      const items = Array.from({ length: numParcelas }, (_, i) => {
+        const parcelaDate = new Date(baseDate);
+        parcelaDate.setMonth(parcelaDate.getMonth() + i);
+        return {
+          description: `${formDivida.description}`,
+          amount: valorParcela,
+          date: parcelaDate.toISOString().slice(0, 10),
+          category: "Dívida" as const,
+          type: "divida" as const,
+          details: `Parcela ${i + 1}/${numParcelas}${formDivida.details ? ` - ${formDivida.details}` : ""}`,
+          paid: false,
+        };
+      });
+      await addMultipleDespesas(items);
+    } else {
+      await addDespesa({
+        description: formDivida.description, amount: valorParcela,
+        date: formDivida.date, category: "Dívida", type: "divida",
+        details: formDivida.details || undefined,
+      });
+    }
+    
+    setFormDivida({ description: "", amount: "", date: "", details: "", parcelas: "1" });
     setSubmitting(false);
     setOpenDivida(false);
   };
@@ -62,7 +91,7 @@ const DespesasPage = ({ finance }: Props) => {
   const startEditDivida = (d: any) => {
     setEditId(d.id);
     setEditType("divida");
-    setFormDivida({ description: d.description, amount: String(d.amount), date: d.date, details: d.details || "" });
+    setFormDivida({ description: d.description, amount: String(d.amount), date: d.date, details: d.details || "", parcelas: "1" });
     setEditOpen(true);
   };
 
@@ -96,6 +125,14 @@ const DespesasPage = ({ finance }: Props) => {
     toast.success("Despesas zeradas!");
   };
 
+  // Group dividas by description for installment view
+  const groupedDividas = dividas.reduce((acc, d) => {
+    const key = d.description;
+    if (!acc[key]) acc[key] = [];
+    acc[key].push(d);
+    return acc;
+  }, {} as Record<string, typeof dividas>);
+
   const inputClass = "w-full h-10 px-3 rounded-lg border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/30";
   const fmt = (v: number) => `R$ ${v.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`;
 
@@ -127,8 +164,15 @@ const DespesasPage = ({ finance }: Props) => {
               <div className="space-y-4 pt-2">
                 <div><label className="text-sm font-medium mb-1 block">Descrição da dívida</label><input value={formDivida.description} onChange={(e) => setFormDivida(prev => ({ ...prev, description: e.target.value }))} className={inputClass} placeholder="Ex: Financiamento do carro" /></div>
                 <div><label className="text-sm font-medium mb-1 block">Valor da parcela (R$)</label><input type="number" value={formDivida.amount} onChange={(e) => setFormDivida(prev => ({ ...prev, amount: e.target.value }))} className={inputClass} placeholder="0,00" /></div>
-                <div><label className="text-sm font-medium mb-1 block">Data de vencimento</label><input type="date" value={formDivida.date} onChange={(e) => setFormDivida(prev => ({ ...prev, date: e.target.value }))} className={inputClass} /></div>
-                <div><label className="text-sm font-medium mb-1 block">Detalhes (parcelas, etc.)</label><input value={formDivida.details} onChange={(e) => setFormDivida(prev => ({ ...prev, details: e.target.value }))} className={inputClass} placeholder="Ex: Parcela 3/12" /></div>
+                <div><label className="text-sm font-medium mb-1 block">Número de parcelas</label><input type="number" min="1" max="120" value={formDivida.parcelas} onChange={(e) => setFormDivida(prev => ({ ...prev, parcelas: e.target.value }))} className={inputClass} placeholder="1" /></div>
+                <div><label className="text-sm font-medium mb-1 block">Data do primeiro vencimento</label><input type="date" value={formDivida.date} onChange={(e) => setFormDivida(prev => ({ ...prev, date: e.target.value }))} className={inputClass} /></div>
+                <div><label className="text-sm font-medium mb-1 block">Detalhes (opcional)</label><input value={formDivida.details} onChange={(e) => setFormDivida(prev => ({ ...prev, details: e.target.value }))} className={inputClass} placeholder="Ex: Banco XYZ" /></div>
+                {parseInt(formDivida.parcelas) > 1 && formDivida.amount && (
+                  <div className="bg-muted/50 rounded-lg p-3 text-xs text-muted-foreground">
+                    <p>📋 Serão criadas <span className="font-semibold text-foreground">{formDivida.parcelas} parcelas</span> de <span className="font-semibold text-foreground">{fmt(parseFloat(formDivida.amount))}</span></p>
+                    <p className="mt-1">Total: <span className="font-semibold text-foreground">{fmt(parseFloat(formDivida.amount) * parseInt(formDivida.parcelas))}</span></p>
+                  </div>
+                )}
                 <Button onClick={handleAddDivida} className="w-full" disabled={submitting}>{submitting ? "Salvando..." : "Adicionar dívida"}</Button>
               </div>
             </DialogContent>
@@ -181,7 +225,7 @@ const DespesasPage = ({ finance }: Props) => {
             <motion.div key={d.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.05 }}
               className={`flex flex-col sm:grid sm:grid-cols-[auto_1fr_auto_auto_auto_auto] gap-1 sm:gap-4 px-4 sm:px-5 py-3 border-t border-border sm:items-center hover:bg-muted/30 transition-colors ${d.paid ? "opacity-60" : ""}`}>
               <button onClick={() => handleTogglePaid(d.id, !!d.paid)} className="self-start sm:self-center p-0.5" title={d.paid ? "Desmarcar como pago" : "Marcar como pago"}>
-                {d.paid ? <CheckCircle className="w-5 h-5 text-green-500" /> : <Circle className="w-5 h-5 text-muted-foreground" />}
+                {d.paid ? <CheckCircle className="w-5 h-5 text-success" /> : <Circle className="w-5 h-5 text-muted-foreground" />}
               </button>
               <span className={`text-sm font-medium ${d.paid ? "line-through text-muted-foreground" : ""}`}>{d.description}</span>
               <div className="flex items-center gap-2 sm:contents">
@@ -200,34 +244,87 @@ const DespesasPage = ({ finance }: Props) => {
         </div>
       </div>
 
-      {/* Dívidas list */}
+      {/* Dívidas list - grouped by description */}
       <div>
         <h2 className="font-display font-bold text-lg mb-3 flex items-center gap-2"><CreditCard className="w-5 h-5 text-destructive" /> Dívidas</h2>
         <div className="bg-card rounded-xl border border-border shadow-card overflow-hidden">
-          <div className="hidden sm:grid grid-cols-[auto_1fr_auto_auto_auto_auto] gap-4 px-5 py-3 bg-muted/50 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-            <span>Status</span><span>Descrição</span><span>Detalhes</span><span>Vencimento</span><span className="text-right">Valor</span><span></span>
-          </div>
           {dividas.length === 0 && <div className="px-5 py-8 text-center text-sm text-muted-foreground">Nenhuma dívida cadastrada</div>}
-          {dividas.map((d, i) => (
-            <motion.div key={d.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.05 }}
-              className={`flex flex-col sm:grid sm:grid-cols-[auto_1fr_auto_auto_auto_auto] gap-1 sm:gap-4 px-4 sm:px-5 py-3 border-t border-border sm:items-center hover:bg-muted/30 transition-colors ${d.paid ? "opacity-60" : ""}`}>
-              <button onClick={() => handleTogglePaid(d.id, !!d.paid)} className="self-start sm:self-center p-0.5" title={d.paid ? "Desmarcar como pago" : "Marcar como pago"}>
-                {d.paid ? <CheckCircle className="w-5 h-5 text-green-500" /> : <Circle className="w-5 h-5 text-muted-foreground" />}
-              </button>
-              <span className={`text-sm font-medium ${d.paid ? "line-through text-muted-foreground" : ""}`}>{d.description}</span>
-              <div className="flex items-center gap-2 sm:contents">
-                <span className="text-xs bg-destructive/10 text-destructive rounded-full px-2.5 py-1 font-medium">{d.details || "—"}</span>
-                <span className="text-xs sm:text-sm text-muted-foreground">{new Date(d.date).toLocaleDateString("pt-BR")}</span>
-                <span className="text-sm font-semibold text-destructive ml-auto sm:ml-0 sm:text-right">-{fmt(Number(d.amount))}</span>
+          {Object.entries(groupedDividas).map(([desc, items]) => {
+            const isExpanded = expandedDivida === desc;
+            const paidCount = items.filter(d => d.paid).length;
+            const totalItems = items.length;
+            const hasMultiple = totalItems > 1;
+            const totalValue = items.reduce((s, d) => s + Number(d.amount), 0);
+
+            if (!hasMultiple) {
+              // Single item - render normally
+              const d = items[0];
+              return (
+                <motion.div key={d.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+                  className={`flex flex-col sm:grid sm:grid-cols-[auto_1fr_auto_auto_auto_auto] gap-1 sm:gap-4 px-4 sm:px-5 py-3 border-t border-border sm:items-center hover:bg-muted/30 transition-colors ${d.paid ? "opacity-60" : ""}`}>
+                  <button onClick={() => handleTogglePaid(d.id, !!d.paid)} className="self-start sm:self-center p-0.5">
+                    {d.paid ? <CheckCircle className="w-5 h-5 text-success" /> : <Circle className="w-5 h-5 text-muted-foreground" />}
+                  </button>
+                  <span className={`text-sm font-medium ${d.paid ? "line-through text-muted-foreground" : ""}`}>{d.description}</span>
+                  <div className="flex items-center gap-2 sm:contents">
+                    <span className="text-xs bg-destructive/10 text-destructive rounded-full px-2.5 py-1 font-medium">{d.details || "—"}</span>
+                    <span className="text-xs sm:text-sm text-muted-foreground">{new Date(d.date).toLocaleDateString("pt-BR")}</span>
+                    <span className="text-sm font-semibold text-destructive ml-auto sm:ml-0 sm:text-right">-{fmt(Number(d.amount))}</span>
+                  </div>
+                  {isPremium && (
+                    <div className="flex gap-1 self-end sm:self-auto">
+                      <button onClick={() => startEditDivida(d)} className="p-1.5 rounded-md hover:bg-muted transition-colors"><Pencil className="w-3.5 h-3.5 text-muted-foreground" /></button>
+                      <button onClick={() => handleDelete(d.id)} className="p-1.5 rounded-md hover:bg-destructive/10 transition-colors"><Trash2 className="w-3.5 h-3.5 text-destructive" /></button>
+                    </div>
+                  )}
+                </motion.div>
+              );
+            }
+
+            // Multiple items (installments) - render as expandable group
+            return (
+              <div key={desc} className="border-t border-border">
+                <button
+                  onClick={() => setExpandedDivida(isExpanded ? null : desc)}
+                  className="w-full flex items-center gap-3 px-4 sm:px-5 py-3 hover:bg-muted/30 transition-colors text-left"
+                >
+                  <CreditCard className="w-5 h-5 text-destructive shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium">{desc}</p>
+                    <p className="text-xs text-muted-foreground">{paidCount}/{totalItems} parcelas pagas</p>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="text-right">
+                      <p className="text-sm font-semibold text-destructive">-{fmt(totalValue)}</p>
+                      <p className="text-[10px] text-muted-foreground">{totalItems}x {fmt(Number(items[0].amount))}</p>
+                    </div>
+                    {isExpanded ? <ChevronUp className="w-4 h-4 text-muted-foreground" /> : <ChevronDown className="w-4 h-4 text-muted-foreground" />}
+                  </div>
+                </button>
+                {isExpanded && (
+                  <div className="bg-muted/20 border-t border-border">
+                    {items.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()).map((d, i) => (
+                      <div key={d.id} className={`flex items-center gap-3 px-6 sm:px-8 py-2.5 border-b border-border/50 last:border-0 ${d.paid ? "opacity-60" : ""}`}>
+                        <button onClick={() => handleTogglePaid(d.id, !!d.paid)} className="p-0.5">
+                          {d.paid ? <CheckCircle className="w-4 h-4 text-success" /> : <Circle className="w-4 h-4 text-muted-foreground" />}
+                        </button>
+                        <span className={`text-xs font-medium flex-1 ${d.paid ? "line-through text-muted-foreground" : ""}`}>
+                          {d.details || `Parcela ${i + 1}`}
+                        </span>
+                        <span className="text-xs text-muted-foreground">{new Date(d.date).toLocaleDateString("pt-BR")}</span>
+                        <span className="text-xs font-semibold text-destructive">-{fmt(Number(d.amount))}</span>
+                        {isPremium && (
+                          <button onClick={() => handleDelete(d.id)} className="p-1 rounded-md hover:bg-destructive/10 transition-colors">
+                            <Trash2 className="w-3 h-3 text-destructive" />
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
-              {isPremium && (
-                <div className="flex gap-1 self-end sm:self-auto">
-                  <button onClick={() => startEditDivida(d)} className="p-1.5 rounded-md hover:bg-muted transition-colors"><Pencil className="w-3.5 h-3.5 text-muted-foreground" /></button>
-                  <button onClick={() => handleDelete(d.id)} className="p-1.5 rounded-md hover:bg-destructive/10 transition-colors"><Trash2 className="w-3.5 h-3.5 text-destructive" /></button>
-                </div>
-              )}
-            </motion.div>
-          ))}
+            );
+          })}
         </div>
       </div>
 
