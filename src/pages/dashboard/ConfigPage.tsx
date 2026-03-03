@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { User, Bell, Palette, Shield, Crown, Lock, Type, Layout, Monitor, Moon, Sun, MessageCircle, Send, Check, RotateCcw, Calendar, Lightbulb } from "lucide-react";
+import { User, Bell, Palette, Shield, Crown, Lock, Type, Layout, Monitor, Moon, Sun, MessageCircle, Send, Check, RotateCcw, Calendar, Lightbulb, Bug } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -97,6 +97,59 @@ const SuggestionForm = ({ user, profile }: { user: any; profile: any }) => {
   );
 };
 
+
+const BugReportForm = ({ user, profile }: { user: any; profile: any }) => {
+  const [message, setMessage] = useState("");
+  const [sending, setSending] = useState(false);
+
+  const handleSend = async () => {
+    if (!message.trim() || !user) return;
+    setSending(true);
+    const { error } = await supabase.from("suggestions").insert({
+      user_id: user.id,
+      user_email: user.email,
+      user_name: profile?.display_name || "Usuário",
+      category: "Bug",
+      message: message.trim(),
+    } as any);
+    if (error) {
+      toast.error("Erro ao relatar bug");
+    } else {
+      toast.success("Bug relatado com sucesso! Vamos corrigir o mais rápido possível. 🐛");
+      setMessage("");
+    }
+    setSending(false);
+  };
+
+  return (
+    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} className="bg-card rounded-xl p-5 border border-border shadow-card">
+      <div className="flex items-center gap-2 mb-3">
+        <Bug className="w-5 h-5 text-destructive" />
+        <h3 className="font-display font-bold text-base">Relatar Bug</h3>
+      </div>
+      <p className="text-sm text-muted-foreground mb-3">Encontrou um problema? Descreva o que aconteceu para que possamos corrigir.</p>
+      <div className="space-y-3">
+        <Textarea
+          placeholder="Descreva o bug: o que você fez, o que esperava e o que aconteceu..."
+          value={message}
+          onChange={(e) => setMessage(e.target.value)}
+          className="min-h-[80px]"
+          maxLength={500}
+        />
+        <Button
+          variant="destructive"
+          size="sm"
+          className="gap-1.5"
+          disabled={sending || !message.trim()}
+          onClick={handleSend}
+        >
+          <Bug className="w-4 h-4" />
+          Enviar Relatório
+        </Button>
+      </div>
+    </motion.div>
+  );
+};
 
 const ResetTab = ({ finance }: Props) => {
   const { isPremium, resetAll, resetReceitas, resetDespesas, resetMetas } = finance;
@@ -660,6 +713,9 @@ const ConfigPage = ({ finance }: Props) => {
             <p className="text-sm text-muted-foreground mb-3">Converse diretamente com a equipe do OrganizaPay.</p>
             <ChatPanel chatType={`admin-${user?.id}`} user={user} isAdmin={false} displayName={profile?.display_name || "Usuário"} profiles={profiles} />
           </motion.div>
+
+          {/* Bug report */}
+          <BugReportForm user={user} profile={profile} />
 
           {/* Suggestion form */}
           <SuggestionForm user={user} profile={profile} />

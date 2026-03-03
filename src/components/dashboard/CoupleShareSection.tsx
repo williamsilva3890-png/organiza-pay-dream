@@ -103,8 +103,45 @@ const CoupleShareSection = ({
     setTimeout(() => setCopied(false), 2000);
   };
 
-  // Not premium or not casal profile
-  if (!isPremium || profileType !== "casal") {
+  // Non-premium: can only accept invites, not create
+  if (!isPremium) {
+    return (
+      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="bg-card rounded-xl p-5 border border-border shadow-card">
+        <div className="flex items-center gap-2 mb-3">
+          <Heart className="w-5 h-5 text-primary" />
+          <h3 className="font-display font-bold text-base">Conta de Casal</h3>
+        </div>
+        <p className="text-sm text-muted-foreground mb-4">
+          Recebeu um código do seu parceiro(a)? Insira abaixo para vincular as contas.
+        </p>
+        <div className="flex gap-2">
+          <Input
+            value={inviteCode}
+            onChange={(e) => setInviteCode(e.target.value)}
+            placeholder="Código do convite"
+            className="flex-1 font-mono"
+            maxLength={8}
+          />
+          <Button
+            variant="default"
+            size="sm"
+            className="gap-1.5 shrink-0"
+            onClick={handleAcceptInvite}
+            disabled={loading || !inviteCode.trim()}
+          >
+            <Check className="w-3.5 h-3.5" />
+            Vincular
+          </Button>
+        </div>
+        <p className="text-xs text-muted-foreground mt-3">
+          💡 Para <strong>criar</strong> um convite, é necessário o plano Premium com perfil Casal.
+        </p>
+      </motion.div>
+    );
+  }
+
+  // Premium but not casal profile
+  if (profileType !== "casal") {
     return (
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="bg-card rounded-xl p-5 border border-border shadow-card">
         <div className="flex items-center gap-2 mb-3">
@@ -112,16 +149,8 @@ const CoupleShareSection = ({
           <h3 className="font-display font-bold text-base">Conta de Casal</h3>
         </div>
         <p className="text-sm text-muted-foreground">
-          {!isPremium
-            ? "Compartilhe suas finanças com seu parceiro(a). Disponível apenas no plano Premium com perfil Casal."
-            : "Para compartilhar, altere seu tipo de perfil para \"Casal\" acima."}
+          Para compartilhar, altere seu tipo de perfil para "Casal" acima.
         </p>
-        {!isPremium && (
-          <div className="flex items-center gap-2 mt-3">
-            <Crown className="w-4 h-4 text-primary" />
-            <span className="text-sm font-semibold text-primary">Recurso Premium</span>
-          </div>
-        )}
       </motion.div>
     );
   }
