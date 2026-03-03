@@ -647,7 +647,7 @@ const ConfigPage = ({ finance }: Props) => {
               <h3 className="font-display font-bold text-base">Chat com Suporte</h3>
             </div>
             <p className="text-sm text-muted-foreground mb-3">Converse diretamente com a equipe do OrganizaPay.</p>
-            <ChatPanel chatType="admin" user={user} isAdmin={false} displayName={profile?.display_name || "Usuário"} profiles={profiles} />
+            <ChatPanel chatType={`admin-${user?.id}`} user={user} isAdmin={false} displayName={profile?.display_name || "Usuário"} profiles={profiles} />
           </motion.div>
 
           {/* Suggestion form */}

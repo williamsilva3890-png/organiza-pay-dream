@@ -136,13 +136,13 @@ const DashboardLayout = ({ children, profile, isPremium, onProfileUpdate, isAdmi
   const sidebarWidth = sidebarCollapsed ? "w-[72px]" : "w-64";
 
   return (
-    <div className="min-h-screen bg-background flex">
+    <div className="min-h-screen min-h-[100dvh] bg-background flex">
       {sidebarOpen && (
         <div className="fixed inset-0 bg-foreground/20 backdrop-blur-sm z-40 lg:hidden" onClick={() => setSidebarOpen(false)} />
       )}
 
       <aside className={cn(
-        "fixed lg:sticky top-0 left-0 z-50 h-screen bg-sidebar text-sidebar-foreground flex flex-col transition-all duration-200 lg:translate-x-0",
+        "fixed lg:sticky top-0 left-0 z-50 h-[100dvh] bg-sidebar text-sidebar-foreground flex flex-col transition-all duration-200 lg:translate-x-0",
         sidebarWidth,
         sidebarOpen ? "translate-x-0 w-64" : "-translate-x-full lg:translate-x-0"
       )}>
