@@ -307,16 +307,10 @@ const AdminPage = () => {
                     </div>
                     <div className="flex items-center gap-2 mt-3">
                       <Calendar className="w-4 h-4 text-muted-foreground shrink-0" />
-                      <Input
-                        type="date"
-                        defaultValue={sub.expires_at || ""}
-                        className="h-8 text-xs max-w-[180px]"
-                        onChange={(e) => {
-                          if (e.target.value) updateExpiresAt(sub.user_id, e.target.value);
-                        }}
-                      />
-                      <span className="text-xs text-muted-foreground">
-                        {sub.expires_at ? new Date(sub.expires_at).toLocaleDateString("pt-BR") : "Sem vencimento"}
+                      <span className="text-xs font-medium">
+                        {sub.expires_at
+                          ? `Vence: ${new Date(sub.expires_at).toLocaleDateString("pt-BR")}`
+                          : "Sem data de vencimento definida"}
                       </span>
                     </div>
                   </div>

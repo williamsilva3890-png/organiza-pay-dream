@@ -373,7 +373,31 @@ const ConfigPage = ({ finance }: Props) => {
               {isPremium && <span className="text-xs bg-primary/20 text-primary rounded-full px-2 py-0.5 font-semibold">Ativo</span>}
             </div>
             {isPremium ? (
-              <p className="text-sm text-muted-foreground">Você tem acesso ilimitado a todas as funcionalidades! 🎉</p>
+              <div className="space-y-3">
+                <p className="text-sm text-muted-foreground">Você tem acesso ilimitado a todas as funcionalidades! 🎉</p>
+                <div className="flex items-center gap-3 pt-2">
+                  <Calendar className="w-4 h-4 text-muted-foreground shrink-0" />
+                  <div className="flex-1">
+                    <label className="text-xs text-muted-foreground block mb-1">Data de vencimento do plano</label>
+                    <input
+                      type="date"
+                      defaultValue={(finance.subscription as any)?.expires_at || ""}
+                      className="h-9 px-3 rounded-lg border border-border bg-background text-sm w-full max-w-[200px] focus:outline-none focus:ring-2 focus:ring-primary/30"
+                      onChange={async (e) => {
+                        if (!e.target.value || !user) return;
+                        await supabase.from("subscriptions").update({ expires_at: e.target.value } as any).eq("user_id", user.id);
+                        toast.success("Data de vencimento salva!");
+                        finance.fetchAll();
+                      }}
+                    />
+                  </div>
+                  {(finance.subscription as any)?.expires_at && (
+                    <span className="text-xs text-muted-foreground mt-4">
+                      {new Date((finance.subscription as any).expires_at).toLocaleDateString("pt-BR")}
+                    </span>
+                  )}
+                </div>
+              </div>
             ) : (
               <div className="space-y-3">
                 <p className="text-sm text-muted-foreground">Limites do plano gratuito:</p>
@@ -390,7 +414,7 @@ const ConfigPage = ({ finance }: Props) => {
                 </div>
 
                 <Button variant="default" size="sm" className="w-full gap-1.5" onClick={() => window.open("https://go.tribopay.com.br/i7egqo5x95", "_blank", "noopener,noreferrer")}>
-                  <Crown className="w-4 h-4" />Assinar Premium — R$ 19,90/mês
+                  <Crown className="w-4 h-4" />Assinar Premium — R$ 9,90/mês
                 </Button>
 
                 <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg p-3">
