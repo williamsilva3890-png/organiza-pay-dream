@@ -7,11 +7,12 @@ interface Props {
   saldo: number;
   metasCount: number;
   despesasPendentes?: number;
+  expiresAt?: string | null;
 }
 
 const fmt = (v: number) => `R$ ${v.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`;
 
-const NotificationPopup = ({ totalReceitas, totalDespesas, saldo, metasCount, despesasPendentes = 0 }: Props) => {
+const NotificationPopup = ({ totalReceitas, totalDespesas, saldo, metasCount, despesasPendentes = 0, expiresAt }: Props) => {
   const prevDespesas = useRef(totalDespesas);
   const prevReceitas = useRef(totalReceitas);
   const initialized = useRef(false);
@@ -23,6 +24,29 @@ const NotificationPopup = ({ totalReceitas, totalDespesas, saldo, metasCount, de
     }
   }, []);
 
+  // Subscription expiration alerts
+  useEffect(() => {
+    if (!expiresAt) return;
+    const expDate = new Date(expiresAt);
+    const now = new Date();
+    const diffDays = Math.ceil((expDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+    const todayKey = `exp-notif-${now.toISOString().slice(0, 10)}`;
+
+    if (localStorage.getItem(todayKey)) return;
+
+    if (diffDays === 1) {
+      localStorage.setItem(todayKey, "1");
+      const msg = "Seu plano Premium vence amanhã! Renove para não perder os benefícios.";
+      toast.warning("⏰ Plano vencendo amanhã!", { description: msg, duration: 10000 });
+      sendPushNotification("⏰ Plano vencendo amanhã!", msg);
+    } else if (diffDays <= 0) {
+      localStorage.setItem(todayKey, "1");
+      const msg = "Seu plano Premium venceu! Renove agora para continuar usando todos os recursos.";
+      toast.error("🚨 Plano Premium vencido!", { description: msg, duration: 10000 });
+      sendPushNotification("🚨 Plano Premium vencido!", msg);
+    }
+  }, [expiresAt]);
+
   // Triggered notifications - only when values change
   useEffect(() => {
     if (!initialized.current) {
@@ -32,7 +56,6 @@ const NotificationPopup = ({ totalReceitas, totalDespesas, saldo, metasCount, de
       return;
     }
 
-    // Over budget alert - when expenses just exceeded income
     if (totalDespesas > totalReceitas && totalReceitas > 0 && prevDespesas.current <= totalReceitas) {
       const excess = totalDespesas - totalReceitas;
       const msg = `Opa! Você está gastando ${fmt(excess)} além do seu limite de renda!`;
@@ -40,7 +63,6 @@ const NotificationPopup = ({ totalReceitas, totalDespesas, saldo, metasCount, de
       sendPushNotification("⚠️ Gastos acima da renda!", msg);
     }
 
-    // Near limit (>80%) - triggered when crossing threshold
     if (totalDespesas > totalReceitas * 0.8 && totalDespesas <= totalReceitas && totalReceitas > 0 && prevDespesas.current <= totalReceitas * 0.8) {
       const pct = Math.round((totalDespesas / totalReceitas) * 100);
       const msg = `Você já usou ${pct}% da sua renda. Reste apenas ${fmt(totalReceitas - totalDespesas)} disponível.`;
@@ -48,7 +70,6 @@ const NotificationPopup = ({ totalReceitas, totalDespesas, saldo, metasCount, de
       sendPushNotification("🔥 Quase no limite!", msg);
     }
 
-    // New income milestone
     if (totalReceitas > prevReceitas.current && prevReceitas.current > 0) {
       const diff = totalReceitas - prevReceitas.current;
       toast.success("💰 Nova renda adicionada!", { description: `+${fmt(diff)} adicionado à sua renda total.`, duration: 4000 });
@@ -75,7 +96,7 @@ const NotificationPopup = ({ totalReceitas, totalDespesas, saldo, metasCount, de
     return () => clearInterval(interval);
   }, [totalReceitas, totalDespesas, saldo]);
 
-  return null; // No UI - notifications are toasts/push only
+  return null;
 };
 
 function sendPushNotification(title: string, body: string) {

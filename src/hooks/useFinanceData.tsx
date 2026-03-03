@@ -40,6 +40,7 @@ export interface Profile {
 
 export interface Subscription {
   plan: "free" | "premium";
+  expires_at?: string | null;
 }
 
 // Free plan limits

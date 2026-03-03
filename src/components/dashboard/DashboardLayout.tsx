@@ -28,9 +28,10 @@ interface DashboardLayoutProps {
   isPremium: boolean;
   onProfileUpdate?: () => void;
   isAdmin?: boolean;
+  subscription?: { plan: string; expires_at?: string | null };
 }
 
-const DashboardLayout = ({ children, profile, isPremium, onProfileUpdate, isAdmin }: DashboardLayoutProps) => {
+const DashboardLayout = ({ children, profile, isPremium, onProfileUpdate, isAdmin, subscription }: DashboardLayoutProps) => {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
@@ -134,6 +135,11 @@ const DashboardLayout = ({ children, profile, isPremium, onProfileUpdate, isAdmi
                     <Crown className="w-2.5 h-2.5" />
                     PREMIUM
                   </span>
+                )}
+                {isPremium && subscription?.expires_at && (
+                  <p className="text-[10px] text-sidebar-foreground/60 mt-1">
+                    Vence: {new Date(subscription.expires_at).toLocaleDateString("pt-BR")}
+                  </p>
                 )}
               </div>
             )}
