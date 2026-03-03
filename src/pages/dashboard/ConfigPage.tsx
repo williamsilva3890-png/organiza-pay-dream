@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { User, Bell, Palette, Shield, Crown, Lock, Type, Layout, Monitor, Moon, Sun, MessageCircle, Lightbulb, Send, Check, RotateCcw, Calendar } from "lucide-react";
+import { User, Bell, Palette, Shield, Crown, Lock, Type, Layout, Monitor, Moon, Sun, MessageCircle, Send, Check, RotateCcw, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -12,6 +12,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useFinanceData, FREE_LIMITS } from "@/hooks/useFinanceData";
 import PremiumCheckoutDialog from "@/components/dashboard/PremiumCheckoutDialog";
+import ChatPanel from "@/components/chat/ChatPanel";
+import type { UserProfile } from "@/components/chat/ChatPanel";
 
 interface Props {
   finance: ReturnType<typeof useFinanceData>;
@@ -41,178 +43,6 @@ const CARD_STYLES = [
   { name: "Flat", value: "flat", borderRadius: "0.5rem", shadow: "none" },
 ];
 
-const SUGGESTION_OPTIONS = [
-  { category: "Funcionalidade", text: "Adicionar controle de cartão de crédito" },
-  { category: "Funcionalidade", text: "Criar relatório mensal em PDF" },
-  { category: "Funcionalidade", text: "Adicionar categorias personalizadas" },
-  { category: "Integração", text: "Integração com banco/conta digital" },
-  { category: "Funcionalidade", text: "Adicionar lembrete de contas a pagar" },
-  { category: "Funcionalidade", text: "Modo de orçamento mensal" },
-];
-
-const SuggestionsTab = ({ user, profile }: { user: any; profile: any }) => {
-  const [customMessage, setCustomMessage] = useState("");
-  const [sending, setSending] = useState(false);
-  const [sentIds, setSentIds] = useState<string[]>([]);
-  const [mySuggestions, setMySuggestions] = useState<any[]>([]);
-
-  useEffect(() => {
-    if (!user) return;
-    const fetchMySuggestions = async () => {
-      const { data } = await supabase
-        .from("suggestions")
-        .select("*")
-        .eq("user_id", user.id)
-        .order("created_at", { ascending: false });
-      if (data) {
-        setMySuggestions(data);
-        // Notify user of new admin replies
-        const readKey = "organizapay-read-replies";
-        const readIds: string[] = JSON.parse(localStorage.getItem(readKey) || "[]");
-        const unread = data.filter((s: any) => s.admin_reply && !readIds.includes(s.id));
-        if (unread.length > 0) {
-          toast.info(`📩 Você tem ${unread.length} resposta(s) da equipe nas suas sugestões!`, { duration: 6000 });
-          // Mark as read
-          localStorage.setItem(readKey, JSON.stringify([...readIds, ...unread.map((s: any) => s.id)]));
-        }
-      }
-    };
-    fetchMySuggestions();
-  }, [user]);
-
-  const sendSuggestion = async (category: string, message: string, id?: string) => {
-    if (!user) return;
-    setSending(true);
-    const { error } = await supabase.from("suggestions").insert({
-      user_id: user.id,
-      user_email: user.email,
-      user_name: profile?.display_name || "Usuário",
-      category,
-      message,
-    } as any);
-
-    if (error) {
-      toast.error("Erro ao enviar sugestão");
-    } else {
-      toast.success("Sugestão enviada com sucesso! Obrigado 🎉");
-      if (id) setSentIds(prev => [...prev, id]);
-      setCustomMessage("");
-      // Refresh suggestions
-      const { data } = await supabase
-        .from("suggestions")
-        .select("*")
-        .eq("user_id", user.id)
-        .order("created_at", { ascending: false });
-      if (data) setMySuggestions(data);
-    }
-    setSending(false);
-  };
-
-  const STATUS_LABELS: Record<string, { label: string; color: string }> = {
-    pendente: { label: "Pendente", color: "text-amber-500 bg-amber-500/10" },
-    analisando: { label: "Analisando", color: "text-blue-500 bg-blue-500/10" },
-    concluido: { label: "Concluído", color: "text-green-500 bg-green-500/10" },
-  };
-
-  return (
-    <div className="space-y-5">
-      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="bg-card rounded-xl p-5 border border-border shadow-card">
-        <div className="flex items-center gap-2 mb-4">
-          <Lightbulb className="w-5 h-5 text-primary" />
-          <h3 className="font-display font-bold text-base">Envie sua sugestão</h3>
-        </div>
-        <p className="text-sm text-muted-foreground mb-4">
-          Escolha uma opção abaixo ou escreva sua própria sugestão. Sua opinião é muito importante para melhorarmos o OrganizaPay!
-        </p>
-
-        <div className="space-y-2 mb-4">
-          {SUGGESTION_OPTIONS.map((opt) => {
-            const isSent = sentIds.includes(opt.text);
-            return (
-              <button
-                key={opt.text}
-                disabled={sending || isSent}
-                onClick={() => sendSuggestion(opt.category, opt.text, opt.text)}
-                className={`w-full text-left p-3 rounded-lg border transition-all flex items-center gap-3 ${
-                  isSent ? "border-green-300 bg-green-50 dark:bg-green-950/20 dark:border-green-800" : "border-border hover:border-primary/50 hover:bg-primary/5"
-                }`}
-              >
-                {isSent ? (
-                  <Check className="w-4 h-4 text-green-500 shrink-0" />
-                ) : (
-                  <Send className="w-4 h-4 text-muted-foreground shrink-0" />
-                )}
-                <span className="text-sm">{opt.text}</span>
-                {isSent && <span className="text-[10px] text-green-600 dark:text-green-400 ml-auto">Enviada!</span>}
-              </button>
-            );
-          })}
-        </div>
-
-        <div className="border-t border-border pt-4 space-y-3">
-          <p className="text-sm font-medium">Outra sugestão?</p>
-          <Textarea
-            placeholder="Descreva sua sugestão ou o que está precisando no sistema..."
-            value={customMessage}
-            onChange={(e) => setCustomMessage(e.target.value)}
-            className="min-h-[80px]"
-            maxLength={500}
-          />
-          <Button
-            variant="default"
-            size="sm"
-            className="gap-1.5"
-            disabled={sending || !customMessage.trim()}
-            onClick={() => sendSuggestion("Outra", customMessage.trim())}
-          >
-            <Send className="w-4 h-4" />
-            Enviar Sugestão
-          </Button>
-        </div>
-      </motion.div>
-
-      {/* My suggestions with admin replies */}
-      {mySuggestions.length > 0 && (
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}
-          className="bg-card rounded-xl p-5 border border-border shadow-card">
-          <div className="flex items-center gap-2 mb-4">
-            <MessageCircle className="w-5 h-5 text-primary" />
-            <h3 className="font-display font-bold text-base">Minhas sugestões</h3>
-          </div>
-          <div className="space-y-3">
-            {mySuggestions.map((s) => {
-              const statusInfo = STATUS_LABELS[s.status] || STATUS_LABELS.pendente;
-              return (
-                <div key={s.id} className="border border-border rounded-lg p-3 space-y-2">
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm">{s.message}</p>
-                      <p className="text-[10px] text-muted-foreground mt-1">
-                        {new Date(s.created_at).toLocaleDateString("pt-BR", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" })}
-                      </p>
-                    </div>
-                    <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full shrink-0 ${statusInfo.color}`}>
-                      {statusInfo.label}
-                    </span>
-                  </div>
-                  {s.admin_reply && (
-                    <div className="bg-primary/5 border border-primary/20 rounded-lg p-3 ml-3">
-                      <div className="flex items-center gap-1.5 mb-1">
-                        <MessageCircle className="w-3 h-3 text-primary" />
-                        <span className="text-[11px] font-semibold text-primary">Resposta da equipe</span>
-                      </div>
-                      <p className="text-sm">{s.admin_reply}</p>
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        </motion.div>
-      )}
-    </div>
-  );
-};
 
 const ResetTab = ({ finance }: Props) => {
   const { isPremium, resetAll, resetReceitas, resetDespesas, resetMetas } = finance;
@@ -446,6 +276,20 @@ const ConfigPage = ({ finance }: Props) => {
   const [cardStyle, setCardStyle] = useState(() => localStorage.getItem("card-style") || "default");
   const [borderRadius, setBorderRadius] = useState(() => parseInt(localStorage.getItem("border-radius") || "12"));
   const [showPremiumDialog, setShowPremiumDialog] = useState(false);
+  const [profiles, setProfiles] = useState<Map<string, UserProfile>>(new Map());
+
+  useEffect(() => {
+    if (!user) return;
+    const fetchProfiles = async () => {
+      const { data } = await supabase.from("profiles").select("user_id, display_name, avatar_url");
+      if (data) {
+        const map = new Map<string, UserProfile>();
+        data.forEach(p => map.set(p.user_id, p as UserProfile));
+        setProfiles(map);
+      }
+    };
+    fetchProfiles();
+  }, [user]);
 
   // Apply accent color globally
   useEffect(() => {
@@ -510,7 +354,7 @@ const ConfigPage = ({ finance }: Props) => {
           <TabsTrigger value="aparencia" className="gap-1 text-xs px-2"><Palette className="w-3.5 h-3.5" /><span className="hidden sm:inline">Aparência</span><span className="sm:hidden">Tema</span></TabsTrigger>
           <TabsTrigger value="notificacoes" className="gap-1 text-xs px-2"><Bell className="w-3.5 h-3.5" /><span className="hidden sm:inline">Alertas</span><span className="sm:hidden">Alertas</span></TabsTrigger>
           <TabsTrigger value="seguranca" className="gap-1 text-xs px-2"><Shield className="w-3.5 h-3.5" /><span className="hidden sm:inline">Segurança</span><span className="sm:hidden">Seg.</span></TabsTrigger>
-          <TabsTrigger value="sugestoes" className="gap-1 text-xs px-2"><Lightbulb className="w-3.5 h-3.5" /><span className="hidden sm:inline">Sugestões</span><span className="sm:hidden">Sugest.</span></TabsTrigger>
+          <TabsTrigger value="sugestoes" className="gap-1 text-xs px-2"><MessageCircle className="w-3.5 h-3.5" /><span className="hidden sm:inline">Suporte</span><span className="sm:hidden">Suporte</span></TabsTrigger>
           <TabsTrigger value="reset" className="gap-1 text-xs px-2"><RotateCcw className="w-3.5 h-3.5" /><span className="hidden sm:inline">Reset</span><span className="sm:hidden">Reset</span></TabsTrigger>
         </TabsList>
 
@@ -742,17 +586,23 @@ const ConfigPage = ({ finance }: Props) => {
             </div>
           </motion.div>
         </TabsContent>
-        {/* Suggestions tab */}
+        {/* Support tab - Admin chat + WhatsApp */}
         <TabsContent value="sugestoes" className="space-y-5 mt-5">
-          <SuggestionsTab user={user} profile={profile} />
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="bg-card rounded-xl p-5 border border-border shadow-card">
+            <div className="flex items-center gap-2 mb-3">
+              <MessageCircle className="w-5 h-5 text-primary" />
+              <h3 className="font-display font-bold text-base">Chat com Suporte</h3>
+            </div>
+            <p className="text-sm text-muted-foreground mb-3">Converse diretamente com a equipe do OrganizaPay.</p>
+            <ChatPanel chatType="admin" user={user} isAdmin={false} displayName={profile?.display_name || "Usuário"} profiles={profiles} />
+          </motion.div>
 
-          {/* WhatsApp support */}
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }} className="bg-card rounded-xl p-5 border border-border shadow-card">
             <div className="flex items-center gap-2 mb-3">
               <MessageCircle className="w-5 h-5 text-primary" />
-              <h3 className="font-display font-bold text-base">Suporte</h3>
+              <h3 className="font-display font-bold text-base">WhatsApp</h3>
             </div>
-            <p className="text-sm text-muted-foreground mb-3">Precisa de ajuda? Entre em contato pelo nosso WhatsApp.</p>
+            <p className="text-sm text-muted-foreground mb-3">Precisa de ajuda rápida? Entre em contato pelo WhatsApp.</p>
             <a
               href={`https://wa.me/5592985968379?text=${encodeURIComponent("Olá, preciso de ajuda com o OrganizaPay.")}`}
               target="_blank"
