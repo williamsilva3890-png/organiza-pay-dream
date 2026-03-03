@@ -2,15 +2,20 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useAdmin } from "@/hooks/useAdmin";
-import { MessageCircle, ShieldCheck, Users, Gift, UsersRound } from "lucide-react";
+import { MessageCircle, ShieldCheck, Users, Gift, UsersRound, Lock, Crown } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card, CardContent } from "@/components/ui/card";
 import ChatPanel from "@/components/chat/ChatPanel";
 import FriendsTab from "@/components/chat/FriendsTab";
 import ReferralTab from "@/components/chat/ReferralTab";
 import AdminSupportInbox from "@/components/chat/AdminSupportInbox";
 import type { UserProfile } from "@/components/chat/ChatPanel";
 
-const ChatPage = () => {
+interface ChatPageProps {
+  isPremium: boolean;
+}
+
+const ChatPage = ({ isPremium }: ChatPageProps) => {
   const { user } = useAuth();
   const { isAdmin } = useAdmin();
   const [displayName, setDisplayName] = useState("");
@@ -42,6 +47,29 @@ const ChatPage = () => {
     fetchProfile();
     fetchProfiles();
   }, [user]);
+
+  if (!isPremium && !isAdmin) {
+    return (
+      <div className="max-w-2xl mx-auto py-12">
+        <Card className="border-dashed border-2 border-primary/30">
+          <CardContent className="flex flex-col items-center gap-4 py-12 text-center">
+            <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
+              <Lock className="w-8 h-8 text-primary" />
+            </div>
+            <h2 className="text-2xl font-bold">Recurso Premium</h2>
+            <p className="text-muted-foreground max-w-md">
+              O Chat é exclusivo para assinantes do Plano Premium.
+              Assine agora e converse com amigos e suporte!
+            </p>
+            <div className="flex items-center gap-2 mt-2">
+              <Crown className="w-5 h-5 text-primary" />
+              <span className="font-semibold text-primary">R$ 9,90/mês</span>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-3xl mx-auto">
