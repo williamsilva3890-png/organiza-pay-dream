@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { X, Megaphone } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { motion, AnimatePresence } from "framer-motion";
+import { toast } from "sonner";
 
 interface AdminMessage {
   id: string;
@@ -27,6 +28,32 @@ const AdminBroadcastBanner = () => {
       if (data) setMessages(data as AdminMessage[]);
     };
     fetchMessages();
+
+    // Real-time subscription for new admin messages
+    const channel = supabase
+      .channel("admin-broadcasts-realtime")
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "admin_messages" },
+        (payload) => {
+          const newMsg = payload.new as AdminMessage;
+          setMessages((prev) => [newMsg, ...prev]);
+          // Show toast popup immediately
+          toast.info(`📢 ${newMsg.title}`, {
+            description: newMsg.message,
+            duration: 10000,
+          });
+          // Also send browser push notification
+          if ("Notification" in window && Notification.permission === "granted") {
+            new Notification(`📢 ${newMsg.title}`, { body: newMsg.message, icon: "/favicon.ico" });
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const dismiss = (id: string) => {

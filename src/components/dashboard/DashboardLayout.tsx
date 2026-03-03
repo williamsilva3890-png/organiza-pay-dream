@@ -4,7 +4,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard, ArrowUpCircle, ArrowDownCircle, Target,
   FileBarChart, Settings, Menu, LogOut, Crown, Camera, ShieldCheck,
-  ChevronLeft, ChevronRight,
+  ChevronLeft, ChevronRight, MessageCircle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
@@ -20,6 +20,7 @@ const navItems = [
   { icon: Target, label: "Metas", path: "/dashboard/metas" },
   { icon: FileBarChart, label: "Relatórios", path: "/dashboard/relatorios" },
   { icon: Settings, label: "Configurações", path: "/dashboard/config" },
+  { icon: MessageCircle, label: "Chat", path: "/dashboard/chat" },
 ];
 
 interface DashboardLayoutProps {
