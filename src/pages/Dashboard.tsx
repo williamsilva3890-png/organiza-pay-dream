@@ -11,6 +11,7 @@ import RelatoriosPage from "@/pages/dashboard/RelatoriosPage";
 import ConfigPage from "@/pages/dashboard/ConfigPage";
 import ChatPage from "@/pages/dashboard/ChatPage";
 import AdminPage from "@/pages/dashboard/AdminPage";
+import WhatsAppPage from "@/pages/dashboard/WhatsAppPage";
 import NotificationPopup from "@/components/dashboard/NotificationPopup";
 import AdminBroadcastBanner from "@/components/dashboard/AdminBroadcastBanner";
 
@@ -40,6 +41,7 @@ const Dashboard = () => {
         <Route path="relatorios" element={<RelatoriosPage finance={finance} />} />
         <Route path="config" element={<ConfigPage finance={finance} />} />
         <Route path="chat" element={<ChatPage />} />
+        <Route path="whatsapp" element={<WhatsAppPage isPremium={finance.isPremium} />} />
         {isAdmin && <Route path="admin" element={<AdminPage />} />}
       </Routes>
       <NotificationPopup
