@@ -43,6 +43,14 @@ export interface Subscription {
   expires_at?: string | null;
 }
 
+export interface SharedAccount {
+  id: string;
+  owner_id: string;
+  partner_id: string | null;
+  invite_code: string;
+  status: string;
+}
+
 // Free plan limits
 export const FREE_LIMITS = {
   receitas: 1,
@@ -67,6 +75,8 @@ export const useFinanceData = () => {
   const [metas, setMetas] = useState<Meta[]>([]);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [subscription, setSubscription] = useState<Subscription>({ plan: "free" });
+  const [sharedAccount, setSharedAccount] = useState<SharedAccount | null>(null);
+  const [partnerProfile, setPartnerProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
   const addingRef = useRef(false);
 
@@ -76,22 +86,58 @@ export const useFinanceData = () => {
     if (!user) { setLoading(false); return; }
     setLoading(true);
 
-    const [recRes, despRes, metRes, profRes, subRes] = await Promise.all([
-      supabase.from("receitas").select("*").eq("user_id", user.id).order("date", { ascending: false }),
-      supabase.from("despesas").select("*").eq("user_id", user.id).order("date", { ascending: false }),
-      supabase.from("metas").select("*").eq("user_id", user.id).order("created_at", { ascending: false }),
+    // Fetch profile, subscription, and shared account first
+    const [profRes, subRes, sharedRes] = await Promise.all([
       supabase.from("profiles").select("*").eq("user_id", user.id).maybeSingle(),
       supabase.from("subscriptions").select("*").eq("user_id", user.id).maybeSingle(),
+      supabase.from("shared_accounts").select("*")
+        .or(`owner_id.eq.${user.id},partner_id.eq.${user.id}`)
+        .eq("status", "active")
+        .maybeSingle(),
+    ]);
+
+    if (profRes.data) setProfile(profRes.data as any);
+    if (subRes.data) setSubscription(subRes.data as any);
+    
+    // Also check for pending shared account (for showing invite code)
+    let sharedData = sharedRes.data as SharedAccount | null;
+    if (!sharedData) {
+      const { data: pendingShared } = await supabase
+        .from("shared_accounts")
+        .select("*")
+        .eq("owner_id", user.id)
+        .eq("status", "pending")
+        .maybeSingle();
+      if (pendingShared) sharedData = pendingShared as any;
+    }
+    setSharedAccount(sharedData);
+
+    // Determine user IDs to fetch data for
+    const userIds = [user.id];
+    if (sharedData?.status === 'active') {
+      const partnerId = sharedData.owner_id === user.id ? sharedData.partner_id : sharedData.owner_id;
+      if (partnerId) {
+        userIds.push(partnerId);
+        // Fetch partner profile
+        const { data: pp } = await supabase.from("profiles").select("*").eq("user_id", partnerId).maybeSingle();
+        setPartnerProfile(pp as any);
+      }
+    } else {
+      setPartnerProfile(null);
+    }
+
+    // Fetch finance data for all relevant user IDs
+    const [recRes, despRes, metRes] = await Promise.all([
+      supabase.from("receitas").select("*").in("user_id", userIds).order("date", { ascending: false }),
+      supabase.from("despesas").select("*").in("user_id", userIds).order("date", { ascending: false }),
+      supabase.from("metas").select("*").in("user_id", userIds).order("created_at", { ascending: false }),
     ]);
 
     if (recRes.data) setReceitas(recRes.data as any);
     if (despRes.data) setDespesas(despRes.data as any);
     if (metRes.data) setMetas(metRes.data as any);
-    if (profRes.data) setProfile(profRes.data as any);
-    if (subRes.data) setSubscription(subRes.data as any);
     setLoading(false);
   }, [user]);
-
   useEffect(() => { fetchAll(); }, [fetchAll]);
 
   const canAddReceita = isPremium || receitas.length < FREE_LIMITS.receitas;
@@ -253,6 +299,7 @@ export const useFinanceData = () => {
 
   return {
     receitas, despesas, metas, profile, subscription, loading, isPremium,
+    sharedAccount, partnerProfile,
     addReceita, addDespesa, addMultipleDespesas, addMeta, updateProfile, fetchAll,
     updateReceita, deleteReceita, updateDespesa, deleteDespesa,
     toggleDespesaPaid, updateMeta, deleteMeta,

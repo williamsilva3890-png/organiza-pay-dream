@@ -12,6 +12,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useFinanceData, FREE_LIMITS } from "@/hooks/useFinanceData";
 import PremiumCheckoutDialog from "@/components/dashboard/PremiumCheckoutDialog";
+import CoupleShareSection from "@/components/dashboard/CoupleShareSection";
 import ChatPanel from "@/components/chat/ChatPanel";
 import type { UserProfile } from "@/components/chat/ChatPanel";
 
@@ -512,6 +513,16 @@ const ConfigPage = ({ finance }: Props) => {
               <Button variant="default" size="sm" onClick={handleSave}>Salvar alterações</Button>
             </div>
           </motion.div>
+
+          {/* Couple share section */}
+          <CoupleShareSection
+            user={user}
+            isPremium={isPremium}
+            profileType={profileType}
+            sharedAccount={finance.sharedAccount}
+            partnerProfile={finance.partnerProfile}
+            onRefresh={finance.fetchAll}
+          />
         </TabsContent>
 
         {/* Appearance tab */}
