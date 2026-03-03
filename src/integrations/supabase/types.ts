@@ -40,6 +40,7 @@ export type Database = {
       }
       chat_messages: {
         Row: {
+          chat_type: string
           created_at: string
           id: string
           message: string
@@ -48,6 +49,7 @@ export type Database = {
           user_name: string | null
         }
         Insert: {
+          chat_type?: string
           created_at?: string
           id?: string
           message: string
@@ -56,6 +58,7 @@ export type Database = {
           user_name?: string | null
         }
         Update: {
+          chat_type?: string
           created_at?: string
           id?: string
           message?: string
@@ -200,6 +203,48 @@ export type Database = {
           recurrence?: string | null
           recurrence_day?: number | null
           user_id?: string
+        }
+        Relationships: []
+      }
+      referral_codes: {
+        Row: {
+          code: string
+          created_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      referrals: {
+        Row: {
+          created_at: string
+          id: string
+          referred_id: string
+          referrer_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          referred_id: string
+          referrer_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          referred_id?: string
+          referrer_id?: string
         }
         Relationships: []
       }
