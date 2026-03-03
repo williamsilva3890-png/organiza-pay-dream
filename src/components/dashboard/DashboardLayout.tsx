@@ -81,12 +81,13 @@ const DashboardLayout = ({ children, profile, isPremium, onProfileUpdate, isAdmi
   };
 
   const AvatarDisplay = ({ size = "sm" }: { size?: "sm" | "lg" }) => {
-    const sizeClass = size === "lg" ? "w-9 h-9" : "w-9 h-9";
+    const sizeClass = size === "lg" ? "w-20 h-20" : "w-9 h-9";
+    const textSize = size === "lg" ? "text-2xl" : "text-sm";
     return avatarUrl ? (
-      <img src={avatarUrl} alt={displayName} className={`${sizeClass} rounded-full object-cover`} />
+      <img src={avatarUrl} alt={displayName} className={`${sizeClass} rounded-full object-cover border-2 border-sidebar-foreground/30`} />
     ) : (
-      <div className={`${sizeClass} rounded-full bg-sidebar-primary/20 flex items-center justify-center`}>
-        <span className="text-sm font-semibold text-sidebar-primary">{initials}</span>
+      <div className={`${sizeClass} rounded-full bg-sidebar-accent border-2 border-sidebar-foreground/30 flex items-center justify-center`}>
+        <span className={`${textSize} font-semibold text-sidebar-foreground`}>{initials}</span>
       </div>
     );
   };
@@ -108,24 +109,23 @@ const DashboardLayout = ({ children, profile, isPremium, onProfileUpdate, isAdmi
           </span>
         </div>
         {/* User info with avatar edit */}
-        <div className="px-4 py-4 border-b border-sidebar-border">
-          <div className="flex items-center gap-3">
+        <div className="px-4 py-6 border-b border-sidebar-border">
+          <div className="flex flex-col items-center gap-2">
             <div className="relative group cursor-pointer" onClick={() => fileInputRef.current?.click()}>
-              <AvatarDisplay />
+              <AvatarDisplay size="lg" />
               <div className="absolute inset-0 rounded-full bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                <Camera className="w-3.5 h-3.5 text-white" />
+                <Camera className="w-5 h-5 text-white" />
               </div>
               <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarSelect} />
             </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-sidebar-foreground truncate">{displayName}</p>
-              {isPremium ? (
-                <span className="inline-flex items-center gap-1 text-[10px] font-bold bg-gradient-to-r from-amber-400 to-amber-500 text-amber-950 rounded-full px-2 py-0.5 mt-0.5">
+            <div className="text-center mt-1">
+              <p className="text-sm font-semibold text-sidebar-foreground truncate max-w-[180px]">{displayName}</p>
+              <p className="text-[11px] text-sidebar-foreground/50 truncate max-w-[180px]">{user?.email}</p>
+              {isPremium && (
+                <span className="inline-flex items-center gap-1 text-[10px] font-bold bg-gradient-to-r from-sidebar-primary to-sidebar-primary/80 text-sidebar-primary-foreground rounded-full px-2 py-0.5 mt-1.5">
                   <Crown className="w-2.5 h-2.5" />
                   PREMIUM
                 </span>
-              ) : (
-                <span className="text-[10px] text-sidebar-foreground/50 mt-0.5">Plano Gratuito</span>
               )}
             </div>
           </div>
