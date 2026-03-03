@@ -411,25 +411,49 @@ const DashboardHome = ({ finance }: Props) => {
   // ===== NORMAL (default) =====
   return (
     <div className="space-y-6">
-      {/* Financial summary cards */}
-      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {[
-          { title: "Saldo do mês", value: saldo, icon: Wallet, iconBg: "bg-primary/10", iconColor: "text-primary" },
-          { title: "Total de renda", value: totalReceitas, icon: TrendingUp, iconBg: "bg-success/10", iconColor: "text-success" },
-          { title: "Total de despesas", value: totalDespesas, icon: TrendingDown, iconBg: "bg-destructive/10", iconColor: "text-destructive" },
-        ].map((card, i) => (
-          <motion.div key={card.title} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }}
-            className="bg-card rounded-xl p-5 border border-border shadow-card">
-            <div className="flex items-start justify-between mb-4">
-              <div className={`w-10 h-10 rounded-lg ${card.iconBg} flex items-center justify-center`}>
-                <card.icon className={`w-5 h-5 ${card.iconColor}`} />
-              </div>
-            </div>
-            <p className="text-sm text-muted-foreground mb-1">{card.title}</p>
-            <p className="font-display font-bold text-2xl">{fmt(card.value)}</p>
-          </motion.div>
-        ))}
-      </div>
+      {/* Radial gauge cards */}
+      {(() => {
+        const now = new Date();
+        const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+        const dayOfMonth = now.getDate();
+        const dailyAvg = dayOfMonth > 0 ? Math.round(totalDespesas / dayOfMonth) : 0;
+        const monthIndex = now.getMonth();
+        const yearlyProj = monthIndex > 0 ? Math.round(totalReceitas * (12 / (monthIndex + 1))) : totalReceitas * 12;
+        const lastMD = monthlyData[monthlyData.length - 2];
+        const thisMD = monthlyData[monthlyData.length - 1];
+        const incomePct = lastMD && lastMD.receitas > 0 ? Math.round(((thisMD.receitas - lastMD.receitas) / lastMD.receitas) * 100) : 0;
+        const expensePct = lastMD && lastMD.despesas > 0 ? Math.round(((thisMD.despesas - lastMD.despesas) / lastMD.despesas) * 100) : 0;
+
+        const gauges = [
+          { label: "Mensal", value: savingsRate, change: incomePct, color: "hsl(var(--primary))" },
+          { label: "Diário", value: Math.min(100, Math.round((dailyAvg / (totalReceitas / daysInMonth || 1)) * 100)), change: expensePct, color: "hsl(270 80% 70%)" },
+          { label: "Anual", value: Math.min(100, Math.round((monthIndex + 1) / 12 * 100)), change: incomePct, color: "hsl(var(--primary))" },
+        ];
+
+        return (
+          <div className="grid sm:grid-cols-3 gap-4">
+            {gauges.map((g, i) => (
+              <motion.div key={g.label} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }}
+                className="bg-card rounded-xl p-5 border border-border shadow-card flex flex-col items-center">
+                <div className="w-24 h-24 relative mb-3">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <RadialBarChart cx="50%" cy="50%" innerRadius="75%" outerRadius="100%" barSize={8} data={[{ value: g.value, fill: g.color }]} startAngle={90} endAngle={-270}>
+                      <RadialBar background={{ fill: "hsl(var(--muted))" }} dataKey="value" cornerRadius={10} />
+                    </RadialBarChart>
+                  </ResponsiveContainer>
+                  <div className="absolute inset-0 flex flex-col items-center justify-center">
+                    <span className="font-display font-bold text-2xl">{g.value}</span>
+                  </div>
+                </div>
+                <p className={`text-[11px] font-medium mb-0.5 ${g.change >= 0 ? "text-success" : "text-destructive"}`}>
+                  {g.change >= 0 ? "+" : ""}{g.change}%
+                </p>
+                <p className="text-xs text-muted-foreground">{g.label}</p>
+              </motion.div>
+            ))}
+          </div>
+        );
+      })()}
 
       {isEmpty && (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
