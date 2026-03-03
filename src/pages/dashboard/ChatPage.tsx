@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useAdmin } from "@/hooks/useAdmin";
-import { MessageCircle, ShieldCheck, Users, Gift } from "lucide-react";
+import { MessageCircle, ShieldCheck, Users, Gift, UsersRound } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ChatPanel from "@/components/chat/ChatPanel";
 import FriendsTab from "@/components/chat/FriendsTab";
@@ -55,10 +55,14 @@ const ChatPage = () => {
       </div>
 
       <Tabs defaultValue="amigos" className="w-full">
-        <TabsList className="grid w-full grid-cols-3 h-auto gap-1 mb-4">
+        <TabsList className="grid w-full grid-cols-4 h-auto gap-1 mb-4">
           <TabsTrigger value="amigos" className="gap-1.5 text-xs">
             <Users className="w-3.5 h-3.5" />
             Amigos
+          </TabsTrigger>
+          <TabsTrigger value="grupo" className="gap-1.5 text-xs">
+            <UsersRound className="w-3.5 h-3.5" />
+            Grupo
           </TabsTrigger>
           <TabsTrigger value="admin" className="gap-1.5 text-xs">
             <ShieldCheck className="w-3.5 h-3.5" />
@@ -78,6 +82,17 @@ const ChatPage = () => {
             profiles={profiles}
             refreshProfiles={fetchProfiles}
           />
+        </TabsContent>
+
+        <TabsContent value="grupo">
+          <div className="flex items-center gap-2 mb-3 pb-3 border-b border-border">
+            <UsersRound className="w-5 h-5 text-primary" />
+            <div>
+              <h3 className="font-semibold text-sm">Chat em Grupo</h3>
+              <p className="text-[10px] text-muted-foreground">Todos os seus amigos em um só lugar</p>
+            </div>
+          </div>
+          <ChatPanel chatType="friends-group" user={user} isAdmin={isAdmin} displayName={displayName} profiles={profiles} />
         </TabsContent>
 
         <TabsContent value="admin">
