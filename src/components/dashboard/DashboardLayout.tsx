@@ -1,9 +1,10 @@
-import { ReactNode, useState, useRef } from "react";
+import { ReactNode, useState, useRef, useEffect } from "react";
 import AvatarCropDialog from "@/components/dashboard/AvatarCropDialog";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard, ArrowUpCircle, ArrowDownCircle, Target,
   FileBarChart, Settings, Menu, LogOut, Crown, Camera, ShieldCheck,
+  ChevronLeft, ChevronRight,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
@@ -34,9 +35,14 @@ const DashboardLayout = ({ children, profile, isPremium, onProfileUpdate, isAdmi
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => localStorage.getItem("sidebar-collapsed") === "true");
   const [cropDialogOpen, setCropDialogOpen] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    localStorage.setItem("sidebar-collapsed", String(sidebarCollapsed));
+  }, [sidebarCollapsed]);
 
   const displayName = profile?.display_name || "Usuário";
   const initials = displayName.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase();
@@ -52,7 +58,6 @@ const DashboardLayout = ({ children, profile, isPremium, onProfileUpdate, isAdmi
     if (!file) return;
     setSelectedFile(file);
     setCropDialogOpen(true);
-    // Reset input so same file can be selected again
     e.target.value = "";
   };
 
@@ -73,24 +78,13 @@ const DashboardLayout = ({ children, profile, isPremium, onProfileUpdate, isAdmi
       .from('avatars')
       .getPublicUrl(filePath);
     
-    // Add cache buster
     const urlWithCacheBust = `${publicUrl}?t=${Date.now()}`;
     await supabase.from("profiles").update({ avatar_url: urlWithCacheBust } as any).eq("user_id", user.id);
     onProfileUpdate?.();
     toast.success("Foto atualizada!");
   };
 
-  const AvatarDisplay = ({ size = "sm" }: { size?: "sm" | "lg" }) => {
-    const sizeClass = size === "lg" ? "w-20 h-20" : "w-9 h-9";
-    const textSize = size === "lg" ? "text-2xl" : "text-sm";
-    return avatarUrl ? (
-      <img src={avatarUrl} alt={displayName} className={`${sizeClass} rounded-full object-cover border-2 border-sidebar-foreground/30`} />
-    ) : (
-      <div className={`${sizeClass} rounded-full bg-sidebar-accent border-2 border-sidebar-foreground/30 flex items-center justify-center`}>
-        <span className={`${textSize} font-semibold text-sidebar-foreground`}>{initials}</span>
-      </div>
-    );
-  };
+  const sidebarWidth = sidebarCollapsed ? "w-[72px]" : "w-64";
 
   return (
     <div className="min-h-screen bg-background flex">
@@ -99,69 +93,102 @@ const DashboardLayout = ({ children, profile, isPremium, onProfileUpdate, isAdmi
       )}
 
       <aside className={cn(
-        "fixed lg:sticky top-0 left-0 z-50 h-screen w-64 bg-sidebar text-sidebar-foreground flex flex-col transition-transform duration-200 lg:translate-x-0",
-        sidebarOpen ? "translate-x-0" : "-translate-x-full"
+        "fixed lg:sticky top-0 left-0 z-50 h-screen bg-sidebar text-sidebar-foreground flex flex-col transition-all duration-200 lg:translate-x-0",
+        sidebarWidth,
+        sidebarOpen ? "translate-x-0 w-64" : "-translate-x-full lg:translate-x-0"
       )}>
-        <div className="flex items-center gap-2 px-6 h-16 border-b border-sidebar-border">
-          <img src={logoImg} alt="OrganizaPay" className="w-8 h-8 rounded-lg object-cover" />
-          <span className="font-display font-bold text-lg text-sidebar-foreground">
-            Organiza<span className="text-sidebar-primary">Pay</span>
-          </span>
+        {/* Logo */}
+        <div className={cn("flex items-center gap-2 h-16 border-b border-sidebar-border", sidebarCollapsed ? "px-3 justify-center" : "px-6")}>
+          <img src={logoImg} alt="OrganizaPay" className="w-8 h-8 rounded-lg object-cover shrink-0" />
+          {!sidebarCollapsed && (
+            <span className="font-display font-bold text-lg text-sidebar-foreground">
+              Organiza<span className="text-sidebar-primary">Pay</span>
+            </span>
+          )}
         </div>
-        {/* User info with avatar edit */}
-        <div className="px-4 py-6 border-b border-sidebar-border">
+
+        {/* User info */}
+        <div className={cn("border-b border-sidebar-border", sidebarCollapsed ? "px-2 py-3" : "px-4 py-6")}>
           <div className="flex flex-col items-center gap-2">
             <div className="relative group cursor-pointer" onClick={() => fileInputRef.current?.click()}>
-              <AvatarDisplay size="lg" />
-              <div className="absolute inset-0 rounded-full bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                <Camera className="w-5 h-5 text-white" />
-              </div>
+              {avatarUrl ? (
+                <img src={avatarUrl} alt={displayName} className={cn("rounded-full object-cover border-2 border-sidebar-foreground/30", sidebarCollapsed ? "w-10 h-10" : "w-20 h-20")} />
+              ) : (
+                <div className={cn("rounded-full bg-sidebar-accent border-2 border-sidebar-foreground/30 flex items-center justify-center", sidebarCollapsed ? "w-10 h-10" : "w-20 h-20")}>
+                  <span className={cn("font-semibold text-sidebar-foreground", sidebarCollapsed ? "text-sm" : "text-2xl")}>{initials}</span>
+                </div>
+              )}
+              {!sidebarCollapsed && (
+                <div className="absolute inset-0 rounded-full bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                  <Camera className="w-5 h-5 text-white" />
+                </div>
+              )}
               <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarSelect} />
             </div>
-            <div className="text-center mt-1">
-              <p className="text-sm font-semibold text-sidebar-foreground truncate max-w-[180px]">{displayName}</p>
-              <p className="text-[11px] text-sidebar-foreground/50 truncate max-w-[180px]">{user?.email}</p>
-              {isPremium && (
-                <span className="inline-flex items-center gap-1 text-[10px] font-bold bg-gradient-to-r from-sidebar-primary to-sidebar-primary/80 text-sidebar-primary-foreground rounded-full px-2 py-0.5 mt-1.5">
-                  <Crown className="w-2.5 h-2.5" />
-                  PREMIUM
-                </span>
-              )}
-            </div>
+            {!sidebarCollapsed && (
+              <div className="text-center mt-1">
+                <p className="text-sm font-semibold text-sidebar-foreground truncate max-w-[180px]">{displayName}</p>
+                <p className="text-[11px] text-sidebar-foreground/50 truncate max-w-[180px]">{user?.email}</p>
+                {isPremium && (
+                  <span className="inline-flex items-center gap-1 text-[10px] font-bold bg-gradient-to-r from-sidebar-primary to-sidebar-primary/80 text-sidebar-primary-foreground rounded-full px-2 py-0.5 mt-1.5">
+                    <Crown className="w-2.5 h-2.5" />
+                    PREMIUM
+                  </span>
+                )}
+              </div>
+            )}
           </div>
         </div>
 
-        <nav className="flex-1 px-3 py-4 space-y-1">
+        {/* Nav */}
+        <nav className="flex-1 px-2 py-4 space-y-1">
           {navItems.map((item) => {
             const isActive = location.pathname === item.path;
             return (
               <Link key={item.path} to={item.path} onClick={() => setSidebarOpen(false)}
+                title={sidebarCollapsed ? item.label : undefined}
                 className={cn(
-                  "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
+                  "flex items-center gap-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
+                  sidebarCollapsed ? "px-2 justify-center" : "px-3",
                   isActive ? "bg-sidebar-accent text-sidebar-primary" : "text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground"
                 )}>
-                <item.icon className="w-5 h-5" />
-                {item.label}
+                <item.icon className="w-5 h-5 shrink-0" />
+                {!sidebarCollapsed && item.label}
               </Link>
             );
           })}
           {isAdmin && (
             <Link to="/dashboard/admin" onClick={() => setSidebarOpen(false)}
+              title={sidebarCollapsed ? "Admin" : undefined}
               className={cn(
-                "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
+                "flex items-center gap-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
+                sidebarCollapsed ? "px-2 justify-center" : "px-3",
                 location.pathname === "/dashboard/admin" ? "bg-sidebar-accent text-sidebar-primary" : "text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground"
               )}>
-              <ShieldCheck className="w-5 h-5" />
-              Admin
+              <ShieldCheck className="w-5 h-5 shrink-0" />
+              {!sidebarCollapsed && "Admin"}
             </Link>
           )}
         </nav>
 
-        <div className="px-3 py-4 border-t border-sidebar-border">
+        {/* Collapse toggle (desktop only) */}
+        <div className="hidden lg:flex px-2 py-2 border-t border-sidebar-border">
+          <button onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+            className={cn("flex items-center gap-3 py-2.5 rounded-lg text-sm font-medium text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground transition-colors w-full",
+              sidebarCollapsed ? "px-2 justify-center" : "px-3"
+            )}>
+            {sidebarCollapsed ? <ChevronRight className="w-5 h-5" /> : <><ChevronLeft className="w-5 h-5" /> Recolher</>}
+          </button>
+        </div>
+
+        <div className="px-2 py-3 border-t border-sidebar-border">
           <button onClick={handleLogout}
-            className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground transition-colors w-full">
-            <LogOut className="w-5 h-5" />
-            Sair
+            title={sidebarCollapsed ? "Sair" : undefined}
+            className={cn("flex items-center gap-3 py-2.5 rounded-lg text-sm font-medium text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground transition-colors w-full",
+              sidebarCollapsed ? "px-2 justify-center" : "px-3"
+            )}>
+            <LogOut className="w-5 h-5 shrink-0" />
+            {!sidebarCollapsed && "Sair"}
           </button>
         </div>
       </aside>
@@ -179,7 +206,7 @@ const DashboardLayout = ({ children, profile, isPremium, onProfileUpdate, isAdmi
           </div>
           <div className="flex items-center gap-2">
             {isPremium && (
-              <span className="hidden sm:inline-flex items-center gap-1 text-xs font-bold bg-gradient-to-r from-amber-400 to-amber-500 text-amber-950 rounded-full px-2.5 py-1">
+              <span className="hidden sm:inline-flex items-center gap-1 text-xs font-bold bg-gradient-to-r from-primary to-accent text-primary-foreground rounded-full px-2.5 py-1">
                 <Crown className="w-3 h-3" />
                 Premium
               </span>
