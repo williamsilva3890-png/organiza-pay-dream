@@ -64,7 +64,18 @@ const SuggestionsTab = ({ user, profile }: { user: any; profile: any }) => {
         .select("*")
         .eq("user_id", user.id)
         .order("created_at", { ascending: false });
-      if (data) setMySuggestions(data);
+      if (data) {
+        setMySuggestions(data);
+        // Notify user of new admin replies
+        const readKey = "organizapay-read-replies";
+        const readIds: string[] = JSON.parse(localStorage.getItem(readKey) || "[]");
+        const unread = data.filter((s: any) => s.admin_reply && !readIds.includes(s.id));
+        if (unread.length > 0) {
+          toast.info(`📩 Você tem ${unread.length} resposta(s) da equipe nas suas sugestões!`, { duration: 6000 });
+          // Mark as read
+          localStorage.setItem(readKey, JSON.stringify([...readIds, ...unread.map((s: any) => s.id)]));
+        }
+      }
     };
     fetchMySuggestions();
   }, [user]);
