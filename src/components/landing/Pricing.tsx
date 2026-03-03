@@ -21,8 +21,9 @@ const plans = [
   },
   {
     name: "Premium",
-    price: "R$ 19,90",
-    period: "/mês",
+    originalPrice: "R$ 49,90",
+    price: "R$ 9,90",
+    period: "/mês por 5 meses",
     description: "Para quem quer o controle total",
     features: [
       "Tudo do plano gratuito",
@@ -94,6 +95,11 @@ const Pricing = () => {
               </div>
 
               <div className="mb-6">
+                {(plan as any).originalPrice && (
+                  <span className="text-lg text-muted-foreground line-through mr-2">
+                    {(plan as any).originalPrice}
+                  </span>
+                )}
                 <span className="font-display text-4xl font-extrabold">
                   {plan.price}
                 </span>
