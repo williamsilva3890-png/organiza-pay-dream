@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { User, Bell, Palette, Shield, Crown, Lock, Type, Layout, Monitor, Moon, Sun, MessageCircle, Send, Check, RotateCcw, Calendar } from "lucide-react";
+import { User, Bell, Palette, Shield, Crown, Lock, Type, Layout, Monitor, Moon, Sun, MessageCircle, Send, Check, RotateCcw, Calendar, Lightbulb } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -42,6 +42,59 @@ const CARD_STYLES = [
   { name: "Arredondado", value: "rounded", borderRadius: "1.25rem", shadow: "0 2px 8px rgba(0,0,0,0.08)" },
   { name: "Flat", value: "flat", borderRadius: "0.5rem", shadow: "none" },
 ];
+
+const SuggestionForm = ({ user, profile }: { user: any; profile: any }) => {
+  const [message, setMessage] = useState("");
+  const [sending, setSending] = useState(false);
+
+  const handleSend = async () => {
+    if (!message.trim() || !user) return;
+    setSending(true);
+    const { error } = await supabase.from("suggestions").insert({
+      user_id: user.id,
+      user_email: user.email,
+      user_name: profile?.display_name || "Usuário",
+      category: "Sugestão",
+      message: message.trim(),
+    } as any);
+    if (error) {
+      toast.error("Erro ao enviar sugestão");
+    } else {
+      toast.success("Sugestão enviada com sucesso! 🎉");
+      setMessage("");
+    }
+    setSending(false);
+  };
+
+  return (
+    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="bg-card rounded-xl p-5 border border-border shadow-card">
+      <div className="flex items-center gap-2 mb-3">
+        <Lightbulb className="w-5 h-5 text-primary" />
+        <h3 className="font-display font-bold text-base">Enviar Sugestão</h3>
+      </div>
+      <p className="text-sm text-muted-foreground mb-3">Tem uma ideia ou sugestão? Escreva abaixo e envie para a equipe!</p>
+      <div className="space-y-3">
+        <Textarea
+          placeholder="Descreva sua sugestão..."
+          value={message}
+          onChange={(e) => setMessage(e.target.value)}
+          className="min-h-[80px]"
+          maxLength={500}
+        />
+        <Button
+          variant="default"
+          size="sm"
+          className="gap-1.5"
+          disabled={sending || !message.trim()}
+          onClick={handleSend}
+        >
+          <Send className="w-4 h-4" />
+          Enviar Sugestão
+        </Button>
+      </div>
+    </motion.div>
+  );
+};
 
 
 const ResetTab = ({ finance }: Props) => {
@@ -596,6 +649,9 @@ const ConfigPage = ({ finance }: Props) => {
             <p className="text-sm text-muted-foreground mb-3">Converse diretamente com a equipe do OrganizaPay.</p>
             <ChatPanel chatType="admin" user={user} isAdmin={false} displayName={profile?.display_name || "Usuário"} profiles={profiles} />
           </motion.div>
+
+          {/* Suggestion form */}
+          <SuggestionForm user={user} profile={profile} />
 
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }} className="bg-card rounded-xl p-5 border border-border shadow-card">
             <div className="flex items-center gap-2 mb-3">
