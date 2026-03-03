@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -9,10 +9,12 @@ import { Eye, EyeOff } from "lucide-react";
 import { motion } from "framer-motion";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 import logoImg from "@/assets/logo.png";
 
 const Login = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { signIn, signUp } = useAuth();
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
@@ -21,6 +23,7 @@ const Login = () => {
   const [nome, setNome] = useState("");
   const [loading, setLoading] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
+  const [refCode, setRefCode] = useState(() => searchParams.get("ref") || "");
 
   // Load saved credentials on mount
   useEffect(() => {
@@ -46,10 +49,24 @@ const Login = () => {
         setLoading(false);
         return;
       }
-      const { error } = await signUp(email, senha, nome);
+      const { error, data } = await signUp(email, senha, nome);
       if (error) {
         toast.error(error.message === "User already registered" ? "Este email já está cadastrado" : error.message);
       } else {
+        // Track referral if code was provided
+        if (refCode.trim() && data?.user) {
+          const { data: refData } = await supabase
+            .from("referral_codes")
+            .select("user_id")
+            .eq("code", refCode.trim())
+            .maybeSingle();
+          if (refData) {
+            await supabase.from("referrals").insert({
+              referrer_id: refData.user_id,
+              referred_id: data.user.id,
+            } as any);
+          }
+        }
         toast.success("Conta criada com sucesso!");
         navigate("/dashboard");
       }
@@ -110,6 +127,19 @@ const Login = () => {
                     value={nome}
                     onChange={(e) => setNome(e.target.value)}
                     required
+                  />
+                </div>
+              )}
+
+              {isSignUp && (
+                <div className="space-y-2">
+                  <Label htmlFor="ref">Código de indicação (opcional)</Label>
+                  <Input
+                    id="ref"
+                    type="text"
+                    placeholder="Ex: ORG1A2B3C"
+                    value={refCode}
+                    onChange={(e) => setRefCode(e.target.value)}
                   />
                 </div>
               )}
