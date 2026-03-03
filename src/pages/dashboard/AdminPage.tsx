@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Users, Lightbulb, Trash2, CheckCircle, Clock, AlertCircle, Send, MessageSquare, Calendar, Crown } from "lucide-react";
+import { Users, Lightbulb, Trash2, CheckCircle, Clock, AlertCircle, Send, MessageSquare, Calendar, Crown, Search, ShieldCheck, ShieldOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -52,9 +52,13 @@ const AdminPage = () => {
   const [msgTitle, setMsgTitle] = useState("");
   const [msgBody, setMsgBody] = useState("");
   const [sending, setSending] = useState(false);
-  const [activeTab, setActiveTab] = useState<"overview" | "subscribers" | "messages">("overview");
+  const [activeTab, setActiveTab] = useState<"overview" | "subscribers" | "manage" | "messages">("overview");
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
   const [replyText, setReplyText] = useState("");
+  const [searchEmail, setSearchEmail] = useState("");
+  const [searchResults, setSearchResults] = useState<{ user_id: string; display_name: string | null; plan: string }[]>([]);
+  const [searching, setSearching] = useState(false);
+  const [managingUser, setManagingUser] = useState<string | null>(null);
 
   const fetchData = async () => {
     setLoading(true);
@@ -179,6 +183,54 @@ const AdminPage = () => {
     fetchData();
   };
 
+  const searchUsers = async () => {
+    if (!searchEmail.trim()) return;
+    setSearching(true);
+    const { data: profiles } = await supabase
+      .from("profiles")
+      .select("user_id, display_name")
+      .ilike("display_name", `%${searchEmail.trim()}%`);
+
+    if (!profiles || profiles.length === 0) {
+      setSearchResults([]);
+      setSearching(false);
+      toast.error("Nenhum usuário encontrado");
+      return;
+    }
+
+    const userIds = profiles.map(p => p.user_id);
+    const { data: subs } = await supabase
+      .from("subscriptions")
+      .select("user_id, plan")
+      .in("user_id", userIds);
+
+    const results = profiles.map(p => ({
+      user_id: p.user_id,
+      display_name: p.display_name,
+      plan: subs?.find(s => s.user_id === p.user_id)?.plan || "free",
+    }));
+    setSearchResults(results);
+    setSearching(false);
+  };
+
+  const togglePremium = async (userId: string, currentPlan: string) => {
+    setManagingUser(userId);
+    const newPlan = currentPlan === "premium" ? "free" : "premium";
+    const { error } = await supabase
+      .from("subscriptions")
+      .update({ plan: newPlan } as any)
+      .eq("user_id", userId);
+    if (error) {
+      toast.error("Erro ao atualizar plano");
+      setManagingUser(null);
+      return;
+    }
+    toast.success(newPlan === "premium" ? "Premium ativado! 👑" : "Premium removido");
+    setSearchResults(prev => prev.map(r => r.user_id === userId ? { ...r, plan: newPlan } : r));
+    setManagingUser(null);
+    fetchData();
+  };
+
   const getExpirationStatus = (expiresAt: string | null) => {
     if (!expiresAt) return { label: "Sem data", color: "text-muted-foreground", bg: "bg-muted" };
     const now = new Date();
@@ -230,14 +282,15 @@ const AdminPage = () => {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-2 border-b border-border pb-2">
+      <div className="flex gap-2 border-b border-border pb-2 overflow-x-auto">
         {[
           { key: "overview" as const, label: "Sugestões", icon: Lightbulb },
           { key: "subscribers" as const, label: "Assinantes", icon: Crown },
+          { key: "manage" as const, label: "Gerenciar Premium", icon: ShieldCheck },
           { key: "messages" as const, label: "Mensagens", icon: MessageSquare },
         ].map(tab => (
           <button key={tab.key} onClick={() => setActiveTab(tab.key)}
-            className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${activeTab === tab.key ? "bg-primary/10 text-primary" : "text-muted-foreground hover:text-foreground"}`}>
+            className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${activeTab === tab.key ? "bg-primary/10 text-primary" : "text-muted-foreground hover:text-foreground"}`}>
             <tab.icon className="w-4 h-4" />
             {tab.label}
           </button>
@@ -380,7 +433,60 @@ const AdminPage = () => {
         </motion.div>
       )}
 
-      {/* Messages tab */}
+      {/* Manage Premium tab */}
+      {activeTab === "manage" && (
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+          className="bg-card rounded-xl p-5 border border-border shadow-card">
+          <div className="flex items-center gap-2 mb-4">
+            <ShieldCheck className="w-5 h-5 text-primary" />
+            <h3 className="font-display font-bold text-base">Ativar / Remover Premium</h3>
+          </div>
+          <div className="flex gap-2 mb-4">
+            <Input
+              placeholder="Buscar por nome do usuário..."
+              value={searchEmail}
+              onChange={e => setSearchEmail(e.target.value)}
+              onKeyDown={e => e.key === "Enter" && searchUsers()}
+              className="flex-1"
+            />
+            <Button onClick={searchUsers} disabled={searching || !searchEmail.trim()}>
+              <Search className="w-4 h-4 mr-2" />
+              {searching ? "Buscando..." : "Buscar"}
+            </Button>
+          </div>
+          {searchResults.length > 0 && (
+            <div className="space-y-3">
+              {searchResults.map(r => (
+                <div key={r.user_id} className="border border-border rounded-lg p-4 flex items-center justify-between gap-3">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold">{r.display_name || "Sem nome"}</p>
+                    <p className="text-xs text-muted-foreground truncate">{r.user_id.slice(0, 8)}...</p>
+                    <span className={`inline-block mt-1 text-xs font-medium px-2 py-0.5 rounded-full ${r.plan === "premium" ? "bg-amber-500/10 text-amber-500" : "bg-muted text-muted-foreground"}`}>
+                      {r.plan === "premium" ? "👑 Premium" : "Gratuito"}
+                    </span>
+                  </div>
+                  <Button
+                    variant={r.plan === "premium" ? "destructive" : "default"}
+                    size="sm"
+                    disabled={managingUser === r.user_id}
+                    onClick={() => togglePremium(r.user_id, r.plan)}
+                    className="gap-1.5 shrink-0"
+                  >
+                    {r.plan === "premium" ? (
+                      <><ShieldOff className="w-4 h-4" /> Remover</>
+                    ) : (
+                      <><Crown className="w-4 h-4" /> Ativar Premium</>
+                    )}
+                  </Button>
+                </div>
+              ))}
+            </div>
+          )}
+          {searchResults.length === 0 && !searching && (
+            <p className="text-sm text-muted-foreground text-center py-6">Busque um usuário pelo nome para gerenciar o plano.</p>
+          )}
+        </motion.div>
+      )}
       {activeTab === "messages" && (
         <div className="space-y-4">
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
