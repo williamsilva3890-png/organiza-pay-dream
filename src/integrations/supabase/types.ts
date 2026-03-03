@@ -73,6 +73,8 @@ export type Database = {
           amount: number
           category: string
           created_at: string
+          created_by: string | null
+          creditor_name: string | null
           date: string
           description: string
           details: string | null
@@ -85,6 +87,8 @@ export type Database = {
           amount: number
           category?: string
           created_at?: string
+          created_by?: string | null
+          creditor_name?: string | null
           date: string
           description: string
           details?: string | null
@@ -97,6 +101,8 @@ export type Database = {
           amount?: number
           category?: string
           created_at?: string
+          created_by?: string | null
+          creditor_name?: string | null
           date?: string
           description?: string
           details?: string | null

@@ -67,6 +67,31 @@ const DashboardLayout = ({ children, profile, isPremium, onProfileUpdate, isAdmi
     checkReplies();
   }, [user]);
 
+  // Check for new friend-created debts
+  useEffect(() => {
+    if (!user) return;
+    const checkFriendDebts = async () => {
+      const { data } = await supabase
+        .from("despesas")
+        .select("id, description, creditor_name, date, amount")
+        .eq("user_id", user.id)
+        .not("created_by", "is", null)
+        .eq("paid", false);
+      if (data && data.length > 0) {
+        const seenKey = "organizapay-seen-debts";
+        const seenIds: string[] = JSON.parse(localStorage.getItem(seenKey) || "[]");
+        const unseen = data.filter((d: any) => !seenIds.includes(d.id));
+        if (unseen.length > 0) {
+          unseen.forEach((d: any) => {
+            toast.warning(`💸 ${d.creditor_name} criou uma dívida: "${d.description}" de R$ ${Number(d.amount).toFixed(2)} para ${new Date(d.date).toLocaleDateString("pt-BR")}`, { duration: 10000 });
+          });
+          localStorage.setItem(seenKey, JSON.stringify([...seenIds, ...unseen.map((d: any) => d.id)]));
+        }
+      }
+    };
+    checkFriendDebts();
+  }, [user]);
+
   const displayName = profile?.display_name || "Usuário";
   const initials = displayName.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase();
   const avatarUrl = profile?.avatar_url;

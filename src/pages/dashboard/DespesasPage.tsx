@@ -265,7 +265,12 @@ const DespesasPage = ({ finance }: Props) => {
                   <button onClick={() => handleTogglePaid(d.id, !!d.paid)} className="self-start sm:self-center p-0.5">
                     {d.paid ? <CheckCircle className="w-5 h-5 text-success" /> : <Circle className="w-5 h-5 text-muted-foreground" />}
                   </button>
-                  <span className={`text-sm font-medium ${d.paid ? "line-through text-muted-foreground" : ""}`}>{d.description}</span>
+                  <div className="flex-1 min-w-0">
+                    <span className={`text-sm font-medium ${d.paid ? "line-through text-muted-foreground" : ""}`}>{d.description}</span>
+                    {(d as any).creditor_name && (
+                      <span className="text-[10px] text-primary font-medium ml-1.5">• Dívida com {(d as any).creditor_name}</span>
+                    )}
+                  </div>
                   <div className="flex items-center gap-2 sm:contents">
                     <span className="text-xs bg-destructive/10 text-destructive rounded-full px-2.5 py-1 font-medium">{d.details || "—"}</span>
                     <span className="text-xs sm:text-sm text-muted-foreground">{new Date(d.date).toLocaleDateString("pt-BR")}</span>
@@ -291,6 +296,9 @@ const DespesasPage = ({ finance }: Props) => {
                   <CreditCard className="w-5 h-5 text-destructive shrink-0" />
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium">{desc}</p>
+                    {(items[0] as any).creditor_name && (
+                      <p className="text-[10px] text-primary font-medium">Dívida com {(items[0] as any).creditor_name}</p>
+                    )}
                     <p className="text-xs text-muted-foreground">{paidCount}/{totalItems} parcelas pagas</p>
                   </div>
                   <div className="flex items-center gap-3">

@@ -7,6 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 import ChatPanel from "./ChatPanel";
+import CreateDebtDialog from "./CreateDebtDialog";
 import type { UserProfile } from "./ChatPanel";
 
 interface Friend {
@@ -132,7 +133,13 @@ const FriendsTab = ({ user, isAdmin, displayName, profiles, refreshProfiles }: F
             {profile?.avatar_url && <AvatarImage src={profile.avatar_url} alt={friendName} />}
             <AvatarFallback className="text-xs font-bold bg-primary/10">{getInitials(friendName)}</AvatarFallback>
           </Avatar>
-          <span className="font-semibold text-sm">{friendName}</span>
+          <span className="font-semibold text-sm flex-1">{friendName}</span>
+          <CreateDebtDialog
+            user={user}
+            displayName={displayName}
+            friendUserId={friendUserId}
+            friendName={friendName}
+          />
         </div>
         <ChatPanel
           chatType={getDmChatType(friendUserId)}
