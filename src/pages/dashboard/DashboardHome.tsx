@@ -472,7 +472,7 @@ const DashboardHome = ({ finance }: Props) => {
 
       {/* Charts row — Bar + Donut */}
       <div className="grid lg:grid-cols-2 gap-6">
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="bg-card rounded-xl p-5 border border-border shadow-card">
+        <motion.div initial={{ opacity: 0, y: 20, scale: 0.97 }} animate={{ opacity: 1, y: 0, scale: 1 }} transition={{ delay: 0.15, type: "spring", stiffness: 180, damping: 20 }} className="bg-card rounded-xl p-5 border border-border shadow-card hover:shadow-card-hover transition-shadow duration-300">
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-display font-bold text-base">Receitas vs Despesas</h3>
             <div className="flex items-center gap-3 text-[11px] text-muted-foreground">
@@ -506,7 +506,7 @@ const DashboardHome = ({ finance }: Props) => {
           )}
         </motion.div>
 
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }} className="bg-card rounded-xl p-5 border border-border shadow-card">
+        <motion.div initial={{ opacity: 0, y: 20, scale: 0.97 }} animate={{ opacity: 1, y: 0, scale: 1 }} transition={{ delay: 0.25, type: "spring", stiffness: 180, damping: 20 }} className="bg-card rounded-xl p-5 border border-border shadow-card hover:shadow-card-hover transition-shadow duration-300">
           <h3 className="font-display font-bold text-base mb-4">Despesas por categoria</h3>
           {pieData.length > 0 ? (
             <div className="flex flex-col sm:flex-row items-center gap-6">
@@ -543,7 +543,7 @@ const DashboardHome = ({ finance }: Props) => {
       </div>
 
       {/* Area trend chart */}
-      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="bg-card rounded-xl p-5 border border-border shadow-card">
+      <motion.div initial={{ opacity: 0, y: 20, scale: 0.97 }} animate={{ opacity: 1, y: 0, scale: 1 }} transition={{ delay: 0.35, type: "spring", stiffness: 180, damping: 20 }} className="bg-card rounded-xl p-5 border border-border shadow-card hover:shadow-card-hover transition-shadow duration-300">
         <h3 className="font-display font-bold text-base mb-4">Tendência mensal</h3>
         {hasMonthlyData ? (
           <ResponsiveContainer width="100%" height={200}>
@@ -574,7 +574,7 @@ const DashboardHome = ({ finance }: Props) => {
       {/* Gastos & Dívidas */}
       {(gastos.length > 0 || dividas.length > 0) && (
         <div className="grid sm:grid-cols-2 gap-4">
-          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="bg-card rounded-xl p-5 border border-border shadow-card">
+          <motion.div initial={{ opacity: 0, x: -20, scale: 0.97 }} animate={{ opacity: 1, x: 0, scale: 1 }} transition={{ delay: 0.4, type: "spring", stiffness: 180, damping: 20 }} className="bg-card rounded-xl p-5 border border-border shadow-card hover:shadow-card-hover transition-shadow duration-300">
             <div className="flex items-center gap-3 mb-3">
               <div className="w-10 h-10 rounded-lg bg-warning/10 flex items-center justify-center"><ShoppingCart className="w-5 h-5 text-warning" /></div>
               <div><p className="text-sm text-muted-foreground">Gastos do mês</p><p className="font-display font-bold text-xl">{fmt(totalGastos)}</p></div>
@@ -583,7 +583,7 @@ const DashboardHome = ({ finance }: Props) => {
               {gastos.slice(0, 4).map(g => (<div key={g.id} className="flex justify-between"><span>{g.description}</span><span className="text-foreground font-medium">{fmt(Number(g.amount))}</span></div>))}
             </div>
           </motion.div>
-          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }} className="bg-card rounded-xl p-5 border border-border shadow-card">
+          <motion.div initial={{ opacity: 0, x: 20, scale: 0.97 }} animate={{ opacity: 1, x: 0, scale: 1 }} transition={{ delay: 0.45, type: "spring", stiffness: 180, damping: 20 }} className="bg-card rounded-xl p-5 border border-border shadow-card hover:shadow-card-hover transition-shadow duration-300">
             <div className="flex items-center gap-3 mb-3">
               <div className="w-10 h-10 rounded-lg bg-destructive/10 flex items-center justify-center"><CreditCard className="w-5 h-5 text-destructive" /></div>
               <div><p className="text-sm text-muted-foreground">Dívidas do mês</p><p className="font-display font-bold text-xl text-destructive">{fmt(totalDividas)}</p></div>
@@ -597,7 +597,7 @@ const DashboardHome = ({ finance }: Props) => {
       )}
 
       {/* Transactions */}
-      <div className="bg-card rounded-xl p-5 border border-border shadow-card">
+      <motion.div initial={{ opacity: 0, y: 20, scale: 0.97 }} animate={{ opacity: 1, y: 0, scale: 1 }} transition={{ delay: 0.5, type: "spring", stiffness: 180, damping: 20 }} className="bg-card rounded-xl p-5 border border-border shadow-card hover:shadow-card-hover transition-shadow duration-300">
         <h3 className="font-display font-bold text-base mb-4">Últimas movimentações</h3>
         {transactions.length > 0 ? (
           <div className="space-y-3">
@@ -621,11 +621,11 @@ const DashboardHome = ({ finance }: Props) => {
         ) : (
           <p className="text-sm text-muted-foreground text-center py-8">Nenhuma movimentação ainda</p>
         )}
-      </div>
+      </motion.div>
 
       {/* Goals */}
       {metas.length > 0 && (
-        <div className="bg-card rounded-xl p-5 border border-border shadow-card">
+        <motion.div initial={{ opacity: 0, y: 20, scale: 0.97 }} animate={{ opacity: 1, y: 0, scale: 1 }} transition={{ delay: 0.55, type: "spring", stiffness: 180, damping: 20 }} className="bg-card rounded-xl p-5 border border-border shadow-card hover:shadow-card-hover transition-shadow duration-300">
           <div className="flex items-center gap-2 mb-4"><Target className="w-5 h-5 text-primary" /><h3 className="font-display font-bold text-base">Metas financeiras</h3></div>
           <div className="space-y-5">
             {metas.slice(0, 3).map(goal => {
@@ -639,7 +639,7 @@ const DashboardHome = ({ finance }: Props) => {
               );
             })}
           </div>
-        </div>
+        </motion.div>
       )}
     </div>
   );
