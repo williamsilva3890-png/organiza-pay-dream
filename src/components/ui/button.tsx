@@ -5,18 +5,18 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  "btn-glow inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-all duration-200 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 active:scale-[0.97]",
+  "btn-glow inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-all duration-300 ease-[cubic-bezier(0.25,0.46,0.45,0.94)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 active:scale-[0.96] active:duration-100",
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground shadow-sm hover:bg-primary/90 hover:shadow-md hover:-translate-y-0.5",
-        destructive: "bg-destructive text-destructive-foreground hover:bg-destructive/90 hover:shadow-md hover:-translate-y-0.5",
-        outline: "border border-input bg-background hover:bg-accent hover:text-accent-foreground hover:border-accent hover:-translate-y-0.5",
-        secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80 hover:shadow-sm hover:-translate-y-0.5",
-        ghost: "hover:bg-accent hover:text-accent-foreground",
-        link: "text-primary underline-offset-4 hover:underline",
-        hero: "bg-gradient-hero text-primary-foreground shadow-lg hover:shadow-xl hover:scale-[1.03] hover:-translate-y-0.5 transition-all duration-200",
-        "hero-outline": "border-2 border-primary text-primary bg-transparent hover:bg-primary/5 hover:-translate-y-0.5 transition-all duration-200",
+        default: "bg-primary text-primary-foreground shadow-sm hover:bg-primary/90 hover:shadow-lg hover:-translate-y-0.5 hover:brightness-110",
+        destructive: "bg-destructive text-destructive-foreground hover:bg-destructive/90 hover:shadow-lg hover:-translate-y-0.5 hover:brightness-110",
+        outline: "border border-input bg-background hover:bg-accent/50 hover:text-accent-foreground hover:border-accent hover:-translate-y-0.5 hover:shadow-sm",
+        secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80 hover:shadow-md hover:-translate-y-0.5",
+        ghost: "hover:bg-accent/50 hover:text-accent-foreground hover:backdrop-blur-sm",
+        link: "text-primary underline-offset-4 hover:underline hover:brightness-125",
+        hero: "bg-gradient-hero text-primary-foreground shadow-lg hover:shadow-2xl hover:scale-[1.03] hover:-translate-y-1 transition-all duration-300",
+        "hero-outline": "border-2 border-primary text-primary bg-transparent hover:bg-primary/8 hover:-translate-y-1 hover:shadow-md transition-all duration-300",
       },
       size: {
         default: "h-10 px-4 py-2",
