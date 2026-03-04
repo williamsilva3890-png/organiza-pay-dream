@@ -117,6 +117,30 @@
   h1, h2, h3, h4, h5, h6 {
     font-family: 'Plus Jakarta Sans', sans-serif;
   }
+
+  .btn-glow {
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
+  }
+  .btn-glow::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    background: radial-gradient(circle at var(--mouse-x, 50%) var(--mouse-y, 50%), hsl(270 60% 75% / 0.5) 0%, transparent 60%);
+    pointer-events: none;
+    border-radius: inherit;
+  }
+  .btn-glow:hover::before {
+    opacity: 1;
+  }
+  .btn-glow > * {
+    position: relative;
+    z-index: 1;
+  }
 }
 
 @layer utilities {
@@ -133,24 +157,6 @@
 
   .bg-gradient-hero-subtle {
     background: linear-gradient(135deg, hsl(270 60% 55% / 0.06), hsl(280 70% 50% / 0.04));
-  }
-
-  .btn-glow {
-    position: relative;
-    overflow: hidden;
-  }
-  .btn-glow::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    opacity: 0;
-    transition: opacity 0.3s ease;
-    background: radial-gradient(circle at var(--mouse-x, 50%) var(--mouse-y, 50%), hsl(var(--primary) / 0.35) 0%, transparent 60%);
-    pointer-events: none;
-    border-radius: inherit;
-  }
-  .btn-glow:hover::after {
-    opacity: 1;
   }
 
   .shadow-card {
