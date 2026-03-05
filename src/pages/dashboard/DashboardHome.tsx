@@ -138,6 +138,14 @@ const DashboardHome = ({ finance }: Props) => {
             <p className="text-sm text-muted-foreground">Comece adicionando suas receitas e despesas.</p>
           </motion.div>
         )}
+        <ScoreFinanceiro
+          receitas={receitas}
+          despesas={despesas}
+          totalReceitas={totalReceitas}
+          totalDespesas={totalDespesas}
+          saldo={saldo}
+          metas={metas}
+        />
       </div>
     );
   }
@@ -405,6 +413,15 @@ const DashboardHome = ({ finance }: Props) => {
             )}
           </motion.div>
         </div>
+
+        <ScoreFinanceiro
+          receitas={receitas}
+          despesas={despesas}
+          totalReceitas={totalReceitas}
+          totalDespesas={totalDespesas}
+          saldo={saldo}
+          metas={metas}
+        />
       </div>
     );
   }
