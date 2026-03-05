@@ -12,6 +12,9 @@ import ConfigPage from "@/pages/dashboard/ConfigPage";
 import ChatPage from "@/pages/dashboard/ChatPage";
 import AdminPage from "@/pages/dashboard/AdminPage";
 import WhatsAppPage from "@/pages/dashboard/WhatsAppPage";
+import FluxoCaixaPage from "@/pages/dashboard/FluxoCaixaPage";
+import ClientesPage from "@/pages/dashboard/ClientesPage";
+import VendasPage from "@/pages/dashboard/VendasPage";
 import NotificationPopup from "@/components/dashboard/NotificationPopup";
 import AdminBroadcastBanner from "@/components/dashboard/AdminBroadcastBanner";
 
@@ -38,6 +41,9 @@ const Dashboard = () => {
         <Route path="receitas" element={<ReceitasPage finance={finance} />} />
         <Route path="despesas" element={<DespesasPage finance={finance} />} />
         <Route path="metas" element={<MetasPage finance={finance} />} />
+        <Route path="fluxo-caixa" element={<FluxoCaixaPage finance={finance} />} />
+        <Route path="clientes" element={<ClientesPage isPremium={finance.isPremium} />} />
+        <Route path="vendas" element={<VendasPage isPremium={finance.isPremium} />} />
         <Route path="relatorios" element={<RelatoriosPage finance={finance} />} />
         <Route path="config" element={<ConfigPage finance={finance} />} />
         <Route path="chat" element={<ChatPage isPremium={finance.isPremium} />} />

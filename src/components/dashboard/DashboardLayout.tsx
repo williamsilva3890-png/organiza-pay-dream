@@ -5,6 +5,7 @@ import {
   LayoutDashboard, ArrowUpCircle, ArrowDownCircle, Target,
   FileBarChart, Settings, Menu, LogOut, Crown, Camera, ShieldCheck,
   ChevronLeft, ChevronRight, MessageCircle, Phone,
+  ArrowRightLeft, Users, ShoppingBag,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
@@ -18,6 +19,9 @@ const navItems = [
   { icon: ArrowUpCircle, label: "Renda", path: "/dashboard/receitas" },
   { icon: ArrowDownCircle, label: "Despesas", path: "/dashboard/despesas" },
   { icon: Target, label: "Metas", path: "/dashboard/metas" },
+  { icon: ArrowRightLeft, label: "Fluxo de Caixa", path: "/dashboard/fluxo-caixa" },
+  { icon: Users, label: "Clientes", path: "/dashboard/clientes" },
+  { icon: ShoppingBag, label: "Vendas", path: "/dashboard/vendas" },
   { icon: FileBarChart, label: "Relatórios", path: "/dashboard/relatorios" },
   { icon: Settings, label: "Configurações", path: "/dashboard/config" },
   { icon: MessageCircle, label: "Chat", path: "/dashboard/chat" },

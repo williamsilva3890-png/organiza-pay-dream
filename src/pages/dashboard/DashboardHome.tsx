@@ -6,6 +6,7 @@ import {
   CartesianGrid, AreaChart, Area, LineChart, Line, Legend, RadialBarChart, RadialBar,
 } from "recharts";
 import { Progress } from "@/components/ui/progress";
+import ScoreFinanceiro from "@/components/dashboard/ScoreFinanceiro";
 import type { useFinanceData } from "@/hooks/useFinanceData";
 
 const DEFAULT_CATEGORY_COLORS: Record<string, string> = {
@@ -641,6 +642,16 @@ const DashboardHome = ({ finance }: Props) => {
           </div>
         </motion.div>
       )}
+
+      {/* Score + Thermometer + Spending Map + Detector */}
+      <ScoreFinanceiro
+        receitas={receitas}
+        despesas={despesas}
+        totalReceitas={totalReceitas}
+        totalDespesas={totalDespesas}
+        saldo={saldo}
+        metas={metas}
+      />
     </div>
   );
 };
