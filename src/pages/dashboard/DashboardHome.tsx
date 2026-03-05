@@ -7,6 +7,7 @@ import {
 } from "recharts";
 import { Progress } from "@/components/ui/progress";
 import ScoreFinanceiro from "@/components/dashboard/ScoreFinanceiro";
+import Conquistas from "@/components/dashboard/Conquistas";
 import type { useFinanceData } from "@/hooks/useFinanceData";
 
 const DEFAULT_CATEGORY_COLORS: Record<string, string> = {
@@ -145,6 +146,13 @@ const DashboardHome = ({ finance }: Props) => {
           totalDespesas={totalDespesas}
           saldo={saldo}
           metas={metas}
+        />
+        <Conquistas
+          receitas={receitas}
+          despesas={despesas}
+          metas={metas}
+          totalReceitas={totalReceitas}
+          totalDespesas={totalDespesas}
         />
       </div>
     );
@@ -422,6 +430,13 @@ const DashboardHome = ({ finance }: Props) => {
           saldo={saldo}
           metas={metas}
         />
+        <Conquistas
+          receitas={receitas}
+          despesas={despesas}
+          metas={metas}
+          totalReceitas={totalReceitas}
+          totalDespesas={totalDespesas}
+        />
       </div>
     );
   }
@@ -668,6 +683,13 @@ const DashboardHome = ({ finance }: Props) => {
         totalDespesas={totalDespesas}
         saldo={saldo}
         metas={metas}
+      />
+      <Conquistas
+        receitas={receitas}
+        despesas={despesas}
+        metas={metas}
+        totalReceitas={totalReceitas}
+        totalDespesas={totalDespesas}
       />
     </div>
   );
