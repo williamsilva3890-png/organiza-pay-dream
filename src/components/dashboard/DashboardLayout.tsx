@@ -38,7 +38,7 @@ interface DashboardLayoutProps {
 }
 
 const DashboardLayout = ({ children, profile, isPremium, onProfileUpdate, isAdmin, subscription }: DashboardLayoutProps) => {
-  const isEntrepreneur = profile?.profile_type === "micro_empreendedor";
+  const isEntrepreneur = profile?.profile_type === "empreendedor";
   const navItems = baseNavItems;
   const location = useLocation();
   const navigate = useNavigate();

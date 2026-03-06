@@ -33,7 +33,7 @@ const Dashboard = () => {
 
   if (!user) return <Navigate to="/login" replace />;
 
-  const isEntrepreneur = finance.profile?.profile_type === "micro_empreendedor";
+  const isEntrepreneur = finance.profile?.profile_type === "empreendedor";
 
   return (
     <DashboardLayout profile={finance.profile} isPremium={finance.isPremium} onProfileUpdate={finance.fetchAll} isAdmin={isAdmin} subscription={finance.subscription}>
