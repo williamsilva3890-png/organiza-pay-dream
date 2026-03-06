@@ -33,6 +33,8 @@ const Dashboard = () => {
 
   if (!user) return <Navigate to="/login" replace />;
 
+  const isEntrepreneur = finance.profile?.profile_type === "micro_empreendedor";
+
   return (
     <DashboardLayout profile={finance.profile} isPremium={finance.isPremium} onProfileUpdate={finance.fetchAll} isAdmin={isAdmin} subscription={finance.subscription}>
       <AdminBroadcastBanner />
@@ -41,9 +43,9 @@ const Dashboard = () => {
         <Route path="receitas" element={<ReceitasPage finance={finance} />} />
         <Route path="despesas" element={<DespesasPage finance={finance} />} />
         <Route path="metas" element={<MetasPage finance={finance} />} />
-        <Route path="fluxo-caixa" element={<FluxoCaixaPage finance={finance} />} />
-        <Route path="clientes" element={<ClientesPage isPremium={finance.isPremium} />} />
-        <Route path="vendas" element={<VendasPage isPremium={finance.isPremium} />} />
+        {isEntrepreneur && <Route path="fluxo-caixa" element={<FluxoCaixaPage finance={finance} />} />}
+        {isEntrepreneur && <Route path="clientes" element={<ClientesPage isPremium={finance.isPremium} />} />}
+        {isEntrepreneur && <Route path="vendas" element={<VendasPage isPremium={finance.isPremium} />} />}
         <Route path="relatorios" element={<RelatoriosPage finance={finance} />} />
         <Route path="config" element={<ConfigPage finance={finance} />} />
         <Route path="chat" element={<ChatPage isPremium={finance.isPremium} />} />

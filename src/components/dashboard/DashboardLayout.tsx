@@ -14,18 +14,18 @@ import type { Profile } from "@/hooks/useFinanceData";
 import logoImg from "@/assets/logo.png";
 import { toast } from "sonner";
 
-const navItems = [
-  { icon: LayoutDashboard, label: "Painel", path: "/dashboard" },
-  { icon: ArrowUpCircle, label: "Renda", path: "/dashboard/receitas" },
-  { icon: ArrowDownCircle, label: "Despesas", path: "/dashboard/despesas" },
-  { icon: Target, label: "Metas", path: "/dashboard/metas" },
-  { icon: ArrowRightLeft, label: "Fluxo de Caixa", path: "/dashboard/fluxo-caixa" },
-  { icon: Users, label: "Clientes", path: "/dashboard/clientes" },
-  { icon: ShoppingBag, label: "Vendas", path: "/dashboard/vendas" },
-  { icon: FileBarChart, label: "Relatórios", path: "/dashboard/relatorios" },
-  { icon: Settings, label: "Configurações", path: "/dashboard/config" },
-  { icon: MessageCircle, label: "Chat", path: "/dashboard/chat" },
-  { icon: Phone, label: "WhatsApp", path: "/dashboard/whatsapp" },
+const baseNavItems = [
+  { icon: LayoutDashboard, label: "Painel", path: "/dashboard", entrepreneurOnly: false },
+  { icon: ArrowUpCircle, label: "Renda", path: "/dashboard/receitas", entrepreneurOnly: false },
+  { icon: ArrowDownCircle, label: "Despesas", path: "/dashboard/despesas", entrepreneurOnly: false },
+  { icon: Target, label: "Metas", path: "/dashboard/metas", entrepreneurOnly: false },
+  { icon: ArrowRightLeft, label: "Fluxo de Caixa", path: "/dashboard/fluxo-caixa", entrepreneurOnly: true },
+  { icon: Users, label: "Clientes", path: "/dashboard/clientes", entrepreneurOnly: true },
+  { icon: ShoppingBag, label: "Vendas", path: "/dashboard/vendas", entrepreneurOnly: true },
+  { icon: FileBarChart, label: "Relatórios", path: "/dashboard/relatorios", entrepreneurOnly: false },
+  { icon: Settings, label: "Configurações", path: "/dashboard/config", entrepreneurOnly: false },
+  { icon: MessageCircle, label: "Chat", path: "/dashboard/chat", entrepreneurOnly: false },
+  { icon: Phone, label: "WhatsApp", path: "/dashboard/whatsapp", entrepreneurOnly: false },
 ];
 
 interface DashboardLayoutProps {
@@ -38,6 +38,8 @@ interface DashboardLayoutProps {
 }
 
 const DashboardLayout = ({ children, profile, isPremium, onProfileUpdate, isAdmin, subscription }: DashboardLayoutProps) => {
+  const isEntrepreneur = profile?.profile_type === "micro_empreendedor";
+  const navItems = baseNavItems;
   const location = useLocation();
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
@@ -200,7 +202,7 @@ const DashboardLayout = ({ children, profile, isPremium, onProfileUpdate, isAdmi
 
         {/* Nav */}
         <nav className="flex-1 px-2 py-4 space-y-1 overflow-y-auto scrollbar-thin">
-          {navItems.map((item) => {
+          {navItems.filter(item => !item.entrepreneurOnly || isEntrepreneur).map((item) => {
             const isActive = location.pathname === item.path;
             return (
               <Link key={item.path} to={item.path} onClick={() => setSidebarOpen(false)}
