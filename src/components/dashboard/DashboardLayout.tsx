@@ -200,7 +200,7 @@ const DashboardLayout = ({ children, profile, isPremium, onProfileUpdate, isAdmi
 
         {/* Nav */}
         <nav className="flex-1 px-2 py-4 space-y-1 overflow-y-auto scrollbar-thin">
-          {navItems.map((item) => {
+          {navItems.filter(item => !item.entrepreneurOnly || isEntrepreneur).map((item) => {
             const isActive = location.pathname === item.path;
             return (
               <Link key={item.path} to={item.path} onClick={() => setSidebarOpen(false)}
