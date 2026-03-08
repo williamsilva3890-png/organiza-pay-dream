@@ -5,7 +5,7 @@ import {
   LayoutDashboard, ArrowUpCircle, ArrowDownCircle, Target,
   FileBarChart, Settings, Menu, LogOut, Crown, Camera, ShieldCheck,
   ChevronLeft, ChevronRight, MessageCircle, Phone,
-  ArrowRightLeft, Users, ShoppingBag,
+  ArrowRightLeft, Users, ShoppingBag, Bell, BellOff,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
@@ -13,6 +13,7 @@ import { supabase } from "@/integrations/supabase/client";
 import type { Profile } from "@/hooks/useFinanceData";
 import logoImg from "@/assets/logo.png";
 import { toast } from "sonner";
+import { usePushNotificationToggle } from "@/hooks/usePushNotificationToggle";
 
 const baseNavItems = [
   { icon: LayoutDashboard, label: "Painel", path: "/dashboard", entrepreneurOnly: false },
@@ -43,6 +44,7 @@ const DashboardLayout = ({ children, profile, isPremium, onProfileUpdate, isAdmi
   const location = useLocation();
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
+  const { isSubscribed, loading: pushLoading, supported: pushSupported, toggle: togglePush } = usePushNotificationToggle(user?.id);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => localStorage.getItem("sidebar-collapsed") === "true");
   const [cropDialogOpen, setCropDialogOpen] = useState(false);
@@ -182,7 +184,24 @@ const DashboardLayout = ({ children, profile, isPremium, onProfileUpdate, isAdmi
             </div>
             {!sidebarCollapsed && (
               <div className="text-center mt-1">
-                <p className="text-sm font-semibold text-sidebar-foreground truncate max-w-[180px]">{displayName}</p>
+                <div className="flex items-center justify-center gap-1.5">
+                  <p className="text-sm font-semibold text-sidebar-foreground truncate max-w-[150px]">{displayName}</p>
+                  {pushSupported && (
+                    <button
+                      onClick={(e) => { e.stopPropagation(); togglePush(); }}
+                      disabled={pushLoading}
+                      title={isSubscribed ? "Desativar notificações" : "Ativar notificações"}
+                      className={cn(
+                        "p-0.5 rounded-full transition-colors shrink-0",
+                        isSubscribed
+                          ? "text-sidebar-primary hover:text-sidebar-primary/80"
+                          : "text-sidebar-foreground/40 hover:text-sidebar-foreground/70"
+                      )}
+                    >
+                      {isSubscribed ? <Bell className="w-3.5 h-3.5" /> : <BellOff className="w-3.5 h-3.5" />}
+                    </button>
+                  )}
+                </div>
                 <p className="text-[11px] text-sidebar-foreground/50 truncate max-w-[180px]">{user?.email}</p>
                 {isPremium && (
                   <span className="inline-flex items-center gap-1 text-[10px] font-bold bg-gradient-to-r from-sidebar-primary to-sidebar-primary/80 text-sidebar-primary-foreground rounded-full px-2 py-0.5 mt-1.5">
