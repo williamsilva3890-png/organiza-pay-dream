@@ -23,6 +23,7 @@ const Dashboard = () => {
   const { user, loading: authLoading } = useAuth();
   const finance = useFinanceData();
   const { isAdmin } = useAdmin();
+  usePushSubscription(user?.id);
 
   if (authLoading) {
     return (
