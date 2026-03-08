@@ -240,8 +240,8 @@ const DashboardHome = ({ finance }: Props) => {
                     <stop offset="95%" stopColor="hsl(var(--chart-expense))" stopOpacity={0} />
                   </linearGradient>
                   <linearGradient id="advGradSaldo" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.2} />
-                    <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
+                    <stop offset="5%" stopColor="hsl(var(--success))" stopOpacity={0.2} />
+                    <stop offset="95%" stopColor="hsl(var(--success))" stopOpacity={0} />
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
@@ -251,7 +251,7 @@ const DashboardHome = ({ finance }: Props) => {
                 <Legend verticalAlign="top" height={36} iconType="line" wrapperStyle={{ fontSize: "11px" }} />
                 <Area type="monotone" dataKey="receitas" name="Renda" stroke="hsl(var(--chart-income))" fill="url(#advGradIncome)" strokeWidth={2.5} dot={{ r: 3, fill: "hsl(var(--chart-income))", strokeWidth: 0 }} />
                 <Area type="monotone" dataKey="despesas" name="Despesas" stroke="hsl(var(--chart-expense))" fill="url(#advGradExpense)" strokeWidth={2.5} dot={{ r: 3, fill: "hsl(var(--chart-expense))", strokeWidth: 0 }} />
-                <Area type="monotone" dataKey="saldo" name="Saldo" stroke="hsl(var(--primary))" fill="url(#advGradSaldo)" strokeWidth={2} dot={{ r: 3, fill: "hsl(var(--primary))", strokeWidth: 0 }} strokeDasharray="5 3" />
+                <Area type="monotone" dataKey="saldo" name="Saldo" stroke="hsl(var(--success))" fill="url(#advGradSaldo)" strokeWidth={2} dot={{ r: 3, fill: "hsl(var(--success))", strokeWidth: 0 }} strokeDasharray="5 3" />
               </AreaChart>
             </ResponsiveContainer>
           ) : (
@@ -538,8 +538,8 @@ const DashboardHome = ({ finance }: Props) => {
                         <stop offset="95%" stopColor="hsl(var(--chart-expense))" stopOpacity={0} />
                       </linearGradient>
                       <linearGradient id="normGradSaldo" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.2} />
-                        <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
+                        <stop offset="5%" stopColor="hsl(var(--success))" stopOpacity={0.2} />
+                        <stop offset="95%" stopColor="hsl(var(--success))" stopOpacity={0} />
                       </linearGradient>
                     </defs>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
@@ -549,7 +549,7 @@ const DashboardHome = ({ finance }: Props) => {
                     <Legend verticalAlign="top" height={36} iconType="line" wrapperStyle={{ fontSize: "11px" }} />
                     <Area type="monotone" dataKey="receitas" name="Renda" stroke="hsl(var(--chart-income))" fill="url(#normGradInc)" strokeWidth={2.5} dot={{ r: 3, fill: "hsl(var(--chart-income))", strokeWidth: 0 }} />
                     <Area type="monotone" dataKey="despesas" name="Despesas" stroke="hsl(var(--chart-expense))" fill="url(#normGradExp)" strokeWidth={2.5} dot={{ r: 3, fill: "hsl(var(--chart-expense))", strokeWidth: 0 }} />
-                    <Area type="monotone" dataKey="saldo" name="Saldo" stroke="hsl(var(--primary))" fill="url(#normGradSaldo)" strokeWidth={2} dot={{ r: 3, fill: "hsl(var(--primary))", strokeWidth: 0 }} strokeDasharray="5 3" />
+                    <Area type="monotone" dataKey="saldo" name="Saldo" stroke="hsl(var(--success))" fill="url(#normGradSaldo)" strokeWidth={2} dot={{ r: 3, fill: "hsl(var(--success))", strokeWidth: 0 }} strokeDasharray="5 3" />
                   </AreaChart>
                 </ResponsiveContainer>
               ) : (
