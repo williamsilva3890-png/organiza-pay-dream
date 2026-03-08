@@ -164,13 +164,24 @@ const AdminPage = () => {
   const sendBroadcast = async () => {
     if (!msgTitle.trim() || !msgBody.trim() || !user) return;
     setSending(true);
+    const titleText = msgTitle.trim();
+    const bodyText = msgBody.trim();
     const { error } = await supabase.from("admin_messages").insert({
-      title: msgTitle.trim(),
-      message: msgBody.trim(),
+      title: titleText,
+      message: bodyText,
       created_by: user.id,
     } as any);
     if (error) { toast.error("Erro ao enviar mensagem"); setSending(false); return; }
     toast.success("Mensagem enviada para todos os usuários!");
+    // Send push notification to all users
+    supabase.functions.invoke("send-push", {
+      body: {
+        type: "to_all",
+        title: `📢 ${titleText}`,
+        body: bodyText.slice(0, 150),
+        url: "/dashboard",
+      },
+    }).catch(() => {});
     setMsgTitle("");
     setMsgBody("");
     setSending(false);
