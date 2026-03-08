@@ -5,3 +5,9 @@ verify_jwt = false
 
 [functions.tribopay-webhook]
 verify_jwt = false
+
+[functions.send-push]
+verify_jwt = false
+
+[functions.send-daily-push]
+verify_jwt = false
