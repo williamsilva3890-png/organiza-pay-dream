@@ -5,7 +5,7 @@ import {
   LayoutDashboard, ArrowUpCircle, ArrowDownCircle, Target,
   FileBarChart, Settings, Menu, LogOut, Crown, Camera, ShieldCheck,
   ChevronLeft, ChevronRight, MessageCircle, Phone,
-  ArrowRightLeft, Users, ShoppingBag,
+  ArrowRightLeft, Users, ShoppingBag, Bell, BellOff,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
@@ -13,6 +13,7 @@ import { supabase } from "@/integrations/supabase/client";
 import type { Profile } from "@/hooks/useFinanceData";
 import logoImg from "@/assets/logo.png";
 import { toast } from "sonner";
+import { usePushNotificationToggle } from "@/hooks/usePushNotificationToggle";
 
 const baseNavItems = [
   { icon: LayoutDashboard, label: "Painel", path: "/dashboard", entrepreneurOnly: false },
