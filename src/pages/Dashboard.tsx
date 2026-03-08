@@ -1,5 +1,6 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { usePushSubscription } from "@/hooks/usePushSubscription";
 import { useFinanceData } from "@/hooks/useFinanceData";
 import { useAdmin } from "@/hooks/useAdmin";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
@@ -22,6 +23,7 @@ const Dashboard = () => {
   const { user, loading: authLoading } = useAuth();
   const finance = useFinanceData();
   const { isAdmin } = useAdmin();
+  usePushSubscription(user?.id);
 
   if (authLoading) {
     return (
