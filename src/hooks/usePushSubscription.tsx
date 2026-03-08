@@ -23,7 +23,7 @@ export function usePushSubscription(userId: string | undefined) {
           return;
         }
 
-        const applicationServerKey = urlBase64ToUint8Array(data.publicKey);
+        const applicationServerKey = urlBase64ToUint8Array(data.publicKey) as unknown as BufferSource;
 
         const subscription = await reg.pushManager.subscribe({
           userVisibleOnly: true,
