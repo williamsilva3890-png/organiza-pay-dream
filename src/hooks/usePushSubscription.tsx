@@ -4,19 +4,25 @@ import { supabase } from "@/integrations/supabase/client";
 export function usePushSubscription(userId: string | undefined) {
   useEffect(() => {
     if (!userId) return;
-    if (!("serviceWorker" in navigator) || !("PushManager" in window)) return;
+    if (!("serviceWorker" in navigator) || !("PushManager" in window) || !("Notification" in window)) return;
 
     const subscribe = async () => {
       try {
+        // Request permission if not yet decided
+        if (Notification.permission === "default") {
+          const result = await Notification.requestPermission();
+          if (result !== "granted") return;
+        }
+
+        if (Notification.permission !== "granted") return;
+
         const reg = await navigator.serviceWorker.ready;
         const existingSub = await reg.pushManager.getSubscription();
         if (existingSub) {
-          // Already subscribed, ensure it's in DB
           await saveSubscription(userId, existingSub);
           return;
         }
 
-        // Get VAPID public key from edge function
         const { data, error } = await supabase.functions.invoke("get-vapid-key");
         if (error || !data?.publicKey) {
           console.log("Could not get VAPID key:", error);
@@ -24,19 +30,21 @@ export function usePushSubscription(userId: string | undefined) {
         }
 
         const applicationServerKey = urlBase64ToUint8Array(data.publicKey) as unknown as BufferSource;
-
         const subscription = await reg.pushManager.subscribe({
           userVisibleOnly: true,
           applicationServerKey,
         });
 
         await saveSubscription(userId, subscription);
+        console.log("Push subscription successful");
       } catch (err) {
         console.log("Push subscription failed:", err);
       }
     };
 
-    subscribe();
+    // Small delay to let the app load first
+    const timer = setTimeout(subscribe, 2000);
+    return () => clearTimeout(timer);
   }, [userId]);
 }
 
