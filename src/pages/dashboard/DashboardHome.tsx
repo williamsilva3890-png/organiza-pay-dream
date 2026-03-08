@@ -259,33 +259,31 @@ const DashboardHome = ({ finance }: Props) => {
           )}
         </motion.div>
 
-        {/* Horizontal bar charts */}
-          <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}
-            className="bg-card rounded-xl p-5 border border-border shadow-card">
-            <h3 className="font-display font-bold text-sm mb-4">Categorias</h3>
-            <div className="space-y-3">
-              {topCategories.length > 0 ? topCategories.map((cat) => (
-                <div key={cat.name}>
-                  <div className="flex items-center justify-between text-xs mb-1">
-                    <span className="text-muted-foreground">{cat.name}</span>
-                    <span className="font-medium">{fmt(cat.value)}</span>
-                  </div>
-                  <div className="w-full h-3 bg-muted rounded-full overflow-hidden">
-                    <motion.div
-                      initial={{ width: 0 }}
-                      animate={{ width: `${(cat.value / maxCatValue) * 100}%` }}
-                      transition={{ duration: 0.8, delay: 0.3 }}
-                      className="h-full rounded-full"
-                      style={{ background: cat.color }}
-                    />
-                  </div>
+        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}
+          className="bg-card rounded-xl p-5 border border-border shadow-card">
+          <h3 className="font-display font-bold text-sm mb-4">Top Categorias</h3>
+          <div className="space-y-3">
+            {topCategories.length > 0 ? topCategories.map((cat) => (
+              <div key={cat.name}>
+                <div className="flex items-center justify-between text-xs mb-1">
+                  <span className="text-muted-foreground">{cat.name}</span>
+                  <span className="font-medium">{fmt(cat.value)}</span>
                 </div>
-              )) : (
-                <p className="text-xs text-muted-foreground text-center py-4">Sem dados</p>
-              )}
-            </div>
-          </motion.div>
-        </div>
+                <div className="w-full h-3 bg-muted rounded-full overflow-hidden">
+                  <motion.div
+                    initial={{ width: 0 }}
+                    animate={{ width: `${(cat.value / maxCatValue) * 100}%` }}
+                    transition={{ duration: 0.8, delay: 0.3 }}
+                    className="h-full rounded-full"
+                    style={{ background: cat.color }}
+                  />
+                </div>
+              </div>
+            )) : (
+              <p className="text-xs text-muted-foreground text-center py-4">Sem dados</p>
+            )}
+          </div>
+        </motion.div>
 
         {/* Row 2: Two large stat cards with sparklines */}
         <div className="grid sm:grid-cols-2 gap-4">
