@@ -46,6 +46,19 @@ export function usePushNotificationToggle(userId: string | undefined) {
         setIsSubscribed(false);
         toast.success("Notificações desativadas");
       } else {
+        // Request permission first
+        if (Notification.permission === "default") {
+          const result = await Notification.requestPermission();
+          if (result !== "granted") {
+            toast.error("Permissão de notificação negada. Ative nas configurações do navegador.");
+            return;
+          }
+        }
+        if (Notification.permission !== "granted") {
+          toast.error("Permissão de notificação bloqueada. Ative nas configurações do navegador.");
+          return;
+        }
+
         // Subscribe
         const { data, error } = await supabase.functions.invoke("get-vapid-key");
         if (error || !data?.publicKey) {
