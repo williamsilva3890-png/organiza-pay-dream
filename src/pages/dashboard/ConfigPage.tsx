@@ -51,18 +51,27 @@ const SuggestionForm = ({ user, profile }: { user: any; profile: any }) => {
   const handleSend = async () => {
     if (!message.trim() || !user) return;
     setSending(true);
+    const msgText = message.trim();
     const { error } = await supabase.from("suggestions").insert({
       user_id: user.id,
       user_email: user.email,
       user_name: profile?.display_name || "Usuário",
       category: "Sugestão",
-      message: message.trim(),
+      message: msgText,
     } as any);
     if (error) {
       toast.error("Erro ao enviar sugestão");
     } else {
       toast.success("Sugestão enviada com sucesso! 🎉");
       setMessage("");
+      supabase.functions.invoke("send-push", {
+        body: {
+          type: "to_admin",
+          title: `💡 Nova sugestão de ${profile?.display_name || "Usuário"}`,
+          body: msgText.slice(0, 100),
+          url: "/dashboard/admin",
+        },
+      }).catch(() => {});
     }
     setSending(false);
   };

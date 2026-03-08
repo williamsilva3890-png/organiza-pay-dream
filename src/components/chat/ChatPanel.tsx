@@ -80,15 +80,30 @@ const ChatPanel = ({ chatType, user, isAdmin, displayName, profiles }: ChatPanel
   const handleSend = async () => {
     if (!newMessage.trim() || !user) return;
     setSending(true);
+    const msgText = newMessage.trim();
     const { error } = await supabase.from("chat_messages").insert({
       user_id: user.id,
       user_name: displayName,
       user_email: user.email,
-      message: newMessage.trim(),
+      message: msgText,
       chat_type: chatType,
     } as any);
-    if (error) toast.error("Erro ao enviar mensagem");
-    else setNewMessage("");
+    if (error) {
+      toast.error("Erro ao enviar mensagem");
+    } else {
+      setNewMessage("");
+      // Notify admin when user sends support message
+      if (chatType.startsWith("admin-") && !isAdmin) {
+        supabase.functions.invoke("send-push", {
+          body: {
+            type: "to_admin",
+            title: `💬 Nova mensagem de ${displayName}`,
+            body: msgText.slice(0, 100),
+            url: "/dashboard/admin",
+          },
+        }).catch(() => {});
+      }
+    }
     setSending(false);
   };
 
