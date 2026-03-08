@@ -356,22 +356,23 @@ const DashboardHome = ({ finance }: Props) => {
             )}
           </motion.div>
 
-          {/* Savings rate radial + donut */}
+          {/* Savings rate card */}
           <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.45 }}
-            className="bg-card rounded-xl p-5 border border-border shadow-card flex flex-col items-center justify-center">
-            <h3 className="font-display font-bold text-sm mb-2 self-start">Taxa de economia</h3>
-            <div className="w-36 h-36 relative my-2">
-              <ResponsiveContainer width="100%" height="100%">
-                <RadialBarChart cx="50%" cy="50%" innerRadius="70%" outerRadius="100%" barSize={14} data={radialData} startAngle={90} endAngle={-270}>
-                  <RadialBar background={{ fill: "hsl(var(--muted))" }} dataKey="value" cornerRadius={10} />
-                </RadialBarChart>
-              </ResponsiveContainer>
-              <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <span className="font-display font-bold text-3xl">{savingsRate}%</span>
-                <span className="text-[10px] text-muted-foreground">economizado</span>
-              </div>
+            className="bg-card rounded-xl p-5 border border-border shadow-card flex flex-col justify-center">
+            <h3 className="font-display font-bold text-sm mb-4">Taxa de economia</h3>
+            <div className="text-center mb-4">
+              <span className="font-display font-bold text-5xl text-primary">{savingsRate}%</span>
+              <p className="text-xs text-muted-foreground mt-1">economizado este mês</p>
             </div>
-            <p className="text-xs text-muted-foreground mt-1">{fmt(Math.max(0, saldo))} guardado este mês</p>
+            <div className="w-full h-3 bg-muted rounded-full overflow-hidden mb-2">
+              <motion.div
+                initial={{ width: 0 }}
+                animate={{ width: `${Math.min(savingsRate, 100)}%` }}
+                transition={{ duration: 1, delay: 0.5 }}
+                className="h-full rounded-full bg-primary"
+              />
+            </div>
+            <p className="text-xs text-muted-foreground text-center">{fmt(Math.max(0, saldo))} guardado</p>
           </motion.div>
         </div>
 
