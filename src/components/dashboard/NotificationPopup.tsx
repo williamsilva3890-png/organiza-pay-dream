@@ -12,9 +12,12 @@ interface Props {
 
 const fmt = (v: number) => `R$ ${v.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`;
 
+const todayKey = (prefix: string) => `${prefix}-${new Date().toISOString().slice(0, 10)}`;
+
+const wasShownToday = (key: string) => localStorage.getItem(todayKey(key)) === "1";
+const markShownToday = (key: string) => localStorage.setItem(todayKey(key), "1");
+
 const NotificationPopup = ({ totalReceitas, totalDespesas, saldo, metasCount, despesasPendentes = 0, expiresAt }: Props) => {
-  const prevDespesas = useRef(totalDespesas);
-  const prevReceitas = useRef(totalReceitas);
   const initialized = useRef(false);
 
   // Request notification permission on mount
@@ -22,70 +25,78 @@ const NotificationPopup = ({ totalReceitas, totalDespesas, saldo, metasCount, de
     if ("Notification" in window && Notification.permission === "default") {
       Notification.requestPermission();
     }
+    registerServiceWorker();
   }, []);
 
-  // Subscription expiration alerts
+  // Subscription expiration alerts — once per day
   useEffect(() => {
     if (!expiresAt) return;
     const expDate = new Date(expiresAt);
     const now = new Date();
     const diffDays = Math.ceil((expDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
-    const todayKey = `exp-notif-${now.toISOString().slice(0, 10)}`;
 
-    if (localStorage.getItem(todayKey)) return;
-
-    if (diffDays === 1) {
-      localStorage.setItem(todayKey, "1");
+    if (diffDays === 1 && !wasShownToday("exp-notif")) {
+      markShownToday("exp-notif");
       const msg = "Seu plano Premium vence amanhã! Renove para não perder os benefícios.";
       toast.warning("⏰ Plano vencendo amanhã!", { description: msg, duration: 10000 });
       sendPushNotification("⏰ Plano vencendo amanhã!", msg);
-    } else if (diffDays <= 0) {
-      localStorage.setItem(todayKey, "1");
+    } else if (diffDays <= 0 && !wasShownToday("exp-notif")) {
+      markShownToday("exp-notif");
       const msg = "Seu plano Premium venceu! Renove agora para continuar usando todos os recursos.";
       toast.error("🚨 Plano Premium vencido!", { description: msg, duration: 10000 });
       sendPushNotification("🚨 Plano Premium vencido!", msg);
     }
   }, [expiresAt]);
 
-  // Triggered notifications - only when values change
+  // Spending alerts — once per day each
   useEffect(() => {
     if (!initialized.current) {
       initialized.current = true;
-      prevDespesas.current = totalDespesas;
-      prevReceitas.current = totalReceitas;
-      return;
     }
 
-    if (totalDespesas > totalReceitas && totalReceitas > 0 && prevDespesas.current <= totalReceitas) {
+    if (totalReceitas <= 0) return;
+
+    // Over budget alert — once per day
+    if (totalDespesas > totalReceitas && !wasShownToday("notif-over-budget")) {
+      markShownToday("notif-over-budget");
       const excess = totalDespesas - totalReceitas;
       const msg = `Opa! Você está gastando ${fmt(excess)} além do seu limite de renda!`;
       toast.error("⚠️ Gastos acima da renda!", { description: msg, duration: 8000 });
       sendPushNotification("⚠️ Gastos acima da renda!", msg);
     }
 
-    if (totalDespesas > totalReceitas * 0.8 && totalDespesas <= totalReceitas && totalReceitas > 0 && prevDespesas.current <= totalReceitas * 0.8) {
+    // Near limit alert — once per day
+    if (totalDespesas > totalReceitas * 0.8 && totalDespesas <= totalReceitas && !wasShownToday("notif-near-limit")) {
+      markShownToday("notif-near-limit");
       const pct = Math.round((totalDespesas / totalReceitas) * 100);
-      const msg = `Você já usou ${pct}% da sua renda. Reste apenas ${fmt(totalReceitas - totalDespesas)} disponível.`;
+      const msg = `Você já usou ${pct}% da sua renda. Resta apenas ${fmt(totalReceitas - totalDespesas)} disponível.`;
       toast.warning("🔥 Quase no limite!", { description: msg, duration: 6000 });
       sendPushNotification("🔥 Quase no limite!", msg);
     }
-
-    if (totalReceitas > prevReceitas.current && prevReceitas.current > 0) {
-      const diff = totalReceitas - prevReceitas.current;
-      toast.success("💰 Nova renda adicionada!", { description: `+${fmt(diff)} adicionado à sua renda total.`, duration: 4000 });
-    }
-
-    prevDespesas.current = totalDespesas;
-    prevReceitas.current = totalReceitas;
   }, [totalDespesas, totalReceitas]);
 
-  // Daily summary at 23:00
+  // Daily reminder: "Já adicionou seus gastos hoje?" — once per day on app open
+  useEffect(() => {
+    if (!wasShownToday("notif-daily-reminder")) {
+      markShownToday("notif-daily-reminder");
+      // Small delay so it doesn't clash with other toasts
+      const timer = setTimeout(() => {
+        toast.info("📝 Já adicionou seus gastos hoje?", {
+          description: "Mantenha suas finanças em dia registrando suas despesas diariamente!",
+          duration: 8000,
+        });
+        sendPushNotification("📝 Já adicionou seus gastos hoje?", "Mantenha suas finanças em dia registrando suas despesas diariamente!");
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, []);
+
+  // Daily summary at 23:00 — once per day
   useEffect(() => {
     const checkTime = () => {
       const now = new Date();
-      const todayKey = `notif-${now.toISOString().slice(0, 10)}`;
-      if (now.getHours() === 23 && now.getMinutes() < 5 && !localStorage.getItem(todayKey)) {
-        localStorage.setItem(todayKey, "1");
+      if (now.getHours() === 23 && now.getMinutes() < 5 && !wasShownToday("notif-summary")) {
+        markShownToday("notif-summary");
         const msg = `Saldo: ${fmt(saldo)} | Receitas: ${fmt(totalReceitas)} | Despesas: ${fmt(totalDespesas)}`;
         toast.info("📊 Resumo do dia", { description: msg, duration: 10000 });
         sendPushNotification("📊 Resumo do dia - OrganizaPay", msg);
@@ -101,7 +112,24 @@ const NotificationPopup = ({ totalReceitas, totalDespesas, saldo, metasCount, de
 
 function sendPushNotification(title: string, body: string) {
   if ("Notification" in window && Notification.permission === "granted") {
-    new Notification(title, { body, icon: "/favicon.ico" });
+    // Use service worker notification if available (works even when tab is in background)
+    if ("serviceWorker" in navigator && navigator.serviceWorker.controller) {
+      navigator.serviceWorker.controller.postMessage({
+        type: "SHOW_NOTIFICATION",
+        title,
+        body,
+      });
+    } else {
+      new Notification(title, { body, icon: "/favicon.png", badge: "/icon-192.png" });
+    }
+  }
+}
+
+function registerServiceWorker() {
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("/sw.js").catch(() => {
+      // Service worker registration failed silently
+    });
   }
 }
 
