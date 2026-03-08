@@ -479,54 +479,83 @@ const DashboardHome = ({ finance }: Props) => {
   // ===== NORMAL (default) =====
   return (
     <div className="space-y-6">
-      {/* Modern gauge cards */}
+      {/* Stat cards + Area chart */}
       {(() => {
         const now = new Date();
         const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
         const dayOfMonth = now.getDate();
         const dailyAvg = dayOfMonth > 0 ? Math.round(totalDespesas / dayOfMonth) : 0;
-        const monthIndex = now.getMonth();
         const lastMD = monthlyData[monthlyData.length - 2];
         const thisMD = monthlyData[monthlyData.length - 1];
         const incomePct = lastMD && lastMD.receitas > 0 ? Math.round(((thisMD.receitas - lastMD.receitas) / lastMD.receitas) * 100) : 0;
         const expensePct = lastMD && lastMD.despesas > 0 ? Math.round(((thisMD.despesas - lastMD.despesas) / lastMD.despesas) * 100) : 0;
 
-        const gauges = [
-          { label: "Mensal", value: savingsRate, change: incomePct, color: "hsl(270 70% 60%)", trackColor: "hsl(270 30% 20%)" },
-          { label: "Diário", value: Math.min(100, Math.round((dailyAvg / (totalReceitas / daysInMonth || 1)) * 100)), change: expensePct, color: "hsl(280 80% 65%)", trackColor: "hsl(280 30% 20%)" },
-          { label: "Anual", value: Math.min(100, Math.round((monthIndex + 1) / 12 * 100)), change: incomePct, color: "hsl(260 75% 70%)", trackColor: "hsl(260 30% 20%)" },
+        const stats = [
+          { label: "Saldo", value: saldo, change: incomePct, icon: Wallet, iconBg: "bg-primary/10", iconColor: "text-primary" },
+          { label: "Renda", value: totalReceitas, change: incomePct, icon: TrendingUp, iconBg: "bg-success/10", iconColor: "text-success" },
+          { label: "Despesas", value: totalDespesas, change: expensePct, icon: TrendingDown, iconBg: "bg-destructive/10", iconColor: "text-destructive" },
+          { label: "Média/dia", value: dailyAvg, change: expensePct, icon: CreditCard, iconBg: "bg-warning/10", iconColor: "text-warning" },
         ];
 
         return (
-          <div className="grid sm:grid-cols-3 gap-4">
-            {gauges.map((g, i) => (
-              <motion.div key={g.label} initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: i * 0.1, type: "spring", stiffness: 200 }}
-                className="bg-card rounded-2xl p-6 border border-border shadow-card flex flex-col items-center relative overflow-hidden group">
-                {/* Glow effect */}
-                <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500" style={{ background: `radial-gradient(circle at 50% 50%, ${g.color.replace(')', ' / 0.08)')}, transparent 70%)` }} />
-                <div className="w-28 h-28 relative mb-4">
-                  <svg viewBox="0 0 100 100" className="w-full h-full -rotate-90">
-                    {/* Track */}
-                    <circle cx="50" cy="50" r="42" fill="none" stroke="hsl(var(--muted))" strokeWidth="7" strokeLinecap="round" />
-                    {/* Progress */}
-                    <circle cx="50" cy="50" r="42" fill="none" stroke={g.color} strokeWidth="7" strokeLinecap="round"
-                      strokeDasharray={`${2 * Math.PI * 42}`}
-                      strokeDashoffset={`${2 * Math.PI * 42 * (1 - g.value / 100)}`}
-                      className="transition-all duration-1000 ease-out"
-                      style={{ filter: `drop-shadow(0 0 6px ${g.color.replace(')', ' / 0.5)')})` }}
-                    />
-                  </svg>
-                  <div className="absolute inset-0 flex flex-col items-center justify-center">
-                    <span className="font-display font-bold text-3xl">{g.value}</span>
+          <>
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+              {stats.map((stat, i) => (
+                <motion.div key={stat.label} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.08 }}
+                  className="bg-card rounded-xl p-4 border border-border shadow-card">
+                  <div className="flex items-center gap-2.5 mb-2">
+                    <div className={`w-8 h-8 rounded-lg ${stat.iconBg} flex items-center justify-center`}>
+                      <stat.icon className={`w-4 h-4 ${stat.iconColor}`} />
+                    </div>
+                    <p className="text-[11px] text-muted-foreground">{stat.label}</p>
                   </div>
-                </div>
-                <p className={`text-xs font-semibold mb-1 ${g.change >= 0 ? "text-success" : "text-destructive"}`}>
-                  {g.change >= 0 ? "+" : ""}{g.change}%
-                </p>
-                <p className="text-sm text-muted-foreground font-medium">{g.label}</p>
-              </motion.div>
-            ))}
-          </div>
+                  <p className="font-display font-bold text-lg">{fmt(stat.value)}</p>
+                  <p className={`text-[11px] font-medium mt-0.5 ${stat.change >= 0 ? "text-success" : "text-destructive"}`}>
+                    {stat.change >= 0 ? "+" : ""}{stat.change}%
+                  </p>
+                </motion.div>
+              ))}
+            </div>
+
+            {/* Area trend chart */}
+            <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}
+              className="bg-card rounded-xl p-5 border border-border shadow-card">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-display font-bold text-base">Análise de fluxo</h3>
+                <span className="text-[11px] text-muted-foreground">Últimos 6 meses</span>
+              </div>
+              {hasMonthlyData ? (
+                <ResponsiveContainer width="100%" height={240}>
+                  <AreaChart data={monthlyData}>
+                    <defs>
+                      <linearGradient id="normGradInc" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="hsl(var(--chart-income))" stopOpacity={0.3} />
+                        <stop offset="95%" stopColor="hsl(var(--chart-income))" stopOpacity={0} />
+                      </linearGradient>
+                      <linearGradient id="normGradExp" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="hsl(var(--chart-expense))" stopOpacity={0.3} />
+                        <stop offset="95%" stopColor="hsl(var(--chart-expense))" stopOpacity={0} />
+                      </linearGradient>
+                      <linearGradient id="normGradSaldo" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.2} />
+                        <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
+                    <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} />
+                    <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} tickFormatter={(v) => v >= 1000 ? `${(v / 1000).toFixed(1)}k` : String(v)} />
+                    <Tooltip formatter={(v: number) => fmt(v)} contentStyle={tooltipStyle} />
+                    <Legend verticalAlign="top" height={36} iconType="line" wrapperStyle={{ fontSize: "11px" }} />
+                    <Area type="monotone" dataKey="receitas" name="Renda" stroke="hsl(var(--chart-income))" fill="url(#normGradInc)" strokeWidth={2.5} dot={{ r: 3, fill: "hsl(var(--chart-income))", strokeWidth: 0 }} />
+                    <Area type="monotone" dataKey="despesas" name="Despesas" stroke="hsl(var(--chart-expense))" fill="url(#normGradExp)" strokeWidth={2.5} dot={{ r: 3, fill: "hsl(var(--chart-expense))", strokeWidth: 0 }} />
+                    <Area type="monotone" dataKey="saldo" name="Saldo" stroke="hsl(var(--primary))" fill="url(#normGradSaldo)" strokeWidth={2} dot={{ r: 3, fill: "hsl(var(--primary))", strokeWidth: 0 }} strokeDasharray="5 3" />
+                  </AreaChart>
+                </ResponsiveContainer>
+              ) : (
+                <p className="text-sm text-muted-foreground text-center py-8">Sem dados para exibir</p>
+              )}
+            </motion.div>
+          </>
         );
       })()}
 
