@@ -549,7 +549,7 @@ const DashboardHome = ({ finance }: Props) => {
                     <Legend verticalAlign="top" height={36} iconType="line" wrapperStyle={{ fontSize: "11px" }} />
                     <Area type="monotone" dataKey="receitas" name="Renda" stroke="hsl(var(--chart-income))" fill="url(#normGradInc)" strokeWidth={2.5} dot={{ r: 3, fill: "hsl(var(--chart-income))", strokeWidth: 0 }} />
                     <Area type="monotone" dataKey="despesas" name="Despesas" stroke="hsl(var(--chart-expense))" fill="url(#normGradExp)" strokeWidth={2.5} dot={{ r: 3, fill: "hsl(var(--chart-expense))", strokeWidth: 0 }} />
-                    <Area type="monotone" dataKey="saldo" name="Saldo" stroke="hsl(var(--primary))" fill="url(#normGradSaldo)" strokeWidth={2} dot={{ r: 3, fill: "hsl(var(--primary))", strokeWidth: 0 }} strokeDasharray="5 3" />
+                    <Area type="monotone" dataKey="saldo" name="Saldo" stroke="hsl(var(--success))" fill="url(#normGradSaldo)" strokeWidth={2} dot={{ r: 3, fill: "hsl(var(--success))", strokeWidth: 0 }} strokeDasharray="5 3" />
                   </AreaChart>
                 </ResponsiveContainer>
               ) : (
