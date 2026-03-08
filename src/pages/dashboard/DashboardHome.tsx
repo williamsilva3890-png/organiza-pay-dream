@@ -200,29 +200,66 @@ const DashboardHome = ({ finance }: Props) => {
           </motion.div>
         )}
 
-        {/* Row 1: 3 Donut Gauges + Horizontal Bars */}
-        <div className="grid lg:grid-cols-4 gap-4">
-          {gauges.map((g, i) => (
-            <motion.div key={g.label} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.08 }}
-              className="bg-card rounded-xl p-5 border border-border shadow-card flex flex-col items-center">
-              <div className="w-28 h-28 relative mb-3">
-                <ResponsiveContainer width="100%" height="100%">
-                  <RadialBarChart cx="50%" cy="50%" innerRadius="75%" outerRadius="100%" barSize={10} data={[{ value: g.pct, fill: g.color }]} startAngle={90} endAngle={-270}>
-                    <RadialBar background={{ fill: "hsl(var(--muted))" }} dataKey="value" cornerRadius={10} />
-                  </RadialBarChart>
-                </ResponsiveContainer>
-                <div className="absolute inset-0 flex flex-col items-center justify-center">
-                  <span className="font-display font-bold text-2xl">{g.pct > 999 ? `${(g.pct / 1000).toFixed(0)}k` : g.pct}</span>
-                </div>
-              </div>
-              <p className={`text-[11px] font-medium mb-1 ${g.change >= 0 ? "text-success" : "text-destructive"}`}>
-                {g.change >= 0 ? "+" : ""}{g.change}%
+        {/* Row 1: Stat cards + Area chart */}
+        <div className="grid lg:grid-cols-5 gap-4">
+          {[
+            { label: "Renda", value: totalReceitas, change: incomePctChange, color: "text-success" },
+            { label: "Despesas", value: totalDespesas, change: expensePctChange, color: "text-destructive" },
+            { label: "Economia", value: savingsRate, suffix: "%", change: incomePctChange, color: savingsRate >= 20 ? "text-success" : "text-warning" },
+            { label: "Média/dia", value: dailyAvgExpense, change: expensePctChange, color: "text-muted-foreground" },
+            { label: "Projeção anual", value: yearlyProjection, change: incomePctChange, color: "text-primary" },
+          ].map((stat, i) => (
+            <motion.div key={stat.label} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.06 }}
+              className="bg-card rounded-xl p-4 border border-border shadow-card">
+              <p className="text-[11px] text-muted-foreground mb-1">{stat.label}</p>
+              <p className="font-display font-bold text-xl">{stat.suffix ? `${stat.value}${stat.suffix}` : fmt(stat.value)}</p>
+              <p className={`text-[11px] font-medium mt-1 ${stat.change >= 0 ? "text-success" : "text-destructive"}`}>
+                {stat.change >= 0 ? "+" : ""}{stat.change}%
               </p>
-              <p className="text-xs text-muted-foreground">{g.label}</p>
             </motion.div>
           ))}
+        </div>
 
-          {/* Horizontal bar charts */}
+        {/* Area trend chart - like Semrush */}
+        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
+          className="bg-card rounded-xl p-5 border border-border shadow-card">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="font-display font-bold text-base">Análise de fluxo</h3>
+            <span className="text-[11px] text-muted-foreground">Últimos 6 meses</span>
+          </div>
+          {hasMonthlyData ? (
+            <ResponsiveContainer width="100%" height={260}>
+              <AreaChart data={monthlyData}>
+                <defs>
+                  <linearGradient id="advGradIncome" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="hsl(var(--chart-income))" stopOpacity={0.25} />
+                    <stop offset="95%" stopColor="hsl(var(--chart-income))" stopOpacity={0} />
+                  </linearGradient>
+                  <linearGradient id="advGradExpense" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="hsl(var(--chart-expense))" stopOpacity={0.25} />
+                    <stop offset="95%" stopColor="hsl(var(--chart-expense))" stopOpacity={0} />
+                  </linearGradient>
+                  <linearGradient id="advGradSaldo" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.2} />
+                    <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
+                <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} />
+                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} tickFormatter={(v) => v >= 1000 ? `${(v / 1000).toFixed(1)}k` : String(v)} />
+                <Tooltip formatter={(v: number) => fmt(v)} contentStyle={tooltipStyle} />
+                <Legend verticalAlign="top" height={36} iconType="line" wrapperStyle={{ fontSize: "11px" }} />
+                <Area type="monotone" dataKey="receitas" name="Renda" stroke="hsl(var(--chart-income))" fill="url(#advGradIncome)" strokeWidth={2.5} dot={{ r: 3, fill: "hsl(var(--chart-income))", strokeWidth: 0 }} />
+                <Area type="monotone" dataKey="despesas" name="Despesas" stroke="hsl(var(--chart-expense))" fill="url(#advGradExpense)" strokeWidth={2.5} dot={{ r: 3, fill: "hsl(var(--chart-expense))", strokeWidth: 0 }} />
+                <Area type="monotone" dataKey="saldo" name="Saldo" stroke="hsl(var(--primary))" fill="url(#advGradSaldo)" strokeWidth={2} dot={{ r: 3, fill: "hsl(var(--primary))", strokeWidth: 0 }} strokeDasharray="5 3" />
+              </AreaChart>
+            </ResponsiveContainer>
+          ) : (
+            <p className="text-sm text-muted-foreground text-center py-12">Sem dados para exibir</p>
+          )}
+        </motion.div>
+
+        {/* Horizontal bar charts */}
           <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}
             className="bg-card rounded-xl p-5 border border-border shadow-card">
             <h3 className="font-display font-bold text-sm mb-4">Categorias</h3>
