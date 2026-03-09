@@ -46,6 +46,7 @@ const DashboardLayout = ({ children, profile, isPremium, onProfileUpdate, isAdmi
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
   const { isSubscribed, loading: pushLoading, supported: pushSupported, toggle: togglePush } = usePushNotificationToggle(user?.id);
+  const { hasUnread: hasUnreadChat, markAsSeen: markChatSeen } = useUnreadChat(user?.id);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => localStorage.getItem("sidebar-collapsed") === "true");
   const [cropDialogOpen, setCropDialogOpen] = useState(false);
