@@ -49,6 +49,7 @@ serve(async (req) => {
           .select('*')
           .in('user_id', adminIds);
         subscriptions = data || [];
+        console.log("[send-push] Admin subscriptions found:", subscriptions.length);
       }
     } else if (type === "to_user") {
       const targetUserId = body.user_id;
