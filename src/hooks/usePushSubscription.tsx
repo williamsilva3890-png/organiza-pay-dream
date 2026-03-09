@@ -18,9 +18,24 @@ export function usePushSubscription(userId: string | undefined) {
 
         const reg = await navigator.serviceWorker.ready;
         const existingSub = await reg.pushManager.getSubscription();
+        
         if (existingSub) {
-          await saveSubscription(userId, existingSub);
-          return;
+          // Check if the subscription still exists in the database
+          const subJson = existingSub.toJSON();
+          const { count } = await (supabase as any)
+            .from("push_subscriptions")
+            .select("id", { count: "exact", head: true })
+            .eq("user_id", userId)
+            .eq("endpoint", subJson.endpoint);
+          
+          if ((count ?? 0) > 0) {
+            // Already subscribed and in DB
+            return;
+          }
+          
+          // Subscription exists in browser but not in DB - unsubscribe and resubscribe
+          console.log("Push subscription exists but not in DB, resubscribing...");
+          await existingSub.unsubscribe();
         }
 
         const { data, error } = await supabase.functions.invoke("get-vapid-key");
