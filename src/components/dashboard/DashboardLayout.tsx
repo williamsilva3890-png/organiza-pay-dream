@@ -225,16 +225,23 @@ const DashboardLayout = ({ children, profile, isPremium, onProfileUpdate, isAdmi
         <nav className="flex-1 px-2 py-4 space-y-1 overflow-y-auto scrollbar-thin">
           {navItems.filter(item => !item.entrepreneurOnly || isEntrepreneur).map((item) => {
             const isActive = location.pathname === item.path;
+            const isChat = item.path === "/dashboard/chat";
             return (
-              <Link key={item.path} to={item.path} onClick={() => setSidebarOpen(false)}
+              <Link key={item.path} to={item.path} onClick={() => { setSidebarOpen(false); if (isChat) markChatSeen(); }}
                 title={sidebarCollapsed ? item.label : undefined}
                 className={cn(
-                  "flex items-center gap-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
+                  "flex items-center gap-3 py-2.5 rounded-lg text-sm font-medium transition-colors relative",
                   sidebarCollapsed ? "px-2 justify-center" : "px-3",
                   isActive ? "bg-sidebar-accent text-sidebar-primary" : "text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground"
                 )}>
                 <item.icon className="w-5 h-5 shrink-0" />
                 {!sidebarCollapsed && item.label}
+                {isChat && hasUnreadChat && (
+                  <span className="absolute top-2 right-2 w-2.5 h-2.5 rounded-full bg-green-500 animate-pulse" />
+                )}
+                {isChat && hasUnreadChat && sidebarCollapsed && (
+                  <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                )}
               </Link>
             );
           })}
