@@ -12,10 +12,12 @@ serve(async (req) => {
   }
 
   try {
+    console.log("[send-push] Function invoked");
     const VAPID_PUBLIC_KEY = Deno.env.get("VAPID_PUBLIC_KEY");
     const VAPID_PRIVATE_KEY = Deno.env.get("VAPID_PRIVATE_KEY");
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    console.log("[send-push] VAPID keys present:", !!VAPID_PUBLIC_KEY, !!VAPID_PRIVATE_KEY);
 
     if (!VAPID_PUBLIC_KEY || !VAPID_PRIVATE_KEY) {
       return new Response(JSON.stringify({ error: "VAPID keys not configured" }), {
