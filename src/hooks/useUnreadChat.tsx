@@ -8,7 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
  * - friends-group (group chat)
  * - dm-* chats where the user is a participant
  */
-export const useUnreadChat = (userId: string | undefined) => {
+export const useUnreadChat = (userId: string | undefined, isAdmin: boolean = false) => {
   const [hasUnread, setHasUnread] = useState(false);
   const isOnChatPage = useRef(false);
 
@@ -18,8 +18,13 @@ export const useUnreadChat = (userId: string | undefined) => {
     const storageKey = `organizapay-last-chat-seen-${userId}`;
 
     const isRelevantChat = (chatType: string) => {
+      // Admin sees all support chats
+      if (isAdmin && chatType.startsWith("admin-")) return true;
+      // Support chat directed at this user
       if (chatType === `admin-${userId}`) return true;
+      // Group chat
       if (chatType === "friends-group") return true;
+      // DM where this user is a participant
       if (chatType.startsWith("dm-") && chatType.includes(userId)) return true;
       return false;
     };
