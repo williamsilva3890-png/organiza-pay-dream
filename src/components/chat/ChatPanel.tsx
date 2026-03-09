@@ -99,7 +99,31 @@ const ChatPanel = ({ chatType, user, isAdmin, displayName, profiles }: ChatPanel
             type: "to_admin",
             title: `💬 Nova mensagem de ${displayName}`,
             body: msgText.slice(0, 100),
-            url: "/dashboard/admin",
+            url: "/dashboard/chat",
+          },
+        }).catch(() => {});
+      }
+      // Notify all users when someone sends a message in group chat
+      if (chatType === "friends-group") {
+        supabase.functions.invoke("send-push", {
+          body: {
+            type: "to_all",
+            title: `💬 ${displayName} no Grupo`,
+            body: msgText.slice(0, 100),
+            url: "/dashboard/chat",
+          },
+        }).catch(() => {});
+      }
+      // Notify admin when any chat message is sent (for admin chat tab)
+      if (chatType.startsWith("admin-") && isAdmin) {
+        // Send push to the specific user
+        supabase.functions.invoke("send-push", {
+          body: {
+            type: "to_user",
+            user_id: chatType.replace("admin-", ""),
+            title: `💬 Resposta do Suporte`,
+            body: msgText.slice(0, 100),
+            url: "/dashboard/chat",
           },
         }).catch(() => {});
       }
