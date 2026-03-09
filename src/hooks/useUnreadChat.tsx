@@ -33,12 +33,22 @@ export const useUnreadChat = (userId: string | undefined, isAdmin: boolean = fal
       if (isOnChatPage.current) return;
       const lastSeen = localStorage.getItem(storageKey) || "1970-01-01T00:00:00Z";
 
-      const { count: supportCount } = await supabase
-        .from("chat_messages")
-        .select("id", { count: "exact", head: true })
-        .neq("user_id", userId)
-        .eq("chat_type", `admin-${userId}`)
-        .gt("created_at", lastSeen);
+      // For admins, check ALL admin-* support messages
+      const adminFilter = isAdmin
+        ? supabase
+            .from("chat_messages")
+            .select("id", { count: "exact", head: true })
+            .neq("user_id", userId)
+            .like("chat_type", "admin-%")
+            .gt("created_at", lastSeen)
+        : supabase
+            .from("chat_messages")
+            .select("id", { count: "exact", head: true })
+            .neq("user_id", userId)
+            .eq("chat_type", `admin-${userId}`)
+            .gt("created_at", lastSeen);
+
+      const { count: supportCount } = await adminFilter;
 
       const { count: groupCount } = await supabase
         .from("chat_messages")
