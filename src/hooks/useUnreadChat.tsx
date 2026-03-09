@@ -91,7 +91,7 @@ export const useUnreadChat = (userId: string | undefined, isAdmin: boolean = fal
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [userId]);
+  }, [userId, isAdmin]);
 
   const markAsSeen = () => {
     if (!userId) return;
