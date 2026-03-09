@@ -34,7 +34,6 @@ serve(async (req) => {
     let subscriptions: any[] = [];
 
     if (type === "to_admin") {
-      // Get admin user IDs
       const { data: adminRoles } = await supabase
         .from('user_roles')
         .select('user_id')
@@ -46,6 +45,15 @@ serve(async (req) => {
           .from('push_subscriptions')
           .select('*')
           .in('user_id', adminIds);
+        subscriptions = data || [];
+      }
+    } else if (type === "to_user") {
+      const targetUserId = body.user_id;
+      if (targetUserId) {
+        const { data } = await supabase
+          .from('push_subscriptions')
+          .select('*')
+          .eq('user_id', targetUserId);
         subscriptions = data || [];
       }
     } else if (type === "to_all") {
