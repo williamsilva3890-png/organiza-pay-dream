@@ -83,7 +83,12 @@ export const useUnreadChat = (userId: string | undefined) => {
     const storageKey = `organizapay-last-chat-seen-${userId}`;
     localStorage.setItem(storageKey, new Date().toISOString());
     setHasUnread(false);
+    isOnChatPage.current = true;
   };
 
-  return { hasUnread, markAsSeen };
+  const leaveChatPage = () => {
+    isOnChatPage.current = false;
+  };
+
+  return { hasUnread, markAsSeen, leaveChatPage };
 };
