@@ -11,3 +11,9 @@ verify_jwt = false
 
 [functions.send-daily-push]
 verify_jwt = false
+
+[functions.get-vapid-key]
+verify_jwt = false
+
+[functions.generate-vapid-keys]
+verify_jwt = false

@@ -6,11 +6,13 @@ const corsHeaders = {
 };
 
 serve(async (req) => {
+  console.log("[get-vapid-key] Function invoked, method:", req.method);
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   const publicKey = Deno.env.get("VAPID_PUBLIC_KEY");
+  console.log("[get-vapid-key] VAPID_PUBLIC_KEY present:", !!publicKey);
 
   if (!publicKey) {
     return new Response(JSON.stringify({ error: "VAPID keys not configured" }), {

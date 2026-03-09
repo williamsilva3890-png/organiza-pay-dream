@@ -12,10 +12,12 @@ serve(async (req) => {
   }
 
   try {
+    console.log("[send-push] Function invoked");
     const VAPID_PUBLIC_KEY = Deno.env.get("VAPID_PUBLIC_KEY");
     const VAPID_PRIVATE_KEY = Deno.env.get("VAPID_PRIVATE_KEY");
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    console.log("[send-push] VAPID keys present:", !!VAPID_PUBLIC_KEY, !!VAPID_PRIVATE_KEY);
 
     if (!VAPID_PUBLIC_KEY || !VAPID_PRIVATE_KEY) {
       return new Response(JSON.stringify({ error: "VAPID keys not configured" }), {
@@ -30,6 +32,7 @@ serve(async (req) => {
     // body.title, body.body, body.url (optional)
 
     const { type, title, body: msgBody, url } = body;
+    console.log("[send-push] Type:", type, "Title:", title);
 
     let subscriptions: any[] = [];
 
@@ -46,6 +49,7 @@ serve(async (req) => {
           .select('*')
           .in('user_id', adminIds);
         subscriptions = data || [];
+        console.log("[send-push] Admin subscriptions found:", subscriptions.length);
       }
     } else if (type === "to_user") {
       const targetUserId = body.user_id;
@@ -169,14 +173,28 @@ serve(async (req) => {
 // ---- Web Push crypto helpers (same as send-daily-push) ----
 
 async function sendWebPush(endpoint: string, p256dhKey: string, authKey: string, payload: string, vapidPublicKey: string, vapidPrivateKey: string): Promise<Response> {
+  console.log("[send-push] sendWebPush called, endpoint:", endpoint.substring(0, 60));
+  console.log("[send-push] vapidPublicKey length:", vapidPublicKey.length, "vapidPrivateKey length:", vapidPrivateKey.length);
+  
   const vapidPubKeyBytes = base64UrlDecode(vapidPublicKey);
-  const vapidPrivateKeyJwk = {
-    kty: 'EC', crv: 'P-256',
-    x: base64UrlEncode(vapidPubKeyBytes.slice(1, 33)),
-    y: base64UrlEncode(vapidPubKeyBytes.slice(33, 65)),
-    d: vapidPrivateKey,
-  };
-  const signingKey = await crypto.subtle.importKey('jwk', vapidPrivateKeyJwk, { name: 'ECDSA', namedCurve: 'P-256' }, false, ['sign']);
+  console.log("[send-push] vapidPubKeyBytes length:", vapidPubKeyBytes.length, "first byte:", vapidPubKeyBytes[0]);
+  
+  const x = base64UrlEncode(vapidPubKeyBytes.slice(1, 33));
+  const y = base64UrlEncode(vapidPubKeyBytes.slice(33, 65));
+  // Ensure d parameter has no padding issues
+  const d = vapidPrivateKey.replace(/=+$/, '');
+  
+  console.log("[send-push] JWK x length:", x.length, "y length:", y.length, "d length:", d.length);
+  
+  const vapidPrivateKeyJwk = { kty: 'EC', crv: 'P-256', x, y, d };
+  
+  let signingKey;
+  try {
+    signingKey = await crypto.subtle.importKey('jwk', vapidPrivateKeyJwk, { name: 'ECDSA', namedCurve: 'P-256' }, false, ['sign']);
+  } catch (err) {
+    console.error("[send-push] importKey failed:", err.message);
+    throw new Error("invalid b64 coordinate: " + err.message);
+  }
 
   const endpointUrl = new URL(endpoint);
   const audience = `${endpointUrl.protocol}//${endpointUrl.host}`;
