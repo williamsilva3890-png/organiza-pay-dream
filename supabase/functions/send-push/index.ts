@@ -32,6 +32,7 @@ serve(async (req) => {
     // body.title, body.body, body.url (optional)
 
     const { type, title, body: msgBody, url } = body;
+    console.log("[send-push] Type:", type, "Title:", title);
 
     let subscriptions: any[] = [];
 
