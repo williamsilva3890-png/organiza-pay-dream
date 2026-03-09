@@ -173,14 +173,28 @@ serve(async (req) => {
 // ---- Web Push crypto helpers (same as send-daily-push) ----
 
 async function sendWebPush(endpoint: string, p256dhKey: string, authKey: string, payload: string, vapidPublicKey: string, vapidPrivateKey: string): Promise<Response> {
+  console.log("[send-push] sendWebPush called, endpoint:", endpoint.substring(0, 60));
+  console.log("[send-push] vapidPublicKey length:", vapidPublicKey.length, "vapidPrivateKey length:", vapidPrivateKey.length);
+  
   const vapidPubKeyBytes = base64UrlDecode(vapidPublicKey);
-  const vapidPrivateKeyJwk = {
-    kty: 'EC', crv: 'P-256',
-    x: base64UrlEncode(vapidPubKeyBytes.slice(1, 33)),
-    y: base64UrlEncode(vapidPubKeyBytes.slice(33, 65)),
-    d: vapidPrivateKey,
-  };
-  const signingKey = await crypto.subtle.importKey('jwk', vapidPrivateKeyJwk, { name: 'ECDSA', namedCurve: 'P-256' }, false, ['sign']);
+  console.log("[send-push] vapidPubKeyBytes length:", vapidPubKeyBytes.length, "first byte:", vapidPubKeyBytes[0]);
+  
+  const x = base64UrlEncode(vapidPubKeyBytes.slice(1, 33));
+  const y = base64UrlEncode(vapidPubKeyBytes.slice(33, 65));
+  // Ensure d parameter has no padding issues
+  const d = vapidPrivateKey.replace(/=+$/, '');
+  
+  console.log("[send-push] JWK x length:", x.length, "y length:", y.length, "d length:", d.length);
+  
+  const vapidPrivateKeyJwk = { kty: 'EC', crv: 'P-256', x, y, d };
+  
+  let signingKey;
+  try {
+    signingKey = await crypto.subtle.importKey('jwk', vapidPrivateKeyJwk, { name: 'ECDSA', namedCurve: 'P-256' }, false, ['sign']);
+  } catch (err) {
+    console.error("[send-push] importKey failed:", err.message);
+    throw new Error("invalid b64 coordinate: " + err.message);
+  }
 
   const endpointUrl = new URL(endpoint);
   const audience = `${endpointUrl.protocol}//${endpointUrl.host}`;
