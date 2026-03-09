@@ -227,7 +227,7 @@ const DashboardLayout = ({ children, profile, isPremium, onProfileUpdate, isAdmi
             const isActive = location.pathname === item.path;
             const isChat = item.path === "/dashboard/chat";
             return (
-              <Link key={item.path} to={item.path} onClick={() => { setSidebarOpen(false); if (isChat) markChatSeen(); }}
+              <Link key={item.path} to={item.path} onClick={() => { setSidebarOpen(false); if (isChat) { markChatSeen(); } else { leaveChatPage(); } }}
                 title={sidebarCollapsed ? item.label : undefined}
                 className={cn(
                   "flex items-center gap-3 py-2.5 rounded-lg text-sm font-medium transition-colors relative",
