@@ -14,6 +14,7 @@ import type { Profile } from "@/hooks/useFinanceData";
 import logoImg from "@/assets/logo.png";
 import { toast } from "sonner";
 import { usePushNotificationToggle } from "@/hooks/usePushNotificationToggle";
+import { useUnreadChat } from "@/hooks/useUnreadChat";
 
 const baseNavItems = [
   { icon: LayoutDashboard, label: "Painel", path: "/dashboard", entrepreneurOnly: false },
