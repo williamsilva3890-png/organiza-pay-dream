@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Users, Lightbulb, Trash2, CheckCircle, Clock, AlertCircle, Send, MessageSquare, Calendar, Crown, Search, ShieldCheck, ShieldOff } from "lucide-react";
+import { Users, Lightbulb, Trash2, CheckCircle, Clock, AlertCircle, Send, MessageSquare, Calendar, Crown, Search, ShieldCheck, ShieldOff, UserPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
