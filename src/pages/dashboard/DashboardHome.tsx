@@ -203,10 +203,9 @@ const DashboardHome = ({ finance }: Props) => {
         {/* Row 1: Stat cards + Area chart */}
         <div className="grid lg:grid-cols-5 gap-4">
           {[
-            { label: "Renda", value: totalReceitas, change: incomePctChange, color: "text-success" },
+          { label: "Renda", value: totalReceitas, change: incomePctChange, color: "text-success" },
             { label: "Despesas", value: totalDespesas, change: expensePctChange, color: "text-destructive" },
             { label: "Economia", value: savingsRate, suffix: "%", change: incomePctChange, color: savingsRate >= 20 ? "text-success" : "text-warning" },
-            { label: "Média/dia", value: dailyAvgExpense, change: expensePctChange, color: "text-muted-foreground" },
             { label: "Projeção anual", value: yearlyProjection, change: incomePctChange, color: "text-primary" },
           ].map((stat, i) => (
             <motion.div key={stat.label} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.06 }}
