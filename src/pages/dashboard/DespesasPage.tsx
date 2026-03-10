@@ -273,7 +273,7 @@ const DespesasPage = ({ finance }: Props) => {
                   </div>
                   <div className="flex items-center gap-2 sm:contents">
                     <span className="text-xs bg-destructive/10 text-destructive rounded-full px-2.5 py-1 font-medium">{d.details || "—"}</span>
-                    <span className="text-xs sm:text-sm text-muted-foreground">{new Date(d.date).toLocaleDateString("pt-BR")}</span>
+                    <span className="text-xs sm:text-sm text-muted-foreground">{new Date(d.date).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" })}</span>
                     <span className="text-sm font-semibold text-destructive ml-auto sm:ml-0 sm:text-right">-{fmt(Number(d.amount))}</span>
                   </div>
                   {isPremium && (
