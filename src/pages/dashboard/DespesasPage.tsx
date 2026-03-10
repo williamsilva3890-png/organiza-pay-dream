@@ -319,7 +319,7 @@ const DespesasPage = ({ finance }: Props) => {
                         <span className={`text-xs font-medium flex-1 ${d.paid ? "line-through text-muted-foreground" : ""}`}>
                           {d.details || `Parcela ${i + 1}`}
                         </span>
-                        <span className="text-xs text-muted-foreground">{new Date(d.date).toLocaleDateString("pt-BR")}</span>
+                        <span className="text-xs text-muted-foreground">{new Date(d.date).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" })}</span>
                         <span className="text-xs font-semibold text-destructive">-{fmt(Number(d.amount))}</span>
                         {isPremium && (
                           <button onClick={() => handleDelete(d.id)} className="p-1 rounded-md hover:bg-destructive/10 transition-colors">
