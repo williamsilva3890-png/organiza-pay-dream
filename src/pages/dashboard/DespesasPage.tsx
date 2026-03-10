@@ -222,7 +222,7 @@ const DespesasPage = ({ finance }: Props) => {
       {!isPremium && (
         <div className="flex items-center gap-2 text-xs text-muted-foreground bg-muted/50 rounded-lg px-4 py-2.5">
           <Lock className="w-3.5 h-3.5" />
-          <span>Plano gratuito: {gastos.length + dividas.length}/{FREE_LIMITS.despesas} despesas usadas</span>
+          <span>Plano gratuito: {gastos.length + dividas.length + assinaturas.length}/{FREE_LIMITS.despesas} despesas usadas</span>
         </div>
       )}
 
