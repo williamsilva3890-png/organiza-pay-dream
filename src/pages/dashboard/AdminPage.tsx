@@ -59,6 +59,7 @@ const AdminPage = () => {
   const [searchResults, setSearchResults] = useState<{ user_id: string; display_name: string | null; plan: string }[]>([]);
   const [searching, setSearching] = useState(false);
   const [managingUser, setManagingUser] = useState<string | null>(null);
+  const [trialDays, setTrialDays] = useState<Record<string, string>>({});
 
   const fetchData = async () => {
     setLoading(true);
@@ -227,16 +228,28 @@ const AdminPage = () => {
   const togglePremium = async (userId: string, currentPlan: string) => {
     setManagingUser(userId);
     const newPlan = currentPlan === "premium" ? "free" : "premium";
+    
+    const updateData: any = { plan: newPlan };
+    
+    // If activating premium, set expires_at based on trial days
+    if (newPlan === "premium") {
+      const days = parseInt(trialDays[userId] || "30") || 30;
+      const expiresAt = new Date();
+      expiresAt.setDate(expiresAt.getDate() + days);
+      updateData.expires_at = expiresAt.toISOString().slice(0, 10);
+    }
+    
     const { error } = await supabase
       .from("subscriptions")
-      .update({ plan: newPlan } as any)
+      .update(updateData)
       .eq("user_id", userId);
     if (error) {
       toast.error("Erro ao atualizar plano");
       setManagingUser(null);
       return;
     }
-    toast.success(newPlan === "premium" ? "Premium ativado! 👑" : "Premium removido");
+    const days = parseInt(trialDays[userId] || "30") || 30;
+    toast.success(newPlan === "premium" ? `Premium ativado por ${days} dias! 👑` : "Premium removido");
     setSearchResults(prev => prev.map(r => r.user_id === userId ? { ...r, plan: newPlan } : r));
     setManagingUser(null);
     fetchData();
@@ -468,25 +481,41 @@ const AdminPage = () => {
           {searchResults.length > 0 && (
             <div className="space-y-3">
               {searchResults.map(r => (
-                <div key={r.user_id} className="border border-border rounded-lg p-4 flex items-center justify-between gap-3">
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold">{r.display_name || "Sem nome"}</p>
-                    <p className="text-xs text-muted-foreground truncate">{r.user_id.slice(0, 8)}...</p>
-                    <span className={`inline-block mt-1 text-xs font-medium px-2 py-0.5 rounded-full ${r.plan === "premium" ? "bg-amber-500/10 text-amber-500" : "bg-muted text-muted-foreground"}`}>
-                      {r.plan === "premium" ? "👑 Premium" : "Gratuito"}
-                    </span>
+                <div key={r.user_id} className="border border-border rounded-lg p-4 space-y-3">
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold">{r.display_name || "Sem nome"}</p>
+                      <p className="text-xs text-muted-foreground truncate">{r.user_id.slice(0, 8)}...</p>
+                      <span className={`inline-block mt-1 text-xs font-medium px-2 py-0.5 rounded-full ${r.plan === "premium" ? "bg-amber-500/10 text-amber-500" : "bg-muted text-muted-foreground"}`}>
+                        {r.plan === "premium" ? "👑 Premium" : "Gratuito"}
+                      </span>
+                    </div>
                   </div>
+                  {r.plan !== "premium" && (
+                    <div className="flex items-center gap-2">
+                      <label className="text-xs text-muted-foreground whitespace-nowrap">Dias grátis:</label>
+                      <Input
+                        type="number"
+                        min="1"
+                        max="365"
+                        placeholder="30"
+                        value={trialDays[r.user_id] || ""}
+                        onChange={(e) => setTrialDays(prev => ({ ...prev, [r.user_id]: e.target.value }))}
+                        className="w-20 h-8 text-sm"
+                      />
+                    </div>
+                  )}
                   <Button
                     variant={r.plan === "premium" ? "destructive" : "default"}
                     size="sm"
                     disabled={managingUser === r.user_id}
                     onClick={() => togglePremium(r.user_id, r.plan)}
-                    className="gap-1.5 shrink-0"
+                    className="gap-1.5 w-full sm:w-auto"
                   >
                     {r.plan === "premium" ? (
-                      <><ShieldOff className="w-4 h-4" /> Remover</>
+                      <><ShieldOff className="w-4 h-4" /> Remover Premium</>
                     ) : (
-                      <><Crown className="w-4 h-4" /> Ativar Premium</>
+                      <><Crown className="w-4 h-4" /> Ativar Premium ({trialDays[r.user_id] || "30"} dias)</>
                     )}
                   </Button>
                 </div>

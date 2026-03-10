@@ -230,7 +230,7 @@ const DespesasPage = ({ finance }: Props) => {
               <span className={`text-sm font-medium ${d.paid ? "line-through text-muted-foreground" : ""}`}>{d.description}</span>
               <div className="flex items-center gap-2 sm:contents">
                 <span className={`text-xs rounded-full px-2.5 py-1 font-medium ${categoryColors[d.category] || "bg-muted text-muted-foreground"}`}>{d.category}</span>
-                <span className="text-xs sm:text-sm text-muted-foreground">{new Date(d.date).toLocaleDateString("pt-BR")}</span>
+                <span className="text-xs sm:text-sm text-muted-foreground">{new Date(d.date).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" })}</span>
                 <span className="text-sm font-semibold text-destructive ml-auto sm:ml-0 sm:text-right">-{fmt(Number(d.amount))}</span>
               </div>
               {isPremium && (
@@ -273,7 +273,7 @@ const DespesasPage = ({ finance }: Props) => {
                   </div>
                   <div className="flex items-center gap-2 sm:contents">
                     <span className="text-xs bg-destructive/10 text-destructive rounded-full px-2.5 py-1 font-medium">{d.details || "—"}</span>
-                    <span className="text-xs sm:text-sm text-muted-foreground">{new Date(d.date).toLocaleDateString("pt-BR")}</span>
+                    <span className="text-xs sm:text-sm text-muted-foreground">{new Date(d.date).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" })}</span>
                     <span className="text-sm font-semibold text-destructive ml-auto sm:ml-0 sm:text-right">-{fmt(Number(d.amount))}</span>
                   </div>
                   {isPremium && (
@@ -319,7 +319,7 @@ const DespesasPage = ({ finance }: Props) => {
                         <span className={`text-xs font-medium flex-1 ${d.paid ? "line-through text-muted-foreground" : ""}`}>
                           {d.details || `Parcela ${i + 1}`}
                         </span>
-                        <span className="text-xs text-muted-foreground">{new Date(d.date).toLocaleDateString("pt-BR")}</span>
+                        <span className="text-xs text-muted-foreground">{new Date(d.date).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" })}</span>
                         <span className="text-xs font-semibold text-destructive">-{fmt(Number(d.amount))}</span>
                         {isPremium && (
                           <button onClick={() => handleDelete(d.id)} className="p-1 rounded-md hover:bg-destructive/10 transition-colors">
