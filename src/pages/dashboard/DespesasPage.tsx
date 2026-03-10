@@ -376,7 +376,39 @@ const DespesasPage = ({ finance }: Props) => {
         </div>
       </div>
 
-      {/* Edit dialog */}
+      {/* Assinaturas list */}
+      <div>
+        <h2 className="font-display font-bold text-lg mb-3 flex items-center gap-2"><Repeat className="w-5 h-5 text-primary" /> Assinaturas</h2>
+        <div className="bg-card rounded-xl border border-border shadow-card overflow-hidden">
+          {assinaturas.length === 0 && <div className="px-5 py-8 text-center text-sm text-muted-foreground">Nenhuma assinatura cadastrada</div>}
+          {assinaturas.map((d, i) => (
+            <motion.div key={d.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.05 }}
+              className="flex flex-col sm:grid sm:grid-cols-[1fr_auto_auto_auto_auto] gap-1 sm:gap-4 px-4 sm:px-5 py-3 border-t border-border sm:items-center hover:bg-muted/30 transition-colors">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                  <Repeat className="w-4 h-4 text-primary" />
+                </div>
+                <span className="text-sm font-medium">{d.description}</span>
+              </div>
+              <div className="flex items-center gap-2 sm:contents">
+                <span className={`text-xs rounded-full px-2.5 py-1 font-medium ${categoryColors[d.category] || "bg-muted text-muted-foreground"}`}>{d.category}</span>
+                <span className="text-xs sm:text-sm text-muted-foreground">{new Date(d.date).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" })}</span>
+                <span className="text-sm font-semibold text-primary ml-auto sm:ml-0 sm:text-right">-{fmt(Number(d.amount))}/mês</span>
+              </div>
+              <div className="flex gap-1 self-end sm:self-auto">
+                {isPremium && (
+                  <button onClick={() => startEditGasto(d)} className="p-1.5 rounded-md hover:bg-muted transition-colors"><Pencil className="w-3.5 h-3.5 text-muted-foreground" /></button>
+                )}
+                <Button variant="outline" size="sm" className="h-7 text-xs gap-1 text-destructive border-destructive/30 hover:bg-destructive/10" onClick={() => handleCancelAssinatura(d.id)}>
+                  Cancelar
+                </Button>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+      </div>
+
+
       <Dialog open={editOpen} onOpenChange={setEditOpen}>
         <DialogContent>
           <DialogHeader><DialogTitle>Editar {editType === "gasto" ? "gasto" : "dívida"}</DialogTitle></DialogHeader>
