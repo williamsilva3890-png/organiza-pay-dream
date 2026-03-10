@@ -306,7 +306,7 @@ export const useFinanceData = () => {
     updateReceita, deleteReceita, updateDespesa, deleteDespesa,
     toggleDespesaPaid, updateMeta, deleteMeta,
     totalReceitas, totalDespesas, saldo,
-    gastos, dividas, totalGastos, totalDividas,
+    gastos, dividas, assinaturas, totalGastos, totalDividas, totalAssinaturas,
     canAddReceita, canAddDespesa, canAddMeta, canUseSharedAccount,
     resetReceitas, resetDespesas, resetMetas, resetAll,
   };
