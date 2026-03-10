@@ -83,6 +83,22 @@ const DespesasPage = ({ finance }: Props) => {
     setOpenDivida(false);
   };
 
+  const handleAddAssinatura = async () => {
+    if (!canAddDespesa) { toast.error(`Limite do plano gratuito atingido (${FREE_LIMITS.despesas} despesas). Faça upgrade para Premium!`); return; }
+    if (!formAssinatura.description || !formAssinatura.amount || !formAssinatura.date || submitting) return;
+    setSubmitting(true);
+    await addDespesa({ description: formAssinatura.description, amount: parseFloat(formAssinatura.amount), date: formAssinatura.date, category: formAssinatura.category, type: "assinatura" });
+    setFormAssinatura({ description: "", amount: "", date: "", category: "Outros" });
+    setSubmitting(false);
+    setOpenAssinatura(false);
+    toast.success("Assinatura adicionada!");
+  };
+
+  const handleCancelAssinatura = async (id: string) => {
+    await deleteDespesa(id);
+    toast.success("Assinatura cancelada!");
+  };
+
   const startEditGasto = (d: any) => {
     setEditId(d.id);
     setEditType("gasto");
