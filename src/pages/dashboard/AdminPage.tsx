@@ -228,16 +228,28 @@ const AdminPage = () => {
   const togglePremium = async (userId: string, currentPlan: string) => {
     setManagingUser(userId);
     const newPlan = currentPlan === "premium" ? "free" : "premium";
+    
+    const updateData: any = { plan: newPlan };
+    
+    // If activating premium, set expires_at based on trial days
+    if (newPlan === "premium") {
+      const days = parseInt(trialDays[userId] || "30") || 30;
+      const expiresAt = new Date();
+      expiresAt.setDate(expiresAt.getDate() + days);
+      updateData.expires_at = expiresAt.toISOString().slice(0, 10);
+    }
+    
     const { error } = await supabase
       .from("subscriptions")
-      .update({ plan: newPlan } as any)
+      .update(updateData)
       .eq("user_id", userId);
     if (error) {
       toast.error("Erro ao atualizar plano");
       setManagingUser(null);
       return;
     }
-    toast.success(newPlan === "premium" ? "Premium ativado! 👑" : "Premium removido");
+    const days = parseInt(trialDays[userId] || "30") || 30;
+    toast.success(newPlan === "premium" ? `Premium ativado por ${days} dias! 👑` : "Premium removido");
     setSearchResults(prev => prev.map(r => r.user_id === userId ? { ...r, plan: newPlan } : r));
     setManagingUser(null);
     fetchData();
