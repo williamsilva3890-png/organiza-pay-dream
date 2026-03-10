@@ -88,11 +88,15 @@ const DespesasPage = ({ finance }: Props) => {
     if (!canAddDespesa) { toast.error(`Limite do plano gratuito atingido (${FREE_LIMITS.despesas} despesas). Faça upgrade para Premium!`); return; }
     if (!formAssinatura.description || !formAssinatura.amount || !formAssinatura.date || submitting) return;
     setSubmitting(true);
-    await addDespesa({ description: formAssinatura.description, amount: parseFloat(formAssinatura.amount), date: formAssinatura.date, category: formAssinatura.category, type: "assinatura" });
+    const success = await addDespesa({ description: formAssinatura.description, amount: parseFloat(formAssinatura.amount), date: formAssinatura.date, category: formAssinatura.category, type: "assinatura" });
     setFormAssinatura({ description: "", amount: "", date: "", category: "Outros" });
     setSubmitting(false);
     setOpenAssinatura(false);
-    toast.success("Assinatura adicionada!");
+    if (success) {
+      toast.success("Assinatura adicionada!");
+    } else {
+      toast.error("Erro ao adicionar assinatura. Tente novamente.");
+    }
   };
 
   const handleCancelAssinatura = async (id: string) => {
