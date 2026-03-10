@@ -111,11 +111,34 @@ const AdminPage = () => {
       .order("created_at", { ascending: false })
       .limit(20);
 
+    // Fetch recent signups
+    const { data: recentProfiles } = await supabase
+      .from("profiles")
+      .select("user_id, display_name, created_at")
+      .order("created_at", { ascending: false })
+      .limit(30);
+
+    let recentList: typeof recentUsers = [];
+    if (recentProfiles && recentProfiles.length > 0) {
+      const rUserIds = recentProfiles.map(p => p.user_id);
+      const { data: rSubs } = await supabase
+        .from("subscriptions")
+        .select("user_id, plan")
+        .in("user_id", rUserIds);
+      recentList = recentProfiles.map(p => ({
+        user_id: p.user_id,
+        display_name: p.display_name,
+        created_at: p.created_at,
+        plan: rSubs?.find(s => s.user_id === p.user_id)?.plan || "free",
+      }));
+    }
+
     setClientCount(profileCount || 0);
     setPremiumCount(premCount || 0);
     setSuggestions((suggestionsData as Suggestion[]) || []);
     setSubscribers(subscriberList);
     setAdminMessages((messagesData as AdminMessage[]) || []);
+    setRecentUsers(recentList);
     setLoading(false);
   };
 
