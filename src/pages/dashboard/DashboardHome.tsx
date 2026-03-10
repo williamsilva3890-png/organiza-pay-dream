@@ -201,7 +201,7 @@ const DashboardHome = ({ finance }: Props) => {
         )}
 
         {/* Row 1: Stat cards + Area chart */}
-        <div className="grid lg:grid-cols-5 gap-4">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {[
           { label: "Renda", value: totalReceitas, change: incomePctChange, color: "text-success" },
             { label: "Despesas", value: totalDespesas, change: expensePctChange, color: "text-destructive" },
