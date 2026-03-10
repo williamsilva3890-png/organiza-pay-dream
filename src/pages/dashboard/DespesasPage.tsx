@@ -22,9 +22,10 @@ interface Props {
 }
 
 const DespesasPage = ({ finance }: Props) => {
-  const { gastos, dividas, totalGastos, totalDividas, totalDespesas, addDespesa, addMultipleDespesas, updateDespesa, deleteDespesa, toggleDespesaPaid, canAddDespesa, isPremium, resetDespesas } = finance;
+  const { gastos, dividas, assinaturas, totalGastos, totalDividas, totalAssinaturas, totalDespesas, addDespesa, addMultipleDespesas, updateDespesa, deleteDespesa, toggleDespesaPaid, canAddDespesa, isPremium, resetDespesas } = finance;
   const [openGasto, setOpenGasto] = useState(false);
   const [openDivida, setOpenDivida] = useState(false);
+  const [openAssinatura, setOpenAssinatura] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
   const [editType, setEditType] = useState<"gasto" | "divida">("gasto");
