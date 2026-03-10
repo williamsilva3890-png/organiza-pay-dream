@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ArrowDownCircle, Plus, CreditCard, ShoppingCart, Lock, Pencil, Trash2, CheckCircle, Circle, RotateCcw, ChevronDown, ChevronUp } from "lucide-react";
+import { ArrowDownCircle, Plus, CreditCard, ShoppingCart, Lock, Pencil, Trash2, CheckCircle, Circle, RotateCcw, ChevronDown, ChevronUp, Repeat } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -22,14 +22,16 @@ interface Props {
 }
 
 const DespesasPage = ({ finance }: Props) => {
-  const { gastos, dividas, totalGastos, totalDividas, totalDespesas, addDespesa, addMultipleDespesas, updateDespesa, deleteDespesa, toggleDespesaPaid, canAddDespesa, isPremium, resetDespesas } = finance;
+  const { gastos, dividas, assinaturas, totalGastos, totalDividas, totalAssinaturas, totalDespesas, addDespesa, addMultipleDespesas, updateDespesa, deleteDespesa, toggleDespesaPaid, canAddDespesa, isPremium, resetDespesas } = finance;
   const [openGasto, setOpenGasto] = useState(false);
   const [openDivida, setOpenDivida] = useState(false);
+  const [openAssinatura, setOpenAssinatura] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
   const [editType, setEditType] = useState<"gasto" | "divida">("gasto");
   const [formGasto, setFormGasto] = useState({ description: "", amount: "", date: "", category: "Moradia" });
   const [formDivida, setFormDivida] = useState({ description: "", amount: "", date: "", details: "", parcelas: "1" });
+  const [formAssinatura, setFormAssinatura] = useState({ description: "", amount: "", date: "", category: "Outros" });
   const [submitting, setSubmitting] = useState(false);
   const [expandedDivida, setExpandedDivida] = useState<string | null>(null);
 
@@ -79,6 +81,22 @@ const DespesasPage = ({ finance }: Props) => {
     setFormDivida({ description: "", amount: "", date: "", details: "", parcelas: "1" });
     setSubmitting(false);
     setOpenDivida(false);
+  };
+
+  const handleAddAssinatura = async () => {
+    if (!canAddDespesa) { toast.error(`Limite do plano gratuito atingido (${FREE_LIMITS.despesas} despesas). Faça upgrade para Premium!`); return; }
+    if (!formAssinatura.description || !formAssinatura.amount || !formAssinatura.date || submitting) return;
+    setSubmitting(true);
+    await addDespesa({ description: formAssinatura.description, amount: parseFloat(formAssinatura.amount), date: formAssinatura.date, category: formAssinatura.category, type: "assinatura" });
+    setFormAssinatura({ description: "", amount: "", date: "", category: "Outros" });
+    setSubmitting(false);
+    setOpenAssinatura(false);
+    toast.success("Assinatura adicionada!");
+  };
+
+  const handleCancelAssinatura = async (id: string) => {
+    await deleteDespesa(id);
+    toast.success("Assinatura cancelada!");
   };
 
   const startEditGasto = (d: any) => {
@@ -177,7 +195,23 @@ const DespesasPage = ({ finance }: Props) => {
               </div>
             </DialogContent>
           </Dialog>
-          {isPremium && (gastos.length > 0 || dividas.length > 0) && (
+          <Dialog open={openAssinatura} onOpenChange={setOpenAssinatura}>
+            <DialogTrigger asChild><Button variant="outline" className="gap-2" disabled={!canAddDespesa && !isPremium}><Repeat className="w-4 h-4" />Nova assinatura</Button></DialogTrigger>
+            <DialogContent>
+              <DialogHeader><DialogTitle>Nova assinatura recorrente</DialogTitle></DialogHeader>
+              <div className="space-y-4 pt-2">
+                <div><label className="text-sm font-medium mb-1 block">Nome do serviço</label><input value={formAssinatura.description} onChange={(e) => setFormAssinatura(prev => ({ ...prev, description: e.target.value }))} className={inputClass} placeholder="Ex: Netflix, Spotify, iCloud" /></div>
+                <div><label className="text-sm font-medium mb-1 block">Valor mensal (R$)</label><input type="number" value={formAssinatura.amount} onChange={(e) => setFormAssinatura(prev => ({ ...prev, amount: e.target.value }))} className={inputClass} placeholder="0,00" /></div>
+                <div><label className="text-sm font-medium mb-1 block">Data de cobrança</label><input type="date" value={formAssinatura.date} onChange={(e) => setFormAssinatura(prev => ({ ...prev, date: e.target.value }))} className={inputClass} /></div>
+                <div><label className="text-sm font-medium mb-1 block">Categoria</label><select value={formAssinatura.category} onChange={(e) => setFormAssinatura(prev => ({ ...prev, category: e.target.value }))} className={inputClass}>{expenseCategories.map((c) => <option key={c}>{c}</option>)}</select></div>
+                <div className="bg-muted/50 rounded-lg p-3 text-xs text-muted-foreground">
+                  <p>🔄 Assinaturas são cobranças recorrentes que você decide quando cancelar.</p>
+                </div>
+                <Button onClick={handleAddAssinatura} className="w-full" disabled={submitting}>{submitting ? "Salvando..." : "Adicionar assinatura"}</Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+          {isPremium && (gastos.length > 0 || dividas.length > 0 || assinaturas.length > 0) && (
             <Button variant="ghost" size="sm" className="gap-1.5 text-destructive hover:text-destructive" onClick={handleReset}>
               <RotateCcw className="w-4 h-4" />Zerar
             </Button>
@@ -188,11 +222,11 @@ const DespesasPage = ({ finance }: Props) => {
       {!isPremium && (
         <div className="flex items-center gap-2 text-xs text-muted-foreground bg-muted/50 rounded-lg px-4 py-2.5">
           <Lock className="w-3.5 h-3.5" />
-          <span>Plano gratuito: {gastos.length + dividas.length}/{FREE_LIMITS.despesas} despesas usadas</span>
+          <span>Plano gratuito: {gastos.length + dividas.length + assinaturas.length}/{FREE_LIMITS.despesas} despesas usadas</span>
         </div>
       )}
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="bg-card rounded-xl p-5 border border-border shadow-card">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-lg bg-destructive/10 flex items-center justify-center"><ArrowDownCircle className="w-5 h-5 text-destructive" /></div>
@@ -209,6 +243,12 @@ const DespesasPage = ({ finance }: Props) => {
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-lg bg-destructive/10 flex items-center justify-center"><CreditCard className="w-5 h-5 text-destructive" /></div>
             <div><p className="text-sm text-muted-foreground">Dívidas</p><p className="font-display font-bold text-xl text-destructive">{fmt(totalDividas)}</p></div>
+          </div>
+        </motion.div>
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} className="bg-card rounded-xl p-5 border border-border shadow-card">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center"><Repeat className="w-5 h-5 text-primary" /></div>
+            <div><p className="text-sm text-muted-foreground">Assinaturas</p><p className="font-display font-bold text-xl text-primary">{fmt(totalAssinaturas)}</p></div>
           </div>
         </motion.div>
       </div>
@@ -336,7 +376,39 @@ const DespesasPage = ({ finance }: Props) => {
         </div>
       </div>
 
-      {/* Edit dialog */}
+      {/* Assinaturas list */}
+      <div>
+        <h2 className="font-display font-bold text-lg mb-3 flex items-center gap-2"><Repeat className="w-5 h-5 text-primary" /> Assinaturas</h2>
+        <div className="bg-card rounded-xl border border-border shadow-card overflow-hidden">
+          {assinaturas.length === 0 && <div className="px-5 py-8 text-center text-sm text-muted-foreground">Nenhuma assinatura cadastrada</div>}
+          {assinaturas.map((d, i) => (
+            <motion.div key={d.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.05 }}
+              className="flex flex-col sm:grid sm:grid-cols-[1fr_auto_auto_auto_auto] gap-1 sm:gap-4 px-4 sm:px-5 py-3 border-t border-border sm:items-center hover:bg-muted/30 transition-colors">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                  <Repeat className="w-4 h-4 text-primary" />
+                </div>
+                <span className="text-sm font-medium">{d.description}</span>
+              </div>
+              <div className="flex items-center gap-2 sm:contents">
+                <span className={`text-xs rounded-full px-2.5 py-1 font-medium ${categoryColors[d.category] || "bg-muted text-muted-foreground"}`}>{d.category}</span>
+                <span className="text-xs sm:text-sm text-muted-foreground">{new Date(d.date).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" })}</span>
+                <span className="text-sm font-semibold text-primary ml-auto sm:ml-0 sm:text-right">-{fmt(Number(d.amount))}/mês</span>
+              </div>
+              <div className="flex gap-1 self-end sm:self-auto">
+                {isPremium && (
+                  <button onClick={() => startEditGasto(d)} className="p-1.5 rounded-md hover:bg-muted transition-colors"><Pencil className="w-3.5 h-3.5 text-muted-foreground" /></button>
+                )}
+                <Button variant="outline" size="sm" className="h-7 text-xs gap-1 text-destructive border-destructive/30 hover:bg-destructive/10" onClick={() => handleCancelAssinatura(d.id)}>
+                  Cancelar
+                </Button>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+      </div>
+
+
       <Dialog open={editOpen} onOpenChange={setEditOpen}>
         <DialogContent>
           <DialogHeader><DialogTitle>Editar {editType === "gasto" ? "gasto" : "dívida"}</DialogTitle></DialogHeader>

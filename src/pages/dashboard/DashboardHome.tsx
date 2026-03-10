@@ -201,12 +201,11 @@ const DashboardHome = ({ finance }: Props) => {
         )}
 
         {/* Row 1: Stat cards + Area chart */}
-        <div className="grid lg:grid-cols-5 gap-4">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {[
-            { label: "Renda", value: totalReceitas, change: incomePctChange, color: "text-success" },
+          { label: "Renda", value: totalReceitas, change: incomePctChange, color: "text-success" },
             { label: "Despesas", value: totalDespesas, change: expensePctChange, color: "text-destructive" },
             { label: "Economia", value: savingsRate, suffix: "%", change: incomePctChange, color: savingsRate >= 20 ? "text-success" : "text-warning" },
-            { label: "Média/dia", value: dailyAvgExpense, change: expensePctChange, color: "text-muted-foreground" },
             { label: "Projeção anual", value: yearlyProjection, change: incomePctChange, color: "text-primary" },
           ].map((stat, i) => (
             <motion.div key={stat.label} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.06 }}
@@ -495,12 +494,11 @@ const DashboardHome = ({ finance }: Props) => {
           { label: "Saldo", value: saldo, change: incomePct, icon: Wallet, iconBg: "bg-primary/10", iconColor: "text-primary" },
           { label: "Renda", value: totalReceitas, change: incomePct, icon: TrendingUp, iconBg: "bg-success/10", iconColor: "text-success" },
           { label: "Despesas", value: totalDespesas, change: expensePct, icon: TrendingDown, iconBg: "bg-destructive/10", iconColor: "text-destructive" },
-          { label: "Média/dia", value: dailyAvg, change: expensePct, icon: CreditCard, iconBg: "bg-warning/10", iconColor: "text-warning" },
         ];
 
         return (
           <>
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               {stats.map((stat, i) => (
                 <motion.div key={stat.label} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.08 }}
                   className="bg-card rounded-xl p-4 border border-border shadow-card">

@@ -144,6 +144,35 @@ const AdminPage = () => {
 
   useEffect(() => {
     fetchData();
+
+    // Realtime subscription for new signups
+    const channel = supabase
+      .channel('admin-recent-signups')
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'profiles' },
+        async (payload) => {
+          const newProfile = payload.new as { user_id: string; display_name: string | null; created_at: string };
+          // Check subscription status
+          const { data: sub } = await supabase
+            .from("subscriptions")
+            .select("plan")
+            .eq("user_id", newProfile.user_id)
+            .maybeSingle();
+          setRecentUsers(prev => [{
+            user_id: newProfile.user_id,
+            display_name: newProfile.display_name,
+            created_at: newProfile.created_at,
+            plan: sub?.plan || "free",
+          }, ...prev].slice(0, 30));
+          setClientCount(prev => prev + 1);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const updateStatus = async (id: string, newStatus: string) => {
