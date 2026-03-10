@@ -18,7 +18,7 @@ export interface Despesa {
   amount: number;
   date: string;
   category: string;
-  type: "gasto" | "divida";
+  type: "gasto" | "divida" | "assinatura";
   details?: string;
   paid?: boolean;
 }
