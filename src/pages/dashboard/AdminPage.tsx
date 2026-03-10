@@ -59,6 +59,7 @@ const AdminPage = () => {
   const [searchResults, setSearchResults] = useState<{ user_id: string; display_name: string | null; plan: string }[]>([]);
   const [searching, setSearching] = useState(false);
   const [managingUser, setManagingUser] = useState<string | null>(null);
+  const [trialDays, setTrialDays] = useState<Record<string, string>>({});
 
   const fetchData = async () => {
     setLoading(true);
