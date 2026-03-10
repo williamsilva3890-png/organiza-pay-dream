@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { ArrowDownCircle, Plus, CreditCard, ShoppingCart, Lock, Pencil, Trash2, CheckCircle, Circle, RotateCcw, ChevronDown, ChevronUp, Repeat } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { useFinanceData, FREE_LIMITS } from "@/hooks/useFinanceData";
+import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 
 const categoryColors: Record<string, string> = {
   Moradia: "bg-primary/10 text-primary",
@@ -226,32 +227,103 @@ const DespesasPage = ({ finance }: Props) => {
         </div>
       )}
 
-      <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="bg-card rounded-xl p-5 border border-border shadow-card">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-destructive/10 flex items-center justify-center"><ArrowDownCircle className="w-5 h-5 text-destructive" /></div>
-            <div><p className="text-sm text-muted-foreground">Total geral</p><p className="font-display font-bold text-xl text-destructive">{fmt(totalDespesas)}</p></div>
+      {/* Stats + Chart */}
+      {(() => {
+        // Build monthly expense data for chart
+        const allDespesas = finance.despesas;
+        const monthlyMap: Record<string, { gastos: number; dividas: number; assinaturas: number }> = {};
+        const now = new Date();
+        for (let i = 5; i >= 0; i--) {
+          const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+          const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+          monthlyMap[key] = { gastos: 0, dividas: 0, assinaturas: 0 };
+        }
+        allDespesas.forEach(d => {
+          const key = d.date.slice(0, 7);
+          if (monthlyMap[key]) {
+            if (d.type === "divida") monthlyMap[key].dividas += Number(d.amount);
+            else if (d.type === "assinatura") monthlyMap[key].assinaturas += Number(d.amount);
+            else monthlyMap[key].gastos += Number(d.amount);
+          }
+        });
+        const chartData = Object.entries(monthlyMap).map(([key, v]) => ({
+          month: new Date(key + "-01").toLocaleDateString("pt-BR", { month: "short" }),
+          Gastos: v.gastos,
+          Dívidas: v.dividas,
+          Assinaturas: v.assinaturas,
+        }));
+
+        const stats = [
+          { label: "Total geral", value: totalDespesas, icon: ArrowDownCircle, iconBg: "bg-destructive/10", iconColor: "text-destructive", valueColor: "text-destructive" },
+          { label: "Gastos", value: totalGastos, icon: ShoppingCart, iconBg: "bg-warning/10", iconColor: "text-warning", valueColor: "text-foreground" },
+          { label: "Dívidas", value: totalDividas, icon: CreditCard, iconBg: "bg-destructive/10", iconColor: "text-destructive", valueColor: "text-destructive" },
+          { label: "Assinaturas", value: totalAssinaturas, icon: Repeat, iconBg: "bg-primary/10", iconColor: "text-primary", valueColor: "text-primary" },
+        ];
+
+        return (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            {/* Left: stat cards in 2x2 grid */}
+            <div className="grid grid-cols-2 gap-3">
+              {stats.map((stat, i) => (
+                <motion.div key={stat.label} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.06 }}
+                  className="bg-card rounded-xl p-4 border border-border shadow-card flex flex-col gap-2">
+                  <div className="flex items-center gap-2">
+                    <div className={`w-8 h-8 rounded-lg ${stat.iconBg} flex items-center justify-center`}>
+                      <stat.icon className={`w-4 h-4 ${stat.iconColor}`} />
+                    </div>
+                    <p className="text-[11px] text-muted-foreground">{stat.label}</p>
+                  </div>
+                  <p className={`font-display font-bold text-lg ${stat.valueColor}`}>{fmt(stat.value)}</p>
+                </motion.div>
+              ))}
+            </div>
+
+            {/* Right: Area chart */}
+            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}
+              className="lg:col-span-2 bg-card rounded-xl p-5 border border-border shadow-card">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="font-display font-bold text-sm">Despesas por tipo</h3>
+                <span className="text-[10px] text-muted-foreground">Últimos 6 meses</span>
+              </div>
+              <div className="h-[180px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={chartData} margin={{ top: 5, right: 10, left: -15, bottom: 0 }}>
+                    <defs>
+                      <linearGradient id="gGastos" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="hsl(var(--warning))" stopOpacity={0.4} />
+                        <stop offset="95%" stopColor="hsl(var(--warning))" stopOpacity={0} />
+                      </linearGradient>
+                      <linearGradient id="gDividas" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="hsl(var(--destructive))" stopOpacity={0.4} />
+                        <stop offset="95%" stopColor="hsl(var(--destructive))" stopOpacity={0} />
+                      </linearGradient>
+                      <linearGradient id="gAssinaturas" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.4} />
+                        <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                    <XAxis dataKey="month" tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} />
+                    <YAxis tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} tickFormatter={(v) => v >= 1000 ? `${(v/1000).toFixed(0)}k` : v} />
+                    <Tooltip
+                      contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: "8px", fontSize: "12px" }}
+                      formatter={(value: number) => [fmt(value), undefined]}
+                    />
+                    <Area type="monotone" dataKey="Gastos" stroke="hsl(var(--warning))" fill="url(#gGastos)" strokeWidth={2} />
+                    <Area type="monotone" dataKey="Dívidas" stroke="hsl(var(--destructive))" fill="url(#gDividas)" strokeWidth={2} />
+                    <Area type="monotone" dataKey="Assinaturas" stroke="hsl(var(--primary))" fill="url(#gAssinaturas)" strokeWidth={2} />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
+              <div className="flex items-center gap-4 mt-2 justify-center">
+                <span className="flex items-center gap-1.5 text-[10px] text-muted-foreground"><span className="w-2.5 h-2.5 rounded-full bg-warning" />Gastos</span>
+                <span className="flex items-center gap-1.5 text-[10px] text-muted-foreground"><span className="w-2.5 h-2.5 rounded-full bg-destructive" />Dívidas</span>
+                <span className="flex items-center gap-1.5 text-[10px] text-muted-foreground"><span className="w-2.5 h-2.5 rounded-full bg-primary" />Assinaturas</span>
+              </div>
+            </motion.div>
           </div>
-        </motion.div>
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }} className="bg-card rounded-xl p-5 border border-border shadow-card">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-warning/10 flex items-center justify-center"><ShoppingCart className="w-5 h-5 text-warning" /></div>
-            <div><p className="text-sm text-muted-foreground">Gastos</p><p className="font-display font-bold text-xl">{fmt(totalGastos)}</p></div>
-          </div>
-        </motion.div>
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="bg-card rounded-xl p-5 border border-border shadow-card">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-destructive/10 flex items-center justify-center"><CreditCard className="w-5 h-5 text-destructive" /></div>
-            <div><p className="text-sm text-muted-foreground">Dívidas</p><p className="font-display font-bold text-xl text-destructive">{fmt(totalDividas)}</p></div>
-          </div>
-        </motion.div>
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} className="bg-card rounded-xl p-5 border border-border shadow-card">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center"><Repeat className="w-5 h-5 text-primary" /></div>
-            <div><p className="text-sm text-muted-foreground">Assinaturas</p><p className="font-display font-bold text-xl text-primary">{fmt(totalAssinaturas)}</p></div>
-          </div>
-        </motion.div>
-      </div>
+        );
+      })()}
 
       {/* Gastos list */}
       <div>
