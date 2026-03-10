@@ -245,6 +245,12 @@ const DespesasPage = ({ finance }: Props) => {
             <div><p className="text-sm text-muted-foreground">Dívidas</p><p className="font-display font-bold text-xl text-destructive">{fmt(totalDividas)}</p></div>
           </div>
         </motion.div>
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} className="bg-card rounded-xl p-5 border border-border shadow-card">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center"><Repeat className="w-5 h-5 text-primary" /></div>
+            <div><p className="text-sm text-muted-foreground">Assinaturas</p><p className="font-display font-bold text-xl text-primary">{fmt(totalAssinaturas)}</p></div>
+          </div>
+        </motion.div>
       </div>
 
       {/* Gastos list */}
