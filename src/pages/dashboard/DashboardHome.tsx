@@ -498,7 +498,7 @@ const DashboardHome = ({ finance }: Props) => {
 
         return (
           <>
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               {stats.map((stat, i) => (
                 <motion.div key={stat.label} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.08 }}
                   className="bg-card rounded-xl p-4 border border-border shadow-card">
