@@ -161,14 +161,14 @@ const DespesasPage = ({ finance }: Props) => {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <div className="space-y-3">
         <div>
           <h1 className="font-display font-bold text-2xl">Despesas</h1>
           <p className="text-sm text-muted-foreground">Controle suas saídas por categoria</p>
         </div>
-        <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2">
           <Dialog open={openGasto} onOpenChange={setOpenGasto}>
-            <DialogTrigger asChild><Button variant="default" className="gap-2" disabled={!canAddDespesa && !isPremium}><Plus className="w-4 h-4" />Novo gasto</Button></DialogTrigger>
+            <DialogTrigger asChild><Button variant="default" className="gap-2 w-full sm:w-auto" disabled={!canAddDespesa && !isPremium}><Plus className="w-4 h-4" />Novo gasto</Button></DialogTrigger>
             <DialogContent>
               <DialogHeader><DialogTitle>Novo gasto</DialogTitle></DialogHeader>
               <div className="space-y-4 pt-2">
@@ -181,7 +181,7 @@ const DespesasPage = ({ finance }: Props) => {
             </DialogContent>
           </Dialog>
           <Dialog open={openDivida} onOpenChange={setOpenDivida}>
-            <DialogTrigger asChild><Button variant="outline" className="gap-2" disabled={!canAddDespesa && !isPremium}><CreditCard className="w-4 h-4" />Nova dívida</Button></DialogTrigger>
+            <DialogTrigger asChild><Button variant="outline" className="gap-2 w-full sm:w-auto" disabled={!canAddDespesa && !isPremium}><CreditCard className="w-4 h-4" />Nova dívida</Button></DialogTrigger>
             <DialogContent>
               <DialogHeader><DialogTitle>Nova dívida</DialogTitle></DialogHeader>
               <div className="space-y-4 pt-2">
@@ -201,7 +201,7 @@ const DespesasPage = ({ finance }: Props) => {
             </DialogContent>
           </Dialog>
           <Dialog open={openAssinatura} onOpenChange={setOpenAssinatura}>
-            <DialogTrigger asChild><Button variant="outline" className="gap-2" disabled={!canAddDespesa && !isPremium}><Repeat className="w-4 h-4" />Nova assinatura</Button></DialogTrigger>
+            <DialogTrigger asChild><Button variant="outline" className="gap-2 w-full sm:w-auto" disabled={!canAddDespesa && !isPremium}><Repeat className="w-4 h-4" />Nova assinatura</Button></DialogTrigger>
             <DialogContent>
               <DialogHeader><DialogTitle>Nova assinatura recorrente</DialogTitle></DialogHeader>
               <div className="space-y-4 pt-2">
@@ -217,7 +217,7 @@ const DespesasPage = ({ finance }: Props) => {
             </DialogContent>
           </Dialog>
           {isPremium && (gastos.length > 0 || dividas.length > 0 || assinaturas.length > 0) && (
-            <Button variant="ghost" size="sm" className="gap-1.5 text-destructive hover:text-destructive" onClick={handleReset}>
+            <Button variant="ghost" size="sm" className="gap-1.5 text-destructive hover:text-destructive col-span-2 sm:col-span-1" onClick={handleReset}>
               <RotateCcw className="w-4 h-4" />Zerar
             </Button>
           )}

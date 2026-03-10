@@ -164,22 +164,25 @@ export const useFinanceData = () => {
   };
 
   const addDespesa = async (data: Omit<Despesa, "id">): Promise<boolean> => {
-    if (!user || addingRef.current) return false;
-    addingRef.current = true;
+    if (!user) return false;
     const tempId = crypto.randomUUID();
     const optimistic = { ...data, id: tempId } as Despesa;
     setDespesas(prev => [optimistic, ...prev]);
-    const { error } = await supabase.from("despesas").insert({ ...data, user_id: user.id } as any);
-    if (error) { 
-      console.error("Erro ao adicionar despesa:", error);
-      setDespesas(prev => prev.filter(d => d.id !== tempId)); 
-      addingRef.current = false;
+    try {
+      const { error } = await supabase.from("despesas").insert({ ...data, user_id: user.id } as any);
+      if (error) { 
+        console.error("Erro ao adicionar despesa:", error);
+        setDespesas(prev => prev.filter(d => d.id !== tempId)); 
+        return false;
+      }
+      const { data: fresh } = await supabase.from("despesas").select("*").eq("user_id", user.id).order("date", { ascending: false });
+      if (fresh) setDespesas(fresh as any);
+      return true;
+    } catch (err) {
+      console.error("Erro ao adicionar despesa:", err);
+      setDespesas(prev => prev.filter(d => d.id !== tempId));
       return false;
     }
-    const { data: fresh } = await supabase.from("despesas").select("*").eq("user_id", user.id).order("date", { ascending: false });
-    if (fresh) setDespesas(fresh as any);
-    addingRef.current = false;
-    return true;
   };
 
   // Add multiple despesas at once (for installments)
