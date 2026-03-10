@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Users, Lightbulb, Trash2, CheckCircle, Clock, AlertCircle, Send, MessageSquare, Calendar, Crown, Search, ShieldCheck, ShieldOff } from "lucide-react";
+import { Users, Lightbulb, Trash2, CheckCircle, Clock, AlertCircle, Send, MessageSquare, Calendar, Crown, Search, ShieldCheck, ShieldOff, UserPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -52,7 +52,8 @@ const AdminPage = () => {
   const [msgTitle, setMsgTitle] = useState("");
   const [msgBody, setMsgBody] = useState("");
   const [sending, setSending] = useState(false);
-  const [activeTab, setActiveTab] = useState<"overview" | "subscribers" | "manage" | "messages">("overview");
+  const [activeTab, setActiveTab] = useState<"overview" | "subscribers" | "manage" | "messages" | "recent">("overview");
+  const [recentUsers, setRecentUsers] = useState<{ user_id: string; display_name: string | null; created_at: string; plan: string }[]>([]);
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
   const [replyText, setReplyText] = useState("");
   const [searchEmail, setSearchEmail] = useState("");
@@ -110,11 +111,34 @@ const AdminPage = () => {
       .order("created_at", { ascending: false })
       .limit(20);
 
+    // Fetch recent signups
+    const { data: recentProfiles } = await supabase
+      .from("profiles")
+      .select("user_id, display_name, created_at")
+      .order("created_at", { ascending: false })
+      .limit(30);
+
+    let recentList: typeof recentUsers = [];
+    if (recentProfiles && recentProfiles.length > 0) {
+      const rUserIds = recentProfiles.map(p => p.user_id);
+      const { data: rSubs } = await supabase
+        .from("subscriptions")
+        .select("user_id, plan")
+        .in("user_id", rUserIds);
+      recentList = recentProfiles.map(p => ({
+        user_id: p.user_id,
+        display_name: p.display_name,
+        created_at: p.created_at,
+        plan: rSubs?.find(s => s.user_id === p.user_id)?.plan || "free",
+      }));
+    }
+
     setClientCount(profileCount || 0);
     setPremiumCount(premCount || 0);
     setSuggestions((suggestionsData as Suggestion[]) || []);
     setSubscribers(subscriberList);
     setAdminMessages((messagesData as AdminMessage[]) || []);
+    setRecentUsers(recentList);
     setLoading(false);
   };
 
@@ -310,6 +334,7 @@ const AdminPage = () => {
         {[
           { key: "overview" as const, label: "Sugestões", icon: Lightbulb },
           { key: "subscribers" as const, label: "Assinantes", icon: Crown },
+          { key: "recent" as const, label: "Recentes", icon: UserPlus },
           { key: "manage" as const, label: "Gerenciar Premium", icon: ShieldCheck },
           { key: "messages" as const, label: "Mensagens", icon: MessageSquare },
         ].map(tab => (
@@ -496,6 +521,44 @@ const AdminPage = () => {
                       >
                         <ShieldOff className="w-3 h-3" /> Remover
                       </Button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </motion.div>
+      )}
+
+      {/* Recent users tab */}
+      {activeTab === "recent" && (
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+          className="bg-card rounded-xl p-5 border border-border shadow-card">
+          <div className="flex items-center gap-2 mb-4">
+            <UserPlus className="w-5 h-5 text-primary" />
+            <h3 className="font-display font-bold text-base">Cadastros Recentes</h3>
+            <span className="text-xs text-muted-foreground ml-auto">Últimos 30</span>
+          </div>
+          {recentUsers.length === 0 ? (
+            <p className="text-sm text-muted-foreground text-center py-8">Nenhum cadastro encontrado.</p>
+          ) : (
+            <div className="space-y-2">
+              {recentUsers.map((u) => {
+                const daysAgo = Math.floor((Date.now() - new Date(u.created_at).getTime()) / (1000 * 60 * 60 * 24));
+                const timeLabel = daysAgo === 0 ? "Hoje" : daysAgo === 1 ? "Ontem" : `${daysAgo}d atrás`;
+                return (
+                  <div key={u.user_id} className="border border-border rounded-lg p-3 flex items-center justify-between gap-3">
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold truncate">{u.display_name || "Sem nome"}</p>
+                      <p className="text-[10px] text-muted-foreground">
+                        {new Date(u.created_at).toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${u.plan === "premium" ? "bg-amber-500/10 text-amber-500" : "bg-muted text-muted-foreground"}`}>
+                        {u.plan === "premium" ? "👑 Premium" : "Gratuito"}
+                      </span>
+                      <span className="text-[10px] text-muted-foreground">{timeLabel}</span>
                     </div>
                   </div>
                 );
