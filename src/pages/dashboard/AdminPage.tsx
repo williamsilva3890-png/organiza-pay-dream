@@ -431,7 +431,7 @@ const AdminPage = () => {
               {subscribers.map((sub) => {
                 const status = getExpirationStatus(sub.expires_at);
                 return (
-                  <div key={sub.user_id} className="border border-border rounded-lg p-4">
+                  <div key={sub.user_id} className="border border-border rounded-lg p-4 space-y-3">
                     <div className="flex items-center justify-between gap-3 flex-wrap">
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-semibold">{sub.display_name}</p>
@@ -441,13 +441,47 @@ const AdminPage = () => {
                         {status.label}
                       </span>
                     </div>
-                    <div className="flex items-center gap-2 mt-3">
+                    <div className="flex items-center gap-2">
                       <Calendar className="w-4 h-4 text-muted-foreground shrink-0" />
                       <span className="text-xs font-medium">
                         {sub.expires_at
                           ? `Vence: ${new Date(sub.expires_at).toLocaleDateString("pt-BR")}`
                           : "Sem data de vencimento definida"}
                       </span>
+                    </div>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <label className="text-xs text-muted-foreground whitespace-nowrap">Definir dias:</label>
+                      <Input
+                        type="number"
+                        min="1"
+                        max="365"
+                        placeholder="30"
+                        value={trialDays[sub.user_id] || ""}
+                        onChange={(e) => setTrialDays(prev => ({ ...prev, [sub.user_id]: e.target.value }))}
+                        className="w-20 h-8 text-sm"
+                      />
+                      <Button
+                        size="sm"
+                        className="h-8 text-xs gap-1"
+                        onClick={async () => {
+                          const days = parseInt(trialDays[sub.user_id] || "30") || 30;
+                          const expiresAt = new Date();
+                          expiresAt.setDate(expiresAt.getDate() + days);
+                          await updateExpiresAt(sub.user_id, expiresAt.toISOString().slice(0, 10));
+                          setTrialDays(prev => ({ ...prev, [sub.user_id]: "" }));
+                        }}
+                      >
+                        <Crown className="w-3 h-3" /> Aplicar {trialDays[sub.user_id] || "30"}d
+                      </Button>
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        className="h-8 text-xs gap-1"
+                        onClick={() => togglePremium(sub.user_id, "premium")}
+                        disabled={managingUser === sub.user_id}
+                      >
+                        <ShieldOff className="w-3 h-3" /> Remover
+                      </Button>
                     </div>
                   </div>
                 );
