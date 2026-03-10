@@ -195,7 +195,23 @@ const DespesasPage = ({ finance }: Props) => {
               </div>
             </DialogContent>
           </Dialog>
-          {isPremium && (gastos.length > 0 || dividas.length > 0) && (
+          <Dialog open={openAssinatura} onOpenChange={setOpenAssinatura}>
+            <DialogTrigger asChild><Button variant="outline" className="gap-2" disabled={!canAddDespesa && !isPremium}><Repeat className="w-4 h-4" />Nova assinatura</Button></DialogTrigger>
+            <DialogContent>
+              <DialogHeader><DialogTitle>Nova assinatura recorrente</DialogTitle></DialogHeader>
+              <div className="space-y-4 pt-2">
+                <div><label className="text-sm font-medium mb-1 block">Nome do serviço</label><input value={formAssinatura.description} onChange={(e) => setFormAssinatura(prev => ({ ...prev, description: e.target.value }))} className={inputClass} placeholder="Ex: Netflix, Spotify, iCloud" /></div>
+                <div><label className="text-sm font-medium mb-1 block">Valor mensal (R$)</label><input type="number" value={formAssinatura.amount} onChange={(e) => setFormAssinatura(prev => ({ ...prev, amount: e.target.value }))} className={inputClass} placeholder="0,00" /></div>
+                <div><label className="text-sm font-medium mb-1 block">Data de cobrança</label><input type="date" value={formAssinatura.date} onChange={(e) => setFormAssinatura(prev => ({ ...prev, date: e.target.value }))} className={inputClass} /></div>
+                <div><label className="text-sm font-medium mb-1 block">Categoria</label><select value={formAssinatura.category} onChange={(e) => setFormAssinatura(prev => ({ ...prev, category: e.target.value }))} className={inputClass}>{expenseCategories.map((c) => <option key={c}>{c}</option>)}</select></div>
+                <div className="bg-muted/50 rounded-lg p-3 text-xs text-muted-foreground">
+                  <p>🔄 Assinaturas são cobranças recorrentes que você decide quando cancelar.</p>
+                </div>
+                <Button onClick={handleAddAssinatura} className="w-full" disabled={submitting}>{submitting ? "Salvando..." : "Adicionar assinatura"}</Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+          {isPremium && (gastos.length > 0 || dividas.length > 0 || assinaturas.length > 0) && (
             <Button variant="ghost" size="sm" className="gap-1.5 text-destructive hover:text-destructive" onClick={handleReset}>
               <RotateCcw className="w-4 h-4" />Zerar
             </Button>
