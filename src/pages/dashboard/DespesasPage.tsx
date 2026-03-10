@@ -31,6 +31,7 @@ const DespesasPage = ({ finance }: Props) => {
   const [editType, setEditType] = useState<"gasto" | "divida">("gasto");
   const [formGasto, setFormGasto] = useState({ description: "", amount: "", date: "", category: "Moradia" });
   const [formDivida, setFormDivida] = useState({ description: "", amount: "", date: "", details: "", parcelas: "1" });
+  const [formAssinatura, setFormAssinatura] = useState({ description: "", amount: "", date: "", category: "Outros" });
   const [submitting, setSubmitting] = useState(false);
   const [expandedDivida, setExpandedDivida] = useState<string | null>(null);
 
