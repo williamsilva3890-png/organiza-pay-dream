@@ -294,8 +294,10 @@ export const useFinanceData = () => {
   const saldo = totalReceitas - totalDespesas;
   const gastos = despesas.filter(d => d.type === "gasto");
   const dividas = despesas.filter(d => d.type === "divida");
+  const assinaturas = despesas.filter(d => d.type === "assinatura");
   const totalGastos = gastos.reduce((s, d) => s + Number(d.amount), 0);
   const totalDividas = dividas.reduce((s, d) => s + Number(d.amount), 0);
+  const totalAssinaturas = assinaturas.reduce((s, d) => s + Number(d.amount), 0);
 
   return {
     receitas, despesas, metas, profile, subscription, loading, isPremium,
