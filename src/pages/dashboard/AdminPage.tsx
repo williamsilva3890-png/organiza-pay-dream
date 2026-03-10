@@ -52,7 +52,8 @@ const AdminPage = () => {
   const [msgTitle, setMsgTitle] = useState("");
   const [msgBody, setMsgBody] = useState("");
   const [sending, setSending] = useState(false);
-  const [activeTab, setActiveTab] = useState<"overview" | "subscribers" | "manage" | "messages">("overview");
+  const [activeTab, setActiveTab] = useState<"overview" | "subscribers" | "manage" | "messages" | "recent">("overview");
+  const [recentUsers, setRecentUsers] = useState<{ user_id: string; display_name: string | null; created_at: string; plan: string }[]>([]);
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
   const [replyText, setReplyText] = useState("");
   const [searchEmail, setSearchEmail] = useState("");
