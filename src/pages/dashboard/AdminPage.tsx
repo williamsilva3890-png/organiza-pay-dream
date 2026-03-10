@@ -474,6 +474,20 @@ const AdminPage = () => {
                         <Crown className="w-3 h-3" /> Aplicar {trialDays[sub.user_id] || "30"}d
                       </Button>
                       <Button
+                        size="sm"
+                        variant="outline"
+                        className="h-8 text-xs gap-1"
+                        onClick={async () => {
+                          const base = sub.expires_at && new Date(sub.expires_at) > new Date()
+                            ? new Date(sub.expires_at)
+                            : new Date();
+                          base.setDate(base.getDate() + 30);
+                          await updateExpiresAt(sub.user_id, base.toISOString().slice(0, 10));
+                        }}
+                      >
+                        🔄 Renovar +30d
+                      </Button>
+                      <Button
                         variant="destructive"
                         size="sm"
                         className="h-8 text-xs gap-1"
