@@ -334,6 +334,7 @@ const AdminPage = () => {
         {[
           { key: "overview" as const, label: "Sugestões", icon: Lightbulb },
           { key: "subscribers" as const, label: "Assinantes", icon: Crown },
+          { key: "recent" as const, label: "Recentes", icon: UserPlus },
           { key: "manage" as const, label: "Gerenciar Premium", icon: ShieldCheck },
           { key: "messages" as const, label: "Mensagens", icon: MessageSquare },
         ].map(tab => (
