@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ArrowDownCircle, Plus, CreditCard, ShoppingCart, Lock, Pencil, Trash2, CheckCircle, Circle, RotateCcw, ChevronDown, ChevronUp } from "lucide-react";
+import { ArrowDownCircle, Plus, CreditCard, ShoppingCart, Lock, Pencil, Trash2, CheckCircle, Circle, RotateCcw, ChevronDown, ChevronUp, Repeat } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
