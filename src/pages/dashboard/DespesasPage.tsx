@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { ArrowDownCircle, Plus, CreditCard, ShoppingCart, Lock, Pencil, Trash2, CheckCircle, Circle, RotateCcw, ChevronDown, ChevronUp, Repeat } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { useFinanceData, FREE_LIMITS } from "@/hooks/useFinanceData";
+import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 
 const categoryColors: Record<string, string> = {
   Moradia: "bg-primary/10 text-primary",
