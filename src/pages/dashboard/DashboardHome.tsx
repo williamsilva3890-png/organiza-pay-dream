@@ -494,7 +494,6 @@ const DashboardHome = ({ finance }: Props) => {
           { label: "Saldo", value: saldo, change: incomePct, icon: Wallet, iconBg: "bg-primary/10", iconColor: "text-primary" },
           { label: "Renda", value: totalReceitas, change: incomePct, icon: TrendingUp, iconBg: "bg-success/10", iconColor: "text-success" },
           { label: "Despesas", value: totalDespesas, change: expensePct, icon: TrendingDown, iconBg: "bg-destructive/10", iconColor: "text-destructive" },
-          { label: "Média/dia", value: dailyAvg, change: expensePct, icon: CreditCard, iconBg: "bg-warning/10", iconColor: "text-warning" },
         ];
 
         return (
